@@ -1,0 +1,119 @@
+# =========================
+# Xcode
+# =========================
+
+# 빌드 결과물 (Xcode가 생성)
+build/
+
+# 파생 데이터 (컴파일 캐시 등, 자동 생성됨)
+DerivedData/
+
+# 사용자 설정 파일 (개인마다 다름, 충돌 방지)
+xcuserdata/
+*.xcuserdata/
+*.xcuserstate
+*.xcuserdatad
+
+# 사용자 별 UI 상태 (편집기 탭 등 개인화된 설정)
+*.xcworkspace/xcuserdata/
+
+# 사용자 작업 공간 (개인 설정, 공유 불필요)
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+
+# =========================
+# Swift / iOS
+# =========================
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+*.swiftmodule
+*.swiftdoc
+*.swiftsourceinfo
+
+# =========================
+# Package Managers
+# =========================
+
+## Swift Package Manager
+.build/
+Packages/
+Package.resolved
+Package.pins
+.swiftpm/
+.swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
+
+## CocoaPods
+Pods/
+Podfile.lock
+
+## Carthage
+Carthage/Build/
+
+# =========================
+# Supabase / Secrets
+# =========================
+
+# Environment variables
+.env
+.env.*
+*.env
+
+# Config files with secrets
+AppConfig.plist
+Secrets.plist
+Supabase.plist
+supabase.config.*
+supabase.json
+
+# Firebase / Backend configs
+GoogleService-Info.plist
+
+# =========================
+# Logs / Temporary
+# =========================
+*.log
+*.tmp
+*.temp
+*.swp
+*.swo
+
+# =========================
+# macOS
+# =========================
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# =========================
+# IDEs
+# =========================
+.idea/
+.vscode/
+*.iml
+
+# =========================
+# Fastlane
+# =========================
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output
+
+# =========================
+# Coverage
+# =========================
+*.gcno
+*.gcda
+*.gcov
+*.profraw
+
+# =========================
+# Archives
+# =========================
+*.zip
+*.tar
+*.tar.gz
