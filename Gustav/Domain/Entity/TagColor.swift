@@ -9,7 +9,7 @@ import Foundation
 
 // MARK: - 태그 색상 열거형
 // Supabase Int -> Enum 치환, Category / Location / ItemState에서 활용
-public enum TagColor: Int {
+enum TagColor: Int {
     case darkGray = 0
     case lightGray = 1
     case brown = 2
