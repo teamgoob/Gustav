@@ -7,5 +7,5 @@
 
 import Foundation
 
-// MARK: - Doman Error를 반환하는 Domain Layer Result
+// MARK: - Domain Error를 반환하는 Domain Layer Result
 typealias DomainResult<T> = Result<T, DomainError>
