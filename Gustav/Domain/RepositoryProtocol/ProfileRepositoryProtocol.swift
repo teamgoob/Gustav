@@ -10,8 +10,7 @@ import Foundation
 // MARK: - 사용자 프로필 Repository Protocol
 protocol ProfileRepositoryProtocol {
     // 프로필 조회
-    func fetchProfile(userId: UUID) -> RepositoryResult<Profile>
-
+    func fetchProfile(userId: UUID) async -> RepositoryResult<Profile>
     // 사용자 이름 변경
-    func updateUserName(userId: UUID, name: String) -> RepositoryResult<Void>
+    func updateUserName(userId: UUID, name: String) async -> RepositoryResult<Void>
 }
