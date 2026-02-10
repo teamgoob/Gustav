@@ -10,8 +10,8 @@ import Foundation
 // MARK: - RepositoryError Extension
 // RepositoryError -> DomainError 변환 메서드 정의
 extension RepositoryError {
-    func mapToDomainError(_ error: RepositoryError) -> DomainError {
-        switch error {
+    func mapToDomainError() -> DomainError {
+        switch self {
         case .unauthorized:
             return .authenticationRequired
         case .forbidden:
