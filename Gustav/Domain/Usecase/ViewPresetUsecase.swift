@@ -24,19 +24,25 @@ protocol ViewPresetUsecaseProtocol {
 }
 
 final class ViewPresetUsecase: ViewPresetUsecaseProtocol {
+    private let repository: ViewPresetRepositoryProtocol
+    
+    init(repository: ViewPresetRepositoryProtocol) {
+        self.repository = repository
+    }
+    
     func fetchViewPresets(workspaceId: UUID) async -> DomainResult<[ViewPreset]> {
-        <#code#>
+        await repository.fetchViewPresets(workspaceId: workspaceId).toDomainResult()
     }
     
     func createViewPreset(workspaceId: UUID, preset: ViewPreset) async -> DomainResult<ViewPreset> {
-        <#code#>
+        await repository.createViewPreset(workspaceId: workspaceId, preset: preset).toDomainResult()
     }
     
     func updateViewPreset(id: UUID, preset: ViewPreset) async -> DomainResult<Void> {
-        <#code#>
+        await repository.updateViewPreset(id: id, preset: preset).toDomainResult()
     }
     
     func deleteViewPreset(id: UUID) async -> DomainResult<Void> {
-        <#code#>
+        await repository.deleteViewPreset(id: id).toDomainResult()
     }
 }

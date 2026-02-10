@@ -10,17 +10,17 @@ import Foundation
 // MARK: - 카테고리 Repository Protocol
 protocol CategoryRepositoryProtocol {
     // 워크스페이스 내 전체 카테고리 조회
-    func fetchCategories(workspaceId: UUID) -> RepositoryResult<[Category]>
+    func fetchCategories(workspaceId: UUID) async -> RepositoryResult<[Category]>
 
     // 카테고리 생성
-    func createCategory(workspaceId: UUID, parentID: UUID?, name: String, color: TagColor) -> RepositoryResult<Category>
+    func createCategory(workspaceId: UUID, parentId: UUID?, name: String, color: TagColor) async -> RepositoryResult<Category>
 
     // 카테고리 수정
-    func updateCategory(id: UUID, category: Category) -> RepositoryResult<Void>
+    func updateCategory(id: UUID, category: Category) async -> RepositoryResult<Void>
 
     // 카테고리 삭제
-    func deleteCategory(id: UUID) -> RepositoryResult<Void>
+    func deleteCategory(id: UUID) async -> RepositoryResult<Void>
 
     // 카테고리 순서 변경 (index_key)
-    func reorderCategories(workspaceId: UUID, order: [UUID]) -> RepositoryResult<Void>
+    func reorderCategories(workspaceId: UUID, order: [UUID]) async -> RepositoryResult<Void>
 }

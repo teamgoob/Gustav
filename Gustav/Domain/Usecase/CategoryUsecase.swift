@@ -25,27 +25,33 @@ protocol CategoryUsecaseProtocol {
     func deleteCategory(id: UUID) async -> DomainResult<Void>
 
     // 카테고리 순서 변경
-    func reorderCategories(order: [UUID]) async -> DomainResult<Void>
+    func reorderCategories(workspaceId: UUID, order: [UUID]) async -> DomainResult<Void>
 }
 
 final class CategoryUsecase: CategoryUsecaseProtocol {
+    private let repository: CategoryRepositoryProtocol
+    
+    init(repository: CategoryRepositoryProtocol) {
+        self.repository = repository
+    }
+    
     func fetchCategories(workspaceId: UUID) async -> DomainResult<[Category]> {
-        <#code#>
+        await repository.fetchCategories(workspaceId: workspaceId).toDomainResult()
     }
     
     func createCategory(workspaceId: UUID, parentId: UUID?, name: String, color: TagColor) async -> DomainResult<Category> {
-        <#code#>
+        await repository.createCategory(workspaceId: workspaceId, parentId: parentId, name: name, color: color).toDomainResult()
     }
     
     func updateCategory(id: UUID, category: Category) async -> DomainResult<Void> {
-        <#code#>
+        await repository.updateCategory(id: id, category: category).toDomainResult()
     }
     
     func deleteCategory(id: UUID) async -> DomainResult<Void> {
-        <#code#>
+        await repository.deleteCategory(id: id).toDomainResult()
     }
     
-    func reorderCategories(order: [UUID]) async -> DomainResult<Void> {
-        <#code#>
+    func reorderCategories(workspaceId: UUID, order: [UUID]) async -> DomainResult<Void> {
+        await repository.reorderCategories(workspaceId: workspaceId, order: order).toDomainResult()
     }
 }

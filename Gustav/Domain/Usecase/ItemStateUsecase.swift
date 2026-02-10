@@ -22,27 +22,33 @@ protocol ItemStateUsecaseProtocol {
     func deleteItemState(id: UUID) async -> DomainResult<Void>
 
     // 아이템 상태 순서 변경
-    func reorderItemStates(order: [UUID]) async -> DomainResult<Void>
+    func reorderItemStates(workspaceId: UUID, order: [UUID]) async -> DomainResult<Void>
 }
 
 final class ItemStateUsecase: ItemStateUsecaseProtocol {
-    func fetchItemStates(workspaceID: UUID) async -> DomainResult<[ItemState]> {
-        <#code#>
+    private let repository: ItemStateRepositoryProtocol
+    
+    init(repository: ItemStateRepositoryProtocol) {
+        self.repository = repository
     }
     
-    func createItemState(workspaceID: UUID, name: String, color: TagColor) async -> DomainResult<ItemState> {
-        <#code#>
+    func fetchItemStates(workspaceId: UUID) async -> DomainResult<[ItemState]> {
+        await repository.fetchItemStates(workspaceId: workspaceId).toDomainResult()
+    }
+    
+    func createItemState(workspaceId: UUID, name: String, color: TagColor) async -> DomainResult<ItemState> {
+        await repository.createItemState(workspaceId: workspaceId, name: name, color: color).toDomainResult()
     }
     
     func updateItemState(id: UUID, itemState: ItemState) async -> DomainResult<Void> {
-        <#code#>
+        await repository.updateItemState(id: id, itemState: itemState).toDomainResult()
     }
     
     func deleteItemState(id: UUID) async -> DomainResult<Void> {
-        <#code#>
+        await repository.deleteItemState(id: id).toDomainResult()
     }
     
-    func reorderItemStates(order: [UUID]) async -> DomainResult<Void> {
-        <#code#>
+    func reorderItemStates(workspaceId: UUID, order: [UUID]) async -> DomainResult<Void> {
+        await repository.reorderItemStates(workspaceId: workspaceId, order: order).toDomainResult()
     }
 }

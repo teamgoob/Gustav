@@ -22,27 +22,33 @@ protocol LocationUsecaseProtocol {
     func deleteLocation(id: UUID) async -> DomainResult<Void>
 
     // 장소 순서 변경
-    func reorderLocations(order: [UUID]) async -> DomainResult<Void>
+    func reorderLocations(workspaceId: UUID, order: [UUID]) async -> DomainResult<Void>
 }
 
 final class LocationUsecase: LocationUsecaseProtocol {
+    private let repository: LocationRepositoryProtocol
+    
+    init(repository: LocationRepositoryProtocol) {
+        self.repository = repository
+    }
+    
     func fetchLocations(workspaceId: UUID) async -> DomainResult<[Location]> {
-        <#code#>
+        await repository.fetchLocations(workspaceId: workspaceId).toDomainResult()
     }
     
     func createLocation(workspaceId: UUID, name: String, color: TagColor) async -> DomainResult<Location> {
-        <#code#>
+        await repository.createLocation(workspaceId: workspaceId, name: name, color: color).toDomainResult()
     }
     
     func updateLocation(id: UUID, location: Location) async -> DomainResult<Void> {
-        <#code#>
+        await repository.updateLocation(id: id, location: location).toDomainResult()
     }
     
     func deleteLocation(id: UUID) async -> DomainResult<Void> {
-        <#code#>
+        await repository.deleteLocation(id: id).toDomainResult()
     }
     
-    func reorderLocations(order: [UUID]) async -> DomainResult<Void> {
-        <#code#>
+    func reorderLocations(workspaceId: UUID, order: [UUID]) async -> DomainResult<Void> {
+        await repository.reorderLocations(workspaceId: workspaceId, order: order).toDomainResult()
     }
 }
