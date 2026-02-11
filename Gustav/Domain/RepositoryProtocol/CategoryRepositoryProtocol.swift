@@ -11,6 +11,9 @@ import Foundation
 protocol CategoryRepositoryProtocol {
     // 워크스페이스 내 전체 카테고리 조회
     func fetchCategories(workspaceId: UUID) async -> RepositoryResult<[Category]>
+    
+    // 워크스페이스 내 단일 카테고리 조회
+    func fetchCategory(id: UUID) async -> RepositoryResult<Category>
 
     // 카테고리 생성
     func createCategory(workspaceId: UUID, parentId: UUID?, name: String, color: TagColor) async -> RepositoryResult<Category>

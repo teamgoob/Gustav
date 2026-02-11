@@ -12,6 +12,9 @@ protocol ItemStateRepositoryProtocol {
     // 워크스페이스 내 전체 아이템 상태 조회
     func fetchItemStates(workspaceId: UUID) async -> RepositoryResult<[ItemState]>
 
+    // 워크스페이스 내 단일 아이템 상태 조회
+    func fetchItemState(id: UUID) async -> RepositoryResult<ItemState>
+    
     // 아이템 상태 생성
     func createItemState(workspaceId: UUID, name: String, color: TagColor) async -> RepositoryResult<ItemState>
 

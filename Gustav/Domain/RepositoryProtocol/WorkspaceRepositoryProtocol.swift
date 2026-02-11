@@ -25,5 +25,5 @@ protocol WorkspaceRepositoryProtocol {
     func reorderWorkspaces(userId: UUID, order: [UUID]) async -> RepositoryResult<Void>
     
     // 워크스페이스 단건 조회 
-        func fetchWorkspace(id: UUID) async -> RepositoryResult<Workspace>
+    func fetchWorkspace(id: UUID) async -> RepositoryResult<Workspace>
 }
