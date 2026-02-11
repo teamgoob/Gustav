@@ -35,7 +35,6 @@ protocol AuthRepositoryProtocol {
     // 회원탈퇴(대개 서버 함수 필요)
     func withdraw() async -> RepositoryResult<Void>
     
-    
     // 현재 로그인 유저 id 조회
     func currentUserId() async -> RepositoryResult<UUID>
 }

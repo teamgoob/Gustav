@@ -43,7 +43,7 @@ protocol AuthUsecaseProtocol {
 }
 
 // MARK: - 유스케이스 구현부
-final class AuthUsecaseImpl: AuthUsecaseProtocol {
+final class AuthUsecase: AuthUsecaseProtocol {
     private let appleProvider: AppleAuthProviding // 토큰 결과
     private let authRepository: AuthRepositoryProtocol // repo 프로토콜
     private let sessionStore: SessionStore // 세션 저장/조회/삭제
@@ -126,7 +126,7 @@ final class AuthUsecaseImpl: AuthUsecaseProtocol {
             
         } catch {
             // 진짜 에러
-            return .failure(AuthErrorToDomainErrorMapper.mapToDomainError(error))
+            return .failure(error.authToDomainError())
         }
         
     }
@@ -160,7 +160,7 @@ final class AuthUsecaseImpl: AuthUsecaseProtocol {
         } catch {
             // 유스케이스 내부에서 발생
             // 입력검증, SDK, 로컬저장 : 내부 실패
-            return .failure(AuthErrorToDomainErrorMapper.mapToDomainError(error))
+            return .failure(error.authToDomainError())
         }
     }
     
@@ -196,7 +196,7 @@ final class AuthUsecaseImpl: AuthUsecaseProtocol {
 
         } catch {
             // AppleAuthProvider / SessionStore 등에서 throw된 에러
-            return .failure(AuthErrorToDomainErrorMapper.mapToDomainError(error))
+            return .failure(error.authToDomainError())
         }
     }
     
@@ -228,7 +228,7 @@ final class AuthUsecaseImpl: AuthUsecaseProtocol {
 
         } catch {
             // 입력 검증 실패(AuthError) 또는 세션 저장 실패
-            return .failure(AuthErrorToDomainErrorMapper.mapToDomainError(error))
+            return .failure(error.authToDomainError())
         }
     }
     
@@ -261,7 +261,7 @@ final class AuthUsecaseImpl: AuthUsecaseProtocol {
         do {
             try sessionStore.clear()
         } catch {
-            return .failure(AuthErrorToDomainErrorMapper.mapToDomainError(error))
+            return .failure(error.authToDomainError())
         }
 
         // 3) 서버 결과 반환
@@ -277,36 +277,37 @@ final class AuthUsecaseImpl: AuthUsecaseProtocol {
         }
     }
     
+    
+    // MARK: - 비밀번호 입력 검증
+
+    private func validateEmailPassword(email: String, password: String) throws {
+        
+        // 공백문자/줄바꿈 제거
+        let trimmedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        // 공백일 경우 -> 이메일이 비었음
+        if trimmedEmail.isEmpty { throw AuthError.emptyEmail }
+        
+        // 비밀번호가 비었음
+        if password.isEmpty { throw AuthError.emptyPassword }
+
+        // 간단 이메일 형식 체크 -> 진짜 이메일 여부는 서버에서.
+        if !trimmedEmail.contains("@") || !trimmedEmail.contains(".") {
+            throw AuthError.invalidEmailFormat
+        }
+        
+        // 비밀번호 최소 글자 8자
+        let minLength = 8
+        if password.count < minLength {
+            throw AuthError.weakPassword(minLength: minLength)
+        }
+
+        // 특수문자 1개 이상(영숫자 아닌 문자)
+        let specialSet = CharacterSet.alphanumerics.inverted // 특수문자 모음
+        if password.rangeOfCharacter(from: specialSet) == nil {
+            throw AuthError.passwordMissingSpecialCharacter
+        }
+    }
+
 }
 
-
-// MARK: - 비밀번호 입력 검증
-
-private func validateEmailPassword(email: String, password: String) throws {
-    
-    // 공백문자/줄바꿈 제거
-    let trimmedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
-    
-    // 공백일 경우 -> 이메일이 비었음
-    if trimmedEmail.isEmpty { throw AuthError.emptyEmail }
-    
-    // 비밀번호가 비었음
-    if password.isEmpty { throw AuthError.emptyPassword }
-
-    // 간단 이메일 형식 체크 -> 진짜 이메일 여부는 서버에서.
-    if !trimmedEmail.contains("@") || !trimmedEmail.contains(".") {
-        throw AuthError.invalidEmailFormat
-    }
-    
-    // 비밀번호 최소 글자 8자
-    let minLength = 8
-    if password.count < minLength {
-        throw AuthError.weakPassword(minLength: minLength)
-    }
-
-    // 특수문자 1개 이상(영숫자 아닌 문자)
-    let specialSet = CharacterSet.alphanumerics.inverted // 특수문자 모음
-    if password.rangeOfCharacter(from: specialSet) == nil {
-        throw AuthError.passwordMissingSpecialCharacter
-    }
-}

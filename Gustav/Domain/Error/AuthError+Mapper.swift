@@ -7,32 +7,49 @@
 
 import Foundation
 
-// DomainError 매핑
-enum AuthErrorToDomainErrorMapper {
-    
-    static func mapToDomainError(_ error: Error) -> DomainError {
-        if let e = error as? AuthError {
-            switch e {
-            case .invalidEmailFormat, .emptyEmail, .emptyPassword, .weakPassword,
-                    .passwordMissingSpecialCharacter:
-                return .invalidOperation
-            case .sessionNotFound:
-                return .authenticationRequired
-            }
-        }
 
-        if let e = error as? AppleAuthError {
-            switch e {
-            case .inProgress, .missingPresentationAnchor:
-                return .invalidOperation
-            case .invalidCredential, .missingNonce, .missingIdentityToken:
-                return .authenticationRequired
-            case .cancelled:
-                return .unknown
-            }
+// MARK: - AuthError Extension
+extension AuthError {
+    func authToDomainError() -> DomainError {
+        switch self {
+        case .invalidEmailFormat,
+             .emptyEmail,
+             .emptyPassword,
+             .weakPassword,
+             .passwordMissingSpecialCharacter:
+            return .invalidOperation
+
+        case .sessionNotFound:
+            return .authenticationRequired
         }
-        
-        // Supabase / 네트워크 / 알 수 없는 에러
+    }
+}
+
+// MARK: - AppleAuthError Extension
+extension AppleAuthError {
+    func authToDomainError() -> DomainError {
+        switch self {
+        case .inProgress,
+             .missingPresentationAnchor:
+            return .invalidOperation
+
+        case .invalidCredential,
+             .missingNonce,
+             .missingIdentityToken:
+            return .authenticationRequired
+
+        case .cancelled:// 성공처리
+            return .unknown
+        }
+    }
+}
+
+// MARK: - Error → DomainError
+extension Error {
+    func authToDomainError() -> DomainError {
+        if let e = self as? AuthError { return e.authToDomainError() }
+        if let e = self as? AppleAuthError { return e.authToDomainError() }
+        if let e = self as? RepositoryError { return e.mapToDomainError() }
         return .temporarilyUnavailable
     }
 }
