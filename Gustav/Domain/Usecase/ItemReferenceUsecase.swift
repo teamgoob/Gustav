@@ -174,11 +174,13 @@ struct ItemReferenceUsecase: ItemReferenceUsecaseProtocol {
             }()
             
             // 4) 최종으로 “화면에서 쓰기 좋은 묶음”을 생성해서 성공으로 반환
-            let itemReference = ItemReference(
-                item: item,
-                category: matchedCategory,
-                location: matchedLocation,
-                state: matchedState
+            itemReferences.append(
+                ItemReference(
+                    item: item,
+                    category: matchedCategory,
+                    location: matchedLocation,
+                    state: matchedState
+                )
             )
         }
 
