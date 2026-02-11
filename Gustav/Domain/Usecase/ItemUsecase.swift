@@ -14,7 +14,7 @@ protocol ItemUsecaseProtocol {
     func fetchItems(workspaceId: UUID) async -> DomainResult<[Item]>
     
     // 워크스페이스 내 조건 기반 아이템 조회(Query)
-    func queryItems(workspaceId: UUID, query: ItemQuery) async -> RepositoryResult<[Item]>
+    func queryItems(workspaceId: UUID, query: ItemQuery) async -> DomainResult<[Item]>
 
     // 아이템 생성
     func createItem(workspaceId: UUID, item: Item) async -> DomainResult<Item>
@@ -44,8 +44,8 @@ struct ItemUsecase: ItemUsecaseProtocol {
     }
     
     // 워크스페이스 내 조건 기반 아이템 조회(Query)
-    func queryItems(workspaceId: UUID, query: ItemQuery) async -> RepositoryResult<[Item]> {
-        await repository.queryItems(workspaceId: workspaceId, query: query)
+    func queryItems(workspaceId: UUID, query: ItemQuery) async -> DomainResult<[Item]> {
+        await repository.queryItems(workspaceId: workspaceId, query: query).toDomainResult()
     }
     
     // 아이템 생성
