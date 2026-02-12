@@ -65,6 +65,7 @@ Carthage/Build/
 # Config files with secrets
 AppConfig.plist
 Secrets.plist
+SupabaseKey.xcconfig
 Supabase.plist
 supabase.config.*
 supabase.json
