@@ -81,7 +81,7 @@ final class AuthUsecase: AuthUsecaseProtocol {
                 try sessionStore.save(refreshed)
                 return .success(.restored)
                 
-            case .failure(let repoError):
+            case .failure:
                 // 5) 실패 시 세션 제거 후 비로그인 확정
                 //  서버 기준으로 로그인 유지 불가
                 try? sessionStore.clear()
@@ -107,26 +107,28 @@ final class AuthUsecase: AuthUsecaseProtocol {
                 nonce: token.nonce
             )
             
-            switch repoResult {
+            let domainRepo = repoResult.toDomainResult()
+            
+            switch domainRepo {
             case .success(let output):
                 // 3) 세션 저장
                 try sessionStore.save(output.session)
-
                 // 4) 가입 결과 반환
                 return .success(output.result)
-
-            case .failure(let repoError):
-                return .failure(repoError.mapToDomainError())
+                
+            case .failure(let domainError):
+                return .failure(domainError)
             }
+
     
         } catch let e as AppleAuthError where e == .cancelled {
             // 사용자가 취소한 케이스 : 보통 화면에서 그냥 무시하고 머무는 게 자연스러움 -> 에러나 실패가 아님
             // SignUpResult에 cancelled가 없음. DomainError unknown으로 처리
-            return .success(.alreadyExists)
+            return .failure(.cancelled)
             
         } catch {
             // 진짜 에러
-            return .failure(error.authToDomainError())
+            return .failure(error.mapToDomainError())
         }
         
     }
@@ -160,7 +162,7 @@ final class AuthUsecase: AuthUsecaseProtocol {
         } catch {
             // 유스케이스 내부에서 발생
             // 입력검증, SDK, 로컬저장 : 내부 실패
-            return .failure(error.authToDomainError())
+            return .failure(error.mapToDomainError())
         }
     }
     
@@ -196,7 +198,7 @@ final class AuthUsecase: AuthUsecaseProtocol {
 
         } catch {
             // AppleAuthProvider / SessionStore 등에서 throw된 에러
-            return .failure(error.authToDomainError())
+            return .failure(error.mapToDomainError())
         }
     }
     
@@ -228,7 +230,7 @@ final class AuthUsecase: AuthUsecaseProtocol {
 
         } catch {
             // 입력 검증 실패(AuthError) 또는 세션 저장 실패
-            return .failure(error.authToDomainError())
+            return .failure(error.mapToDomainError())
         }
     }
     
@@ -261,7 +263,7 @@ final class AuthUsecase: AuthUsecaseProtocol {
         do {
             try sessionStore.clear()
         } catch {
-            return .failure(error.authToDomainError())
+            return .failure(error.mapToDomainError())
         }
 
         // 3) 서버 결과 반환
