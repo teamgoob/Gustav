@@ -1,0 +1,8 @@
+//
+//  Base.xcconfig
+//  Gustav
+//
+//  Created by 최명수 on 2026/2/12.
+//
+
+#include "SupabaseKey.xcconfig"
