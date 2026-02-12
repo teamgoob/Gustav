@@ -8,16 +8,11 @@
 import Supabase
 
 // MARK: - SupabaseClientProvider
-// SupabaseClient 제공
-final class SupabaseClientProvider {
-    // 싱글톤 객체 생성
-    static let shared = SupabaseClientProvider()
-    
-    let client: SupabaseClient
-    
-    private init() {
+// SupabaseClient 생성
+enum SupabaseClientProvider {
+    static func create() -> SupabaseClient {
         // AppEnvironment에서 가져온 URL, Key 사용
-        client = SupabaseClient(
+        SupabaseClient(
             supabaseURL: AppEnvironment.supabaseURL,
             supabaseKey: AppEnvironment.supabaseKey
         )

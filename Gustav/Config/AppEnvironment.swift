@@ -13,7 +13,7 @@ enum AppEnvironment {
             forInfoDictionaryKey: "SUPABASE_URL"
         ) as? String,
               let url = URL(string: urlString) else {
-            fatalError("SUPABASE_URL nout configured")
+            fatalError("SUPABASE_URL not configured")
         }
         return url
     }
