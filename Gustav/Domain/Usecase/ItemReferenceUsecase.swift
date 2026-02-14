@@ -13,7 +13,7 @@ protocol ItemReferenceUsecaseProtocol {
     func createItemReference(item: Item) async -> DomainResult<ItemReference>
 }
 
-struct ItemReferenceUsecase: ItemReferenceUsecaseProtocol {
+final class ItemReferenceUsecase: ItemReferenceUsecaseProtocol {
     let itemRepository: ItemRepositoryProtocol
     let categoryRepository: CategoryRepositoryProtocol
     let locationRepository: LocationRepositoryProtocol
