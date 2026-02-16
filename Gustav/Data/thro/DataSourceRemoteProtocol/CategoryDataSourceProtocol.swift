@@ -10,20 +10,20 @@ import Foundation
 protocol CategoryDataSourceProtocol {
     
     // 워크스페이스 내 전체 카테고리 조회
-    func fetchCategories(workspaceId: UUID) async throws -> [CategoryDTO]
+    func fetchCategories(workspaceId: UUID) async -> RepositoryResult<[CategoryDTO]>
     
     // 단일 카테고리 조회
-    func fetchCategory(id: UUID) async throws -> CategoryDTO
+    func fetchCategory(id: UUID) async -> RepositoryResult<CategoryDTO>
     
     // 카테고리 생성
-    func createCategory(categoryDTO: CategoryDTO) async throws -> CategoryDTO
+    func createCategory(categoryDTO: CategoryDTO) async -> RepositoryResult<CategoryDTO>
 
     // 카테고리 수정
-    func updateCategory(id: UUID, dto: CategoryDTO) async throws
+    func updateCategory(id: UUID, dto: CategoryDTO) async -> RepositoryResult<Void>
 
     // 카테고리 삭제
-    func deleteCategory(id: UUID) async throws
+    func deleteCategory(id: UUID) async -> RepositoryResult<Void>
 
     // 카테고리 순서 변경
-    func reorderCategories(workspaceId: UUID, order: [UUID] ) async throws
+    func reorderCategories(workspaceId: UUID, order: [UUID] ) async -> RepositoryResult<Void>
 }
