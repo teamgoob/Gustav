@@ -29,3 +29,26 @@ struct CategoryDTO: Codable {
         case updatedAt = "updated_at"
     }
 }
+
+extension CategoryDTO {
+    func toEntity() -> Category {
+        // nil이면 0 (기본값)
+        // Decimal -> Int 변환은 NSDecimalNumber를 쓰는 게 안전함
+        let indexKeyInt: Int = {
+            guard let decimal = self.indexKey else { return 0 }           // nil -> 0
+            return NSDecimalNumber(decimal: decimal).intValue             // Decimal -> Int
+        }()
+        let colorValue: Int = self.color ?? 0
+        let tagColor: TagColor = TagColor(rawValue: colorValue) ?? .darkGray
+
+        // ✅ 3) Category는 createdAt/updatedAt을 안 받음 (넘기면 Extra arguments 에러)
+        return Category(
+            id: self.id,
+            workspaceId: self.workspaceId,
+            parentId: self.parentId,
+            indexKey: indexKeyInt,
+            name: self.name,
+            color: tagColor
+        )
+    }
+}
