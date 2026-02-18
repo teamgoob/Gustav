@@ -8,7 +8,7 @@
 import Foundation
 
 // MARK: - 워크스페이스 보기 프리셋 정보
-struct ViewPresetDTO {
+struct ViewPresetDTO: Codable {
     let id: UUID                     // 프리셋 ID
     let workspaceId: UUID            // 소속 워크스페이스 ID
     let name: String                 // 프리셋 이름

@@ -8,7 +8,7 @@
 import Foundation
 
 // MARK: - 워크스페이스 장소 정보
-struct LocationDTO {
+struct LocationDTO: Codable {
     let id: UUID                // 장소 고유 ID
     let workspaceId: UUID       // 워크스페이스 ID
     let indexKey: Int           // 정렬 순서
