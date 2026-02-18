@@ -10,14 +10,14 @@ import Foundation
 // MARK: - ViewPreset DataSourceProtocol
 protocol ViewPresetDataSourceProtocol {
     // created_at 기준 정렬
-    func fetchViewPresets(workspaceId: UUID) async throws -> [ViewPresetDTO]
+    func fetchViewPresets(workspaceId: UUID) async -> RepositoryResult<[ViewPresetDTO]>
 
     func createViewPreset(
         workspaceId: UUID,
         dto: ViewPresetDTO
-    ) async throws -> ViewPresetDTO
+    ) async -> RepositoryResult<ViewPresetDTO>
 
-    func updateViewPreset(id: UUID, dto: ViewPresetDTO) async throws
+    func updateViewPreset(id: UUID, dto: ViewPresetDTO) async -> RepositoryResult<Void>
 
-    func deleteViewPreset(id: UUID) async throws
+    func deleteViewPreset(id: UUID) async -> RepositoryResult<Void>
 }

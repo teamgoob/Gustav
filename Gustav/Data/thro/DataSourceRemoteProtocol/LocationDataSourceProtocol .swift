@@ -11,22 +11,22 @@ import Foundation
 
 protocol LocationDataSourceProtocol {
     
-    func fetchLocations(workspaceId: UUID) async throws -> [LocationDTO]
+    func fetchLocations(workspaceId: UUID) async -> RepositoryResult<[LocationDTO]>
 
-    func fetchLocation(id: UUID) async throws -> LocationDTO?
+    func fetchLocation(id: UUID) async -> RepositoryResult<LocationDTO?>
     
     func createLocation(
         workspaceId: UUID,
         name: String,
         color: TagColor
-    ) async throws -> LocationDTO
+    ) async -> RepositoryResult<LocationDTO>
 
-    func updateLocation(id: UUID, dto: LocationDTO) async throws
+    func updateLocation(id: UUID, dto: LocationDTO) async -> RepositoryResult<Void>
 
-    func deleteLocation(id: UUID) async throws
+    func deleteLocation(id: UUID) async -> RepositoryResult<Void>
 
     func reorderLocations(
         workspaceId: UUID,
         order: [UUID]
-    ) async throws
+    ) async -> RepositoryResult<Void>
 }
