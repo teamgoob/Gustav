@@ -18,3 +18,16 @@ struct ViewPresetDTO {
     let createdAt: Date?             // 생성 시각
     let updatedAt: Date?             // 수정 시각
 }
+
+extension ViewPresetDTO {
+    func toEntity() -> ViewPreset {
+        return ViewPreset(
+            id: self.id,
+            workspaceId: self.workspaceId,
+            name: self.name,
+            viewType: self.viewType,
+            sortingOption: self.sortingOption,
+            filters: self.filters,
+            createdAt: self.createdAt,
+            updatedAt: self.updatedAt)
+}

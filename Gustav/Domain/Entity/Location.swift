@@ -15,3 +15,15 @@ struct Location {
     let name: String            // 장소 이름
     let color: TagColor   // 장소 색상
 }
+
+
+extension Location {
+    func toDTO() -> LocationDTO {
+        return LocationDTO(
+            id: self.id,
+            workspaceId: self.workspaceId,
+            indexKey: self.indexKey,
+            name: self.name,
+            color: self.color.rawValue)
+    }
+}

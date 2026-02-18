@@ -13,5 +13,18 @@ struct ItemStateDTO {
     let workspaceId: UUID       // 워크스페이스 ID
     let indexKey: Int           // 정렬 순서
     let name: String            // 아이템 상태 이름
-    let color: TagColor         // 아이템 상태 색상
+    let color: Int              // 아이템 상태 색상
+}
+
+extension ItemStateDTO {
+    func toEntity() -> ItemState {
+        let tagColor: TagColor = TagColor(rawValue: self.color) ?? .darkGray
+        return ItemState(
+            id: self.id,
+            workspaceId: self.workspaceId,
+            indexKey: self.indexKey,
+            name: self.name,
+            color: tagColor
+        )
+    }
 }
