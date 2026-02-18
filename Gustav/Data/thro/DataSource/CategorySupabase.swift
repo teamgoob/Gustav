@@ -110,7 +110,15 @@ final class SupabaseCategoryRemoteDataSource: CategoryDataSourceProtocol {
     }
     
     func reorderCategories(workspaceId: UUID, order: [UUID]) async -> RepositoryResult<Void> {
+        let offset = 10_000
         do {
+            for (index, id) in order.enumerated() {
+                _ = try await client
+                    .from("categories")
+                    .update(["index_key": index +  offset])
+                    .eq("id", value: id)
+                    .execute()
+            }
             for (index, id) in order.enumerated() {
                 _ = try await client
                     .from("categories")
