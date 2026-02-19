@@ -83,4 +83,27 @@ final class SupabaseViewPresetRemoteDataSource: ViewPresetDataSourceProtocol {
             return .failure(RepositoryError.decoding)   // 임시
         }
     }
+    
+    func fetchNextIndexKey(workspaceId: UUID) async -> RepositoryResult<Int> {
+        do {
+            let result: IndexKeyDTO = try await client
+                .from("view_presets")
+                .select("index_key")
+                .eq("workspace_id", value: workspaceId)
+                .order("index_key", ascending: false)
+                .limit(1)
+                .single()
+                .execute()
+                .value
+            
+            return .success(result.index_key + 1)
+        } catch let error as PostgrestError {
+            if error.code == "PGRST116" {
+                return .success(0)
+            }
+        } catch {
+                return .failure(RepositoryError.decoding)   // 임시
+        }
+    }
+
 }
