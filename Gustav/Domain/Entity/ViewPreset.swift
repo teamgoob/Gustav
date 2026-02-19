@@ -21,8 +21,8 @@ struct ViewPreset {
 
 
 extension ViewPreset {
-    func toDTO() -> ViewPreset {
-        return ViewPreset(
+    func toDTO() -> ViewPresetDTO {
+        return ViewPresetDTO(
             id: self.id,
             workspaceId: self.workspaceId,
             name: self.name,
@@ -30,6 +30,7 @@ extension ViewPreset {
             sortingOption: self.sortingOption,
             filters: self.filters,
             createdAt: self.createdAt,
-            updatedAt: self.updatedAt)
+            updatedAt: self.updatedAt
+        )
     }
 }
