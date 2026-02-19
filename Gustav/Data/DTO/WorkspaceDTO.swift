@@ -25,19 +25,3 @@ struct WorkspaceDTO: Codable {
         case updatedAt = "updated_at"
     }
 }
-
-// MARK: - Extensions: WorkspaceDTO -> Workspace 변환
-extension WorkspaceDTO: DomainConvertible {
-    typealias DomainType = Workspace
-    
-    func toDomain() -> Workspace {
-        Workspace(
-            id: id,
-            userId: userId,
-            indexKey: indexKey,
-            name: name,
-            createdAt: createdAt,
-            updatedAt: updatedAt
-        )
-    }
-}

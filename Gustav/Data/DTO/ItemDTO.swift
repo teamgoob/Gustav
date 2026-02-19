@@ -48,28 +48,8 @@ struct ItemDTO: Codable {
     }
 }
 
-// MARK: - Extensions: ItemDTO -> Item 변환
-extension ItemDTO: DomainConvertible {
-    typealias DomainType = Item
-    
-    func toDomain() -> Item {
-        Item(
-            id: id,
-            workspaceId: workspaceId,
-            indexKey: indexKey,
-            name: name,
-            nameDetail: nameDetail,
-            categoryId: categoryId,
-            stateId: stateId,
-            locationId: locationId,
-            purchaseDate: purchaseDate,
-            purchasePlace: purchasePlace,
-            warrantyExpireAt: warrantyExpireAt,
-            price: price,
-            quantity: quantity,
-            memo: memo,
-            createdAt: createdAt,
-            updatedAt: updatedAt
-        )
-    }
+// ItemDeleteDTO - 아이템 삭제용 DTO
+struct ItemDeleteDTO: Codable {
+    let index_key: Int
+    let deleted_at: Date
 }

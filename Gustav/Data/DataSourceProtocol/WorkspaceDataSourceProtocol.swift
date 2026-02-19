@@ -9,7 +9,6 @@ import Foundation
 
 // MARK: - WorkspaceDataSourceProtocol
 // 워크스페이스 원격 데이터 소스 프로토콜
-
 protocol WorkspaceDataSourceProtocol {
     // 워크스페이스 목록 조회
     func fetchWorkspaces(userId: UUID) async -> RepositoryResult<[WorkspaceDTO]>

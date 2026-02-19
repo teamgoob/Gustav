@@ -159,7 +159,7 @@ final class WorkspaceSupabase: WorkspaceDataSourceProtocol {
     // 워크스페이스 순서 변경
     func reorderWorkspaces(userId: UUID, order: [UUID]) async -> RepositoryResult<Void> {
         do {
-            let params = ReorderParams(p_user_id: userId, p_order: order)
+            let params = WorkspaceReorderParams(p_user_id: userId, p_order: order)
             try await client
                 .rpc("reorder_workspaces", params: params)
                 .execute()
