@@ -10,10 +10,10 @@ import Foundation
 // MARK: - 아이템 Repository Protocol
 protocol ItemRepositoryProtocol {
     // 워크스페이스 내 전체 아이템 목록 조회 (기본)
-    func fetchItems(workspaceId: UUID) async -> DomainResult<[Item]>
+    func fetchItems(workspaceId: UUID, pagination: Pagination?) async -> DomainResult<[Item]>
 
     // 워크스페이스 내 조건 기반 아이템 조회
-    func queryItems(workspaceId: UUID, query: ItemQuery) async -> DomainResult<[Item]>
+    func queryItems(workspaceId: UUID, query: ItemQuery, pagination: Pagination?) async -> DomainResult<[Item]>
 
     // 아이템 생성
     func createItem(workspaceId: UUID, item: Item) async -> DomainResult<Item>

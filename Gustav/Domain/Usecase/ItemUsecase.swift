@@ -11,10 +11,7 @@ import Foundation
 protocol ItemUsecaseProtocol {
     // 워크스페이스 내 아이템 목록 조회
     // indexKey 기준
-    func fetchItems(workspaceId: UUID) async -> DomainResult<[Item]>
-    
-    // 워크스페이스 내 조건 기반 아이템 조회(Query)
-    func queryItems(workspaceId: UUID, query: ItemQuery) async -> DomainResult<[Item]>
+    func fetchItems(workspaceId: UUID, pagination: Pagination?) async -> DomainResult<[Item]>
 
     // 아이템 생성
     func createItem(workspaceId: UUID, item: Item) async -> DomainResult<Item>
@@ -39,13 +36,8 @@ struct ItemUsecase: ItemUsecaseProtocol {
     }
     
     // index Key를 기준 전체 조회
-    func fetchItems(workspaceId: UUID) async -> DomainResult<[Item]> {
-        await repository.fetchItems(workspaceId: workspaceId)
-    }
-    
-    // 워크스페이스 내 조건 기반 아이템 조회(Query)
-    func queryItems(workspaceId: UUID, query: ItemQuery) async -> DomainResult<[Item]> {
-        await repository.queryItems(workspaceId: workspaceId, query: query)
+    func fetchItems(workspaceId: UUID, pagination: Pagination?) async -> DomainResult<[Item]> {
+        await repository.fetchItems(workspaceId: workspaceId, pagination: pagination)
     }
     
     // 아이템 생성

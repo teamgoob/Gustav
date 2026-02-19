@@ -81,7 +81,7 @@ struct ItemReferenceUsecase: ItemReferenceUsecaseProtocol {
         // 1) ItemReference에 필요한 데이터들
         /// 1)  워크스페이스에 존재하는 아이템  fetch
         async let itemsResult = itemRepository
-            .fetchItems(workspaceId: workspaceId)
+            .fetchItems(workspaceId: workspaceId, pagination: nil)
         /// 2) 워크스페이스에 사용되는 카테고리 fetch
         async let categoryResult = categoryRepository
             .fetchCategories(workspaceId: workspaceId)
