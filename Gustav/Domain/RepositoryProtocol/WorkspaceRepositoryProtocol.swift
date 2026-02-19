@@ -11,19 +11,19 @@ import Foundation
 protocol WorkspaceRepositoryProtocol {
     // 워크스페이스 목록 조회
     func fetchWorkspaces(userId: UUID) async -> DomainResult<[Workspace]>
+    
+    // 단일 워크스페이스 조회
+    func fetchWorkspace(id: UUID) async -> DomainResult<Workspace>
 
     // 워크스페이스 생성
     func createWorkspace(userId: UUID, name: String) async -> DomainResult<Workspace>
 
+    // 워크스페이스 수정
+    func updateWorkspaceName(id: UUID, name: String) async -> DomainResult<Void>
+    
     // 워크스페이스 삭제
     func deleteWorkspace(id: UUID) async -> DomainResult<Void>
 
-    // 워크스페이스 수정
-    func updateWorkspaceName(id: UUID, name: String) async -> DomainResult<Void>
-
     // 워크스페이스 순서 변경 (indexKey)
     func reorderWorkspaces(userId: UUID, order: [UUID]) async -> DomainResult<Void>
-    
-    // 워크스페이스 단건 조회 
-    func fetchWorkspace(id: UUID) async -> DomainResult<Workspace>
 }
