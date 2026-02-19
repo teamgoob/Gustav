@@ -107,7 +107,7 @@ final class AuthUsecase: AuthUsecaseProtocol {
                 nonce: token.nonce
             )
             
-            let domainRepo = repoResult.toDomainResult()
+            let domainRepo = repoResult
             
             switch domainRepo {
             case .success(let output):
@@ -143,7 +143,7 @@ final class AuthUsecase: AuthUsecaseProtocol {
             let repoResult = await authRepository.signUpWithEmail(email: email, password: password)
 
             // 2) RepositoryResult -> DomainResult로 변환
-            let domainRepo = repoResult.toDomainResult()
+            let domainRepo = repoResult
 
             switch domainRepo {
             case .success(let output):
@@ -179,7 +179,7 @@ final class AuthUsecase: AuthUsecaseProtocol {
             )
 
             // 3) RepositoryResult -> DomainResult 변환
-            let domainRepo: DomainResult<AuthSession> = repoResult.toDomainResult()
+            let domainRepo: DomainResult<AuthSession> = repoResult
 
             switch domainRepo {
                 //authRepository.signInWithApple가 서버(Supabase)에서 받아온 AuthSession
@@ -215,7 +215,7 @@ final class AuthUsecase: AuthUsecaseProtocol {
             )
 
             // 2) RepositoryResult -> DomainResult 변환
-            let domainRepo: DomainResult<AuthSession> = repoResult.toDomainResult()
+            let domainRepo: DomainResult<AuthSession> = repoResult
 
             switch domainRepo {
             case .success(let session):
@@ -257,7 +257,7 @@ final class AuthUsecase: AuthUsecaseProtocol {
     func withdraw() async -> DomainResult<Void> {
         // 1) 서버에 "데이터 삭제 + Auth 유저 삭제" 요청
         let repoResult = await authRepository.withdraw()
-        let domainRepo: DomainResult<Void> = repoResult.toDomainResult()
+        let domainRepo: DomainResult<Void> = repoResult
 
         // 2) 로컬 세션은 항상 제거 시도
         do {

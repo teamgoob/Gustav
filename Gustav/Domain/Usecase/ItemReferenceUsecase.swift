@@ -82,21 +82,17 @@ struct ItemReferenceUsecase: ItemReferenceUsecaseProtocol {
         /// 1)  워크스페이스에 존재하는 아이템  fetch
         async let itemsResult = itemRepository
             .fetchItems(workspaceId: workspaceId)
-            .toDomainResult()
         /// 2) 워크스페이스에 사용되는 카테고리 fetch
         async let categoryResult = categoryRepository
             .fetchCategories(workspaceId: workspaceId)
-            .toDomainResult()
 
         /// 3) 워크스페이스에 사용되는 로케이션 fetch
         async let locationResult = locationRepository
             .fetchLocations(workspaceId: workspaceId)
-            .toDomainResult()
 
         /// 4)
         async let itemStateResult = itemStateRepository
             .fetchItemStates(workspaceId: workspaceId)
-            .toDomainResult()
 
         // 2) 결과 체크
         /// 결과를 하나씩 꺼내면서 실패면 즉시 반환(Strict 정책)
@@ -170,7 +166,7 @@ struct ItemReferenceUsecase: ItemReferenceUsecaseProtocol {
         guard let id else { return .success(nil) }
 
         let repoResult = await categoryRepository.fetchCategory(id: id)
-        let domain: DomainResult<Category> = repoResult.toDomainResult()
+        let domain: DomainResult<Category> = repoResult
 
         switch domain {
         case .success(let category):
@@ -185,7 +181,7 @@ struct ItemReferenceUsecase: ItemReferenceUsecaseProtocol {
         guard let id else { return .success(nil) }
 
         let repoResult = await locationRepository.fetchLocation(id: id)
-        let domain: DomainResult<Location> = repoResult.toDomainResult()
+        let domain: DomainResult<Location> = repoResult
 
         switch domain {
         case .success(let location):
@@ -200,7 +196,7 @@ struct ItemReferenceUsecase: ItemReferenceUsecaseProtocol {
         guard let id else { return .success(nil) }
 
         let repoResult = await itemStateRepository.fetchItemState(id: id)
-        let domain: DomainResult<ItemState> = repoResult.toDomainResult()
+        let domain: DomainResult<ItemState> = repoResult
 
         switch domain {
         case .success(let state):

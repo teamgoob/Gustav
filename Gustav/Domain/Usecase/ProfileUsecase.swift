@@ -36,7 +36,7 @@ final class ProfileUsecase: ProfileUsecaseProtocol {
             return .failure(e.mapToDomainError())
         case .success(let userId):
             // 2) 프로필 조회
-            return await profileRepo.fetchProfile(userId: userId).toDomainResult()
+            return await profileRepo.fetchProfile(userId: userId)
         }
     }
     
@@ -55,7 +55,7 @@ final class ProfileUsecase: ProfileUsecaseProtocol {
             return .failure(e.mapToDomainError())
         // 성공
         case .success(let userId):
-            return await profileRepo.updateUserName(userId: userId, name: trimmed).toDomainResult()
+            return await profileRepo.updateUserName(userId: userId, name: trimmed)
         }
     }
 }

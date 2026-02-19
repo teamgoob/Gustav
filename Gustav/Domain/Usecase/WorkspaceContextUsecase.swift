@@ -44,10 +44,10 @@ final class WorkspaceContextUsecase: WorkspaceContextUsecaseProtocol {
 
         
         // 결과
-        let w = await workspaceR.toDomainResult()
-        let c = await categoriesR.toDomainResult()
-        let l = await locationsR.toDomainResult()
-        let s = await statesR.toDomainResult()
+        let w = await workspaceR
+        let c = await categoriesR
+        let l = await locationsR
+        let s = await statesR
   
 
         // 실패 먼저 처리 (하나라도 실패면 종료)

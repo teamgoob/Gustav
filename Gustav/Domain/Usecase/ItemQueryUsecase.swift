@@ -17,6 +17,6 @@ struct ItemQueryUsecase: ItemQueryUsecaseProtocol {
     let itemRepository: ItemRepositoryProtocol      // Repo
     
     func queryItems(workspaceId: UUID, query: ItemQuery) async -> DomainResult<[Item]> {
-        await itemRepository.queryItems(workspaceId: workspaceId, query: query).toDomainResult()
+        await itemRepository.queryItems(workspaceId: workspaceId, query: query)
     }
 }

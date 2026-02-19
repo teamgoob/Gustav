@@ -36,22 +36,22 @@ final class CategoryUsecase: CategoryUsecaseProtocol {
     }
     
     func fetchCategories(workspaceId: UUID) async -> DomainResult<[Category]> {
-        await repository.fetchCategories(workspaceId: workspaceId).toDomainResult()
+        await repository.fetchCategories(workspaceId: workspaceId)
     }
     
     func createCategory(workspaceId: UUID, parentId: UUID?, name: String, color: TagColor) async -> DomainResult<Category> {
-        await repository.createCategory(workspaceId: workspaceId, parentId: parentId, name: name, color: color).toDomainResult()
+        await repository.createCategory(workspaceId: workspaceId, parentId: parentId, name: name, color: color)
     }
     
     func updateCategory(id: UUID, category: Category) async -> DomainResult<Void> {
-        await repository.updateCategory(id: id, category: category).toDomainResult()
+        await repository.updateCategory(id: id, category: category)
     }
     
     func deleteCategory(id: UUID) async -> DomainResult<Void> {
-        await repository.deleteCategory(id: id).toDomainResult()
+        await repository.deleteCategory(id: id)
     }
     
     func reorderCategories(workspaceId: UUID, order: [UUID]) async -> DomainResult<Void> {
-        await repository.reorderCategories(workspaceId: workspaceId, order: order).toDomainResult()
+        await repository.reorderCategories(workspaceId: workspaceId, order: order)
     }
 }
