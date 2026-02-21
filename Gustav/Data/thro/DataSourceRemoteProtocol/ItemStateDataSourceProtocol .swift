@@ -18,10 +18,10 @@ protocol ItemStateDataSourceProtocol {
     func fetchItemState(id: UUID) async -> RepositoryResult<ItemStateDTO?>
     
     /// 아이템 상태 생성
-    func createItemState(dto: ItemStateDTO) async -> RepositoryResult<ItemStateDTO>
+    func createItemState(itemState: ItemState) async -> RepositoryResult<ItemStateDTO>
 
     /// 아이템 상태 수정
-    func updateItemState(id: UUID, dto: ItemStateDTO) async -> RepositoryResult<Void>
+    func updateItemState(id: UUID, itemState: ItemState) async -> RepositoryResult<Void>
 
     /// 아이템 상태 삭제
     func deleteItemState(id: UUID) async -> RepositoryResult<Void>

@@ -12,12 +12,9 @@ protocol ViewPresetDataSourceProtocol {
     // created_at 기준 정렬
     func fetchViewPresets(workspaceId: UUID) async -> RepositoryResult<[ViewPresetDTO]>
 
-    func createViewPreset(
-        workspaceId: UUID,
-        dto: ViewPresetDTO
-    ) async -> RepositoryResult<ViewPresetDTO>
+    func createViewPreset(workspaceId: UUID, viewPreset: ViewPreset) async -> RepositoryResult<ViewPresetDTO>
 
-    func updateViewPreset(id: UUID, dto: ViewPresetDTO) async -> RepositoryResult<Void>
+    func updateViewPreset(id: UUID, viewPreset: ViewPreset) async -> RepositoryResult<Void>
 
     func deleteViewPreset(id: UUID) async -> RepositoryResult<Void>
 }

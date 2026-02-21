@@ -16,10 +16,10 @@ protocol CategoryDataSourceProtocol {
     func fetchCategory(id: UUID) async -> RepositoryResult<CategoryDTO>
     
     // 카테고리 생성
-    func createCategory(categoryDTO: CategoryDTO) async -> RepositoryResult<CategoryDTO>
+    func createCategory(category: Category) async -> RepositoryResult<CategoryDTO>
 
     // 카테고리 수정
-    func updateCategory(id: UUID, dto: CategoryDTO) async -> RepositoryResult<Void>
+    func updateCategory(id: UUID, dto: Category) async -> RepositoryResult<Void>
 
     // 카테고리 삭제
     func deleteCategory(id: UUID) async -> RepositoryResult<Void>

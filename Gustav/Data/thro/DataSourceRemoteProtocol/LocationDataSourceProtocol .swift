@@ -15,9 +15,9 @@ protocol LocationDataSourceProtocol {
 
     func fetchLocation(id: UUID) async -> RepositoryResult<LocationDTO?>
     
-    func createLocation(dto: LocationDTO) async -> RepositoryResult<LocationDTO>
+    func createLocation(location: Location) async -> RepositoryResult<LocationDTO>
 
-    func updateLocation(id: UUID, dto: LocationDTO) async -> RepositoryResult<Void>
+    func updateLocation(id: UUID, location: Location) async -> RepositoryResult<Void>
 
     func deleteLocation(id: UUID) async -> RepositoryResult<Void>
 
