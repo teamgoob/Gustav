@@ -30,4 +30,5 @@ extension ViewPresetDTO {
             filters: self.filters,
             createdAt: self.createdAt,
             updatedAt: self.updatedAt)
+    }
 }
