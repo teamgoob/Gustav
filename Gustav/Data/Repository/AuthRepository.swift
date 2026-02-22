@@ -229,10 +229,3 @@ final class AuthRepository: AuthRepositoryProtocol {
         }
     
 }
-// RepositoryResult<Success> (Failure==RepositoryError) → DomainResult<Success> 로 변환하는 유틸
-// 목적: Repository 레이어에서 도메인 레이어로 올릴 때 에러 타입을 통일(DomainError)
-private extension Result where Failure == RepositoryError {
-    func toDomain() -> DomainResult<Success> {
-        self.mapError { $0.mapToDomainError() }
-    }
-}

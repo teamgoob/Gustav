@@ -7,11 +7,7 @@
 
 import Foundation
 
-enum ProfileBootstrapPolicy { case strict, bestEffort }
-public enum AuthProvider: String, Codable {
-    case apple
-    case email
-}
+
 // MARK: - 사용자 프로필 Repository Protocol
 protocol ProfileRepositoryProtocol {
     // 프로필 조회

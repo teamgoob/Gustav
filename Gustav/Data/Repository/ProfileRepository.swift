@@ -9,6 +9,7 @@ import Foundation
 // DTO → Entity 변환 + 도메인 정책 적용
 
 final class ProfileRepository: ProfileRepositoryProtocol {
+    
     private let dataSource: ProfileDataSourceProtocol
 
     init(dataSource: ProfileDataSourceProtocol) {
@@ -53,16 +54,30 @@ final class ProfileRepository: ProfileRepositoryProtocol {
     func bootstrapAfterAppleAuth(
         userId: UUID,
         email: String?,
-        fullName: String?
+        fullName: String?,
+        policy: ProfileBootstrapPolicy
     ) async -> DomainResult<Bool> {
-        await dataSource
-            .bootstrapAfterAppleAuth(userId: userId, email: email, fullName: fullName)
-            .toDomain()
-    }
-}
 
-private extension Result where Failure == RepositoryError {
-    func toDomain() -> DomainResult<Success> {
-        self.mapError { $0.mapToDomainError() }
+        let result = await dataSource.bootstrapAfterAppleAuth(
+            userId: userId,
+            email: email,
+            fullName: fullName
+        ).toDomain()
+
+        switch policy {
+        case .strict:
+            // 실패를 그대로 전파(프로필 미보장 허용 X)
+            return result
+
+        case .bestEffort:
+            // 실패를 무시(프로필 보정 실패해도 로그인 진행)
+            // 신규 생성 여부를 못 믿으니 "false(기존)"로 처리하는 게 안전
+            switch result {
+            case .success(let created):
+                return .success(created)
+            case .failure:
+                return .success(false)
+            }
+        }
     }
 }

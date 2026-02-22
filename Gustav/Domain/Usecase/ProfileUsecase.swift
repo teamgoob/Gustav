@@ -72,7 +72,7 @@ final class ProfileUsecase: ProfileUsecaseProtocol {
             return await profileRepo.bootstrapAfterAppleAuth(
                 userId: userId,
                 email: email,
-                fullName: fullName
+                fullName: fullName, policy: .strict
             )
         }
     }
