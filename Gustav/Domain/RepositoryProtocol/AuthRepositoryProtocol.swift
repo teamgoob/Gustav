@@ -28,7 +28,7 @@ protocol AuthRepositoryProtocol {
     func signUpWithEmail(
         email: String,
         password: String
-    ) async -> DomainResult<(session: AuthSession, result: SignUpResult)>
+    ) async -> DomainResult<(session: AuthSession?, result: SignUpResult)>
     
     // 이메일 로그인
     func signInWithEmail(email: String, password: String) async -> DomainResult<AuthSession>

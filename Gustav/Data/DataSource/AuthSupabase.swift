@@ -94,6 +94,48 @@ final class AuthSupabase: AuthDataSourceProtocol {
         }
     }
 
+    func signUpWithEmail(email: String, password: String) async -> RepositoryResult<EmailSignUpOutcome> {
+        do {
+            let response = try await client.auth.signUp(email: email, password: password)
+            let session = response.session.map(Self.mapSession)
+            let requiresEmailVerification = (session == nil)
+            return .success(
+                EmailSignUpOutcome(
+                    session: session,
+                    email: email,
+                    requiresEmailVerification: requiresEmailVerification
+                )
+            )
+        } catch {
+            return .failure(Self.mapError(error))
+        }
+    }
+
+    func signInWithEmail(email: String, password: String) async -> RepositoryResult<AuthSession> {
+        do {
+            let session = try await client.auth.signIn(email: email, password: password)
+            return .success(Self.mapSession(session))
+        } catch {
+            return .failure(Self.mapError(error))
+        }
+    }
+
+    // 서버 RPC/Edge Function: 현재 사용자 삭제
+    func withdrawCurrentUser() async -> RepositoryResult<Void> {
+        do {
+            try await client.rpc("delete_current_user").execute()
+            return .success(())
+        } catch {
+            return .failure(Self.mapError(error))
+        }
+    }
+
+    
+    
+    
+    
+    
+    
     // Supabase SDK의 Session 타입을
     // 앱 내부에서 쓰는 AuthSession 타입으로 변환하는 함수.
     private static func mapSession(_ session: Session) -> AuthSession {

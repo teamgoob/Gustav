@@ -131,8 +131,10 @@ final class AuthUsecase: AuthUsecaseProtocol {
 
             switch domainRepo {
             case .success(let output):
-                // 3) 세션 저장 (로그인 유지)
-                try sessionStore.save(output.session)
+                // 3) 세션이 있으면 저장 (로그인 유지)
+                if let session = output.session {
+                    try sessionStore.save(session)
+                }
 
                 // 4) 가입 결과 반환 (신규/기존)
                 return .success(output.result)
@@ -277,4 +279,3 @@ final class AuthUsecase: AuthUsecaseProtocol {
     }
 
 }
-
