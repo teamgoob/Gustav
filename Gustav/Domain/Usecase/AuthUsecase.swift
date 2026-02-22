@@ -40,7 +40,7 @@ protocol AuthUsecaseProtocol {
     func signOut() async -> DomainResult<Void>
 
     // 회원 탈퇴, Auth 계정 삭제
-    func withdraw() async -> DomainResult<Void>
+    func withdraw(reauth method: ReauthMethod) async -> DomainResult<Void>
 }
 
 // MARK: - 유스케이스 구현부
@@ -222,28 +222,26 @@ final class AuthUsecase: AuthUsecaseProtocol {
     }
     
     //회원 탈퇴
-    func withdraw() async -> DomainResult<Void> {
-        // 1) 서버에 "데이터 삭제 + Auth 유저 삭제" 요청
-        let repoResult = await authRepository.withdraw(reauth: ReauthMethod)
-        let domainRepo: DomainResult<Void> = repoResult
+    func withdraw(reauth method: ReauthMethod) async -> DomainResult<Void> {
 
-        // 2) 로컬 세션은 항상 제거 시도
-        do {
-            try sessionStore.clear()
-        } catch {
-            return .failure(error.mapToDomainError())
-        }
+        // 1) 서버 탈퇴(재인증 + 계정 삭제)
+        let result = await authRepository.withdraw(reauth: method)
 
-        // 3) 서버 결과 반환
-        switch domainRepo {
+        // 2) 성공했을 때만 로컬 세션 정리
+        switch result {
+        case .failure:
+            return result
+
         case .success:
-            // 서버 삭제 성공 + 로컬 세션 삭제 성공
-            return .success(())
-
-        case .failure(let domainError):
-            // 서버 삭제 실패(네트워크/권한/서버오류 등)
-            // 로컬은 이미 clear 됐으니 앱에서는 로그아웃 상태
-            return .failure(domainError)
+            do {
+                try sessionStore.clear()
+                return .success(())
+            } catch {
+                // 서버는 탈퇴 성공했는데 로컬 정리 실패
+                // => 앱은 이미 "로그아웃 상태"로 유도해야 해서,
+                //    여기서는 에러로 막기보다 unknown 처리하거나 성공 반환하는 편이 안전함(정책 선택)
+                return .failure(error.mapToDomainError())
+            }
         }
     }
     
