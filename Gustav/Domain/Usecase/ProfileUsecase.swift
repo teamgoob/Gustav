@@ -14,6 +14,9 @@ protocol ProfileUsecaseProtocol {
 
     // 사용자 이름 변경
     func updateUserName(_ name: String) async -> DomainResult<Void>
+    
+    // true면 신규 가입처럼 취급 가능
+    func bootstrapAfterAppleAuth(email: String?, fullName: String?) async -> DomainResult<Bool>
 }
 
 final class ProfileUsecase: ProfileUsecaseProtocol {
@@ -33,7 +36,7 @@ final class ProfileUsecase: ProfileUsecaseProtocol {
         let userIdResult = await authRepo.currentUserId()
         switch userIdResult {
         case .failure(let e):
-            return .failure(e.mapToDomainError())
+            return .failure(e)
         case .success(let userId):
             // 2) 프로필 조회
             return await profileRepo.fetchProfile(userId: userId)
@@ -52,10 +55,25 @@ final class ProfileUsecase: ProfileUsecaseProtocol {
         switch userIdResult {
         case .failure(let e):
             // 도메인 에러 리턴
-            return .failure(e.mapToDomainError())
+            return .failure(e)
         // 성공
         case .success(let userId):
             return await profileRepo.updateUserName(userId: userId, name: trimmed)
+        }
+    }
+    
+    // 현재 로그인된 유저의 ID를 가져와서, 그 유저의 프로필을 생성하거나 확인한다
+    func bootstrapAfterAppleAuth(email: String?, fullName: String?) async -> DomainResult<Bool> {
+        let userIdResult = await authRepo.currentUserId()
+        switch userIdResult {
+        case .failure(let e):
+            return .failure(e)
+        case .success(let userId):
+            return await profileRepo.bootstrapAfterAppleAuth(
+                userId: userId,
+                email: email,
+                fullName: fullName
+            )
         }
     }
 }

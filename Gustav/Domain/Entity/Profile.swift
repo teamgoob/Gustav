@@ -11,6 +11,11 @@ import Foundation
 struct Profile {
     let id: UUID        // 사용자 ID
     let name: String?    // 사용자 이름
+    
+    // 이메일 가리기 회원가입/로그인 시 유저확인용
+    let email: String?
+    let isPrivateEmail: Bool
+    
     let createdAt: Date // 계정 생성일
     let updatedAt: Date // 사용자 이름 업데이트 시 기준
 }
