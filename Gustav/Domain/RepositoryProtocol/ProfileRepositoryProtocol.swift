@@ -7,6 +7,11 @@
 
 import Foundation
 
+enum ProfileBootstrapPolicy { case strict, bestEffort }
+public enum AuthProvider: String, Codable {
+    case apple
+    case email
+}
 // MARK: - 사용자 프로필 Repository Protocol
 protocol ProfileRepositoryProtocol {
     // 프로필 조회
@@ -19,6 +24,7 @@ protocol ProfileRepositoryProtocol {
     func bootstrapAfterAppleAuth(
         userId: UUID,
         email: String?,
-        fullName: String?
+        fullName: String?,
+        policy: ProfileBootstrapPolicy
     ) async -> DomainResult<Bool>
 }

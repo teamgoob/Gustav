@@ -224,7 +224,7 @@ final class AuthUsecase: AuthUsecaseProtocol {
     //회원 탈퇴
     func withdraw() async -> DomainResult<Void> {
         // 1) 서버에 "데이터 삭제 + Auth 유저 삭제" 요청
-        let repoResult = await authRepository.withdraw()
+        let repoResult = await authRepository.withdraw(reauth: ReauthMethod)
         let domainRepo: DomainResult<Void> = repoResult
 
         // 2) 로컬 세션은 항상 제거 시도

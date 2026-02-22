@@ -13,6 +13,7 @@ public struct AuthSession: Equatable, Codable {
     public let refreshToken: String     // accessToken 만료 시 새 토큰 발급용
     public let userId: String
     public let expiresAt: Date?         // 토큰 만료일
+    public let provider: AuthProvider   // 로그인 방식
 
     public init(accessToken: String, refreshToken: String, userId: String, expiresAt: Date?) {
         self.accessToken = accessToken

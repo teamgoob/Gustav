@@ -22,8 +22,13 @@ protocol AuthDataSourceProtocol {
     func withdrawCurrentUser() async -> RepositoryResult<Void>
     
     func currentUserId() async -> RepositoryResult<UUID>
+    func currentUserProfileHint() async -> RepositoryResult<UserProfileHint>
 }
 
+struct UserProfileHint {
+    let email: String?
+    let fullName: String?
+}
 struct EmailSignUpOutcome {
     let session: AuthSession?
     let email: String

@@ -29,12 +29,12 @@ final class AuthRepository: AuthRepositoryProtocol {
         self.profileRepository = profileRepository
         self.sessionStore = sessionStore
     }
-
+    
     // 앱 시작/재실행 시 로컬에 저장된 세션(access/refresh)으로 세션을 복구/갱신
     func restoreOrRefreshSession(from local: AuthSession) async -> DomainResult<AuthSession> {
         await dataSource.restoreOrRefreshSession(from: local).toDomain()
     }
-
+    
     // Apple 로그인 기반 - 가입
     // - session: 생성된 AuthSession
     // - result: SignUpResult(.signedUp / .alreadyExists 등)로 신규/기존 판단을 상위에 전달
@@ -42,26 +42,29 @@ final class AuthRepository: AuthRepositoryProtocol {
         do {
             // 1) Apple 로그인 UI를 띄우고 성공 시 토큰/nonce/email/fullName을 얻는다.
             let token = try await appleProvider.signIn()
+            let hint = try? await dataSource.currentUserProfileHint().get()
             
             // 2) Supabase Auth에 idToken + nonce로 로그인 요청(세션 생성)
             let signResult = await dataSource.signInWithApple(idToken: token.idToken, nonce: token.nonce)
-
+            
             switch signResult {
             case .failure(let error): // Supabase 로그인 실패(401/403/network 등)
                 return .failure(error.mapToDomainError())
-
+                
             case .success(let session):  // Supabase 로그인 성공 → AuthSession 확보
                 guard let userId = UUID(uuidString: session.userId) else {
                     return .failure(.unknown)
                 }
-
+                
                 let bootstrap = await profileRepository.bootstrapAfterAppleAuth(
                     userId: userId,
                     email: token.email,
-                    fullName: token.fullName
+                    fullName: token.fullName,
+                    policy: .strict
+                    
                 )
-
-
+                
+                
                 // 3) 우리 앱의 profiles 테이블에 프로필이 있는지 확인/생성/보정
                 switch bootstrap {
                 case .failure(let e):
@@ -76,52 +79,63 @@ final class AuthRepository: AuthRepositoryProtocol {
             return .failure(error.mapToDomainError())
         }
     }
-
+    
     // Apple 로그인 기반 - 로그인
     // signUpWithApple과 다르게 SignUpResult를 반환하지 않고 세션만 반환
     func signInWithApple() async -> DomainResult<AuthSession> {
         do {
             let token = try await appleProvider.signIn()
             let signResult = await dataSource.signInWithApple(idToken: token.idToken, nonce: token.nonce)
-
+            
             switch signResult {
             case .failure(let e):
                 return .failure(e.mapToDomainError())
-
+                
             case .success(let session):
-                // 로그인에서도 최초 1회 데이터 보정 시도(값 없으면 no-op)
-                if let userId = UUID(uuidString: session.userId) {
-                    _ = await profileRepository.bootstrapAfterAppleAuth(
-                        userId: userId,
-                        email: token.email,
-                        fullName: token.fullName
-                    )
+
+                guard let userId = UUID(uuidString: session.userId) else {
+                    return .failure(.unknown) // userId 파싱 실패는 내부 데이터 이상
                 }
-                return .success(session)
+
+                let bootstrap = await profileRepository.bootstrapAfterAppleAuth(
+                    userId: userId,
+                    email: token.email,
+                    fullName: token.fullName,
+                    policy: .strict
+                )
+
+                switch bootstrap {
+                case .success:
+                    return .success(session)
+                case .failure(let e):
+                    return .failure(e)
+                }
             }
         } catch {
             return .failure(error.mapToDomainError())
         }
     }
-
+    
     // 이메일/비번 로그인
     func signInWithEmail(email: String, password: String) async -> DomainResult<AuthSession> {
         let result = await dataSource.signInWithEmail(email: email, password: password).toDomain()
         guard case .success(let session) = result else {
             return result
         }
-
+        
         if let userId = UUID(uuidString: session.userId) {
             _ = await profileRepository.bootstrapAfterAppleAuth(
                 userId: userId,
                 email: email,
-                fullName: nil
+                fullName: nil,
+                policy: .strict
+                
             )
         }
-
+        
         return .success(session)
     }
-
+    
     // 이메일/비번 회원가입
     func signUpWithEmail(
         email: String,
@@ -131,48 +145,54 @@ final class AuthRepository: AuthRepositoryProtocol {
         switch result {
         case .failure(let e):
             return .failure(e.mapToDomainError())
-
+            
         case .success(let output):
             if output.requiresEmailVerification || output.session == nil {
                 return .success((session: nil, result: .verificationRequired))
             }
-
+            
             guard let session = output.session else {
                 return .failure(.unknown)
             }
-
+            
             if let userId = UUID(uuidString: session.userId) {
                 _ = await profileRepository.bootstrapAfterAppleAuth(
                     userId: userId,
                     email: email,
-                    fullName: nil
+                    fullName: nil,
+                    policy: .strict
+                    
                 )
             }
-
+            
             return .success((session: session, result: .signedUp))
         }
     }
-
+    
     func signOut() async -> DomainResult<Void> {
         await dataSource.signOut().toDomain()
     }
+    
+    
+    func withdraw(reauth method: ReauthMethod) async -> DomainResult<Void> {
 
+        // 재인증 먼저 수행
+        let reauthResult = await performReauth(method)
+        guard case .success = reauthResult else {
+            return reauthResult
+        }
 
-    func withdraw() async -> DomainResult<Void> {
+        // 서버에서 계정 삭제
         let result = await dataSource.withdrawCurrentUser().toDomain()
-
         switch result {
         case .failure:
             return result
-
         case .success:
-            // 서버에서 계정 삭제 성공 → 로컬 세션만 즉시 삭제
+            // 로컬 세션 정리
             do {
                 try sessionStore.clear()
                 return .success(())
             } catch {
-                // 로컬 정리 실패는 도메인 에러로 변환 필요
-                // (이미 error.mapToDomainError() 확장/매핑이 있다면 그걸 사용)
                 return .failure(error.mapToDomainError())
             }
         }
@@ -182,6 +202,32 @@ final class AuthRepository: AuthRepositoryProtocol {
     func currentUserId() async -> DomainResult<UUID> {
         await dataSource.currentUserId().toDomain()
     }
+    
+    
+    private func performReauth(_ method: ReauthMethod) async -> DomainResult<Void> {
+            switch method {
+                
+            case .apple:
+                do {
+                    let token = try await appleProvider.signIn()
+                    let result = await dataSource.signInWithApple(
+                        idToken: token.idToken,
+                        nonce: token.nonce
+                    )
+                    return result.toDomain().map { _ in () }
+                } catch {
+                    return .failure(error.mapToDomainError())
+                }
+                
+            case .email(let email, let password):
+                let result = await dataSource.signInWithEmail(
+                    email: email,
+                    password: password
+                )
+                return result.toDomain().map { _ in () }
+            }
+        }
+    
 }
 // RepositoryResult<Success> (Failure==RepositoryError) → DomainResult<Success> 로 변환하는 유틸
 // 목적: Repository 레이어에서 도메인 레이어로 올릴 때 에러 타입을 통일(DomainError)

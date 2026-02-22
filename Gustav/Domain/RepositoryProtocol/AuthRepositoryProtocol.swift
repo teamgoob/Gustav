@@ -35,9 +35,11 @@ protocol AuthRepositoryProtocol {
 
     func signOut() async -> DomainResult<Void>
 
-    // 회원탈퇴(대개 서버 함수 필요)
-    func withdraw() async -> DomainResult<Void>
+    // 회원탈퇴
+    func withdraw(reauth: ReauthMethod) async -> DomainResult<Void>
     
     // 현재 로그인 유저 id 조회
     func currentUserId() async -> DomainResult<UUID>
 }
+
+

@@ -131,7 +131,20 @@ final class AuthSupabase: AuthDataSourceProtocol {
         }
     }
 
-    
+    func currentUserProfileHint() async -> RepositoryResult<UserProfileHint> {
+        do {
+            let user = try await client.auth.user()
+            let email = user.email
+            let fullName = [user.userMetadata["full_name"]?.stringValue,
+                            user.userMetadata["name"]?.stringValue]
+                .compactMap { $0 }
+                .first
+            return .success(.init(email: email, fullName: fullName))
+        } catch {
+            return .failure(Self.mapError(error))
+        }
+    }
+
     
     
     
