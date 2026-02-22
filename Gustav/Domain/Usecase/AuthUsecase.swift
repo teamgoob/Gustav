@@ -17,6 +17,7 @@ enum SessionRestoreResult {
 enum SignUpResult {
     case signedUp    // 신규 가입 완료
     case alreadyExists // 이미 계정 있음(가입이 아니라 로그인으로 유도)
+    case verificationRequired
 }
 
 // MARK: - 사용자 인증 상태 및 세션 관리 Usecase

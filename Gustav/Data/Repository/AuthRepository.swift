@@ -61,13 +61,13 @@ final class AuthRepository: AuthRepositoryProtocol {
                     fullName: token.fullName
                 )
 
+
                 // 3) 우리 앱의 profiles 테이블에 프로필이 있는지 확인/생성/보정
                 switch bootstrap {
-                case .failure(let e):   // 프로필 bootstrap 중 실패(권한/RLS, 네트워크, 기타)
+                case .failure(let e):
                     return .failure(e)
-                case .success(let bootstrap):
-                    let signUpResult: SignUpResult = (bootstrap == .created) ? .signedUp : .alreadyExists
-                    return .success((session: session, result: signUpResult))
+                case .success(let created):
+                    return .success((session: session, result: created ? .signedUp : .alreadyExists))
                 }
             }
         } catch {
@@ -131,6 +131,7 @@ final class AuthRepository: AuthRepositoryProtocol {
         switch result {
         case .failure(let e):
             return .failure(e.mapToDomainError())
+
         case .success(let output):
             if output.requiresEmailVerification || output.session == nil {
                 return .success((session: nil, result: .verificationRequired))

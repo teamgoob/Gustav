@@ -99,6 +99,7 @@ final class AuthSupabase: AuthDataSourceProtocol {
             let response = try await client.auth.signUp(email: email, password: password)
             let session = response.session.map(Self.mapSession)
             let requiresEmailVerification = (session == nil)
+
             return .success(
                 EmailSignUpOutcome(
                     session: session,
@@ -198,6 +199,12 @@ final class AuthSupabase: AuthDataSourceProtocol {
             || message.contains("internet appears to be offline")
             || message.contains("could not connect") {
             return .network
+        }
+        
+        if message.contains("reauthentication required")
+            || message.contains("reauth required")
+            || message.contains("requires recent login") {
+            return .unauthorized
         }
 
         // 2) 상태코드 기반

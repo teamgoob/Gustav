@@ -15,8 +15,17 @@ protocol AuthDataSourceProtocol {
     
     func signInWithApple(idToken: String, nonce: String) async -> RepositoryResult<AuthSession>
     
+    func signUpWithEmail(email: String, password: String) async -> RepositoryResult<EmailSignUpOutcome>
+    func signInWithEmail(email: String, password: String) async -> RepositoryResult<AuthSession>
+
     func signOut() async -> RepositoryResult<Void>
     func withdrawCurrentUser() async -> RepositoryResult<Void>
     
     func currentUserId() async -> RepositoryResult<UUID>
+}
+
+struct EmailSignUpOutcome {
+    let session: AuthSession?
+    let email: String
+    let requiresEmailVerification: Bool
 }
