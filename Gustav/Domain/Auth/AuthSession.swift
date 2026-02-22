@@ -15,10 +15,18 @@ public struct AuthSession: Equatable, Codable {
     public let expiresAt: Date?         // 토큰 만료일
     public let provider: AuthProvider   // 로그인 방식
 
-    public init(accessToken: String, refreshToken: String, userId: String, expiresAt: Date?) {
+
+    public init(
+        accessToken: String,
+        refreshToken: String,
+        userId: String,
+        expiresAt: Date?,
+        provider: AuthProvider
+    ) {
         self.accessToken = accessToken
         self.refreshToken = refreshToken
         self.userId = userId
         self.expiresAt = expiresAt
+        self.provider = provider
     }
 }
