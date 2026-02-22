@@ -18,6 +18,7 @@ protocol AuthRepositoryProtocol {
     // 애플 회원가입
 //    func signUpWithApple(idToken: String, nonce: String) async -> DomainResult<(session: AuthSession, result: SignUpResult)>
     func signUpWithApple() async -> DomainResult<(session: AuthSession, result: SignUpResult)>
+    
     // 애플 로그인 (성공하면 세션 반환)
 //    func signInWithApple(idToken: String, nonce: String) async -> DomainResult<AuthSession>
     func signInWithApple() async -> DomainResult<AuthSession>
