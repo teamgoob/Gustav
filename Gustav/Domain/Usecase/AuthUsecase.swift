@@ -44,12 +44,13 @@ protocol AuthUsecaseProtocol {
 
 // MARK: - 유스케이스 구현부
 final class AuthUsecase: AuthUsecaseProtocol {
-    private let appleProvider: AppleAuthProviding // 토큰 결과
-    private let authRepository: AuthRepositoryProtocol // repo 프로토콜
-    private let sessionStore: SessionStore // 세션 저장/조회/삭제
-    
-    init(appleProvider: AppleAuthProviding, authRepository: AuthRepositoryProtocol, sessionStore: SessionStore) {
-        self.appleProvider = appleProvider
+
+    // repo 프로토콜
+    private let authRepository: AuthRepositoryProtocol
+    // 세션 저장/조회/삭제
+    private let sessionStore: SessionStore
+
+    init(authRepository: AuthRepositoryProtocol, sessionStore: SessionStore) {
         self.authRepository = authRepository
         self.sessionStore = sessionStore
     }
@@ -97,41 +98,24 @@ final class AuthUsecase: AuthUsecaseProtocol {
     
     // 애플 아이디로 회원가입
     func signUpWithApple() async -> DomainResult<SignUpResult> {
-        do {
-            // 1) Apple 로그인 UI → idToken + nonce 획득
-            let token = try await appleProvider.signIn()
-            
-            // 2) repo 호출 (Result로 받음)
-            let repoResult = await authRepository.signUpWithApple(
-                idToken: token.idToken,
-                nonce: token.nonce
-            )
-            
-            let domainRepo = repoResult
-            
-            switch domainRepo {
-            case .success(let output):
-                // 3) 세션 저장
-                try sessionStore.save(output.session)
-                // 4) 가입 결과 반환
-                return .success(output.result)
-                
-            case .failure(let domainError):
-                return .failure(domainError)
-            }
+        // 레포지토리 호출
+        let repoResult = await authRepository.signUpWithApple()
 
-    
-        } catch let e as AppleAuthError where e == .cancelled {
-            // 사용자가 취소한 케이스 : 보통 화면에서 그냥 무시하고 머무는 게 자연스러움 -> 에러나 실패가 아님
-            // SignUpResult에 cancelled가 없음. DomainError unknown으로 처리
-            return .failure(.cancelled)
-            
-        } catch {
-            // 진짜 에러
-            return .failure(error.mapToDomainError())
+        switch repoResult {
+        case .success(let output):
+            do {
+                // 세션 저장 시도
+                try sessionStore.save(output.session)
+                return .success(output.result)
+            } catch {
+                // 저장 실패 시
+                return .failure(error.mapToDomainError())
+            }
+        case .failure(let error):
+            return .failure(error)
         }
-        
     }
+
     
     // 이메일로 회원가입
     func signUpWithEmail(email: String, password: String) async -> DomainResult<SignUpResult> {
@@ -168,40 +152,21 @@ final class AuthUsecase: AuthUsecaseProtocol {
     
     // 애플 로그인
     func signInWithApple() async -> DomainResult<Void> {
-        do {
-            // 1) Apple 로그인 UI → idToken + nonce 획득 (throws)
-            let token = try await appleProvider.signIn()
+        let repoResult = await authRepository.signInWithApple()
 
-            // 2) Repository 호출 → 세션 획득 (Result)
-            let repoResult = await authRepository.signInWithApple(
-                idToken: token.idToken,
-                nonce: token.nonce
-            )
-
-            // 3) RepositoryResult -> DomainResult 변환
-            let domainRepo: DomainResult<AuthSession> = repoResult
-
-            switch domainRepo {
-                //authRepository.signInWithApple가 서버(Supabase)에서 받아온 AuthSession
-            case .success(let session):
-                // 4) 세션 저장 (로그인 유지)
+        switch repoResult {
+        case .success(let session):
+            do {
                 try sessionStore.save(session)
                 return .success(())
-
-            case .failure(let domainError):
-                return .failure(domainError)
+            } catch {
+                return .failure(error.mapToDomainError())
             }
-
-        } catch let e as AppleAuthError where e == .cancelled {
-            // 사용자가 취소: 보통 에러로 취급하지 않고 "아무 일도 없음"으로 종료
-            return .success(())
-
-        } catch {
-            // AppleAuthProvider / SessionStore 등에서 throw된 에러
-            return .failure(error.mapToDomainError())
+        case .failure(let error):
+            return .failure(error)
         }
     }
-    
+
     // 이메일로 로그인
     func signInWithEmail(email: String, password: String) async -> DomainResult<Void> {
         do {
