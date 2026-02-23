@@ -13,7 +13,7 @@ protocol LocationUsecaseProtocol {
     func fetchLocations(workspaceId: UUID) async -> DomainResult<[Location]>
 
     // 장소 생성
-    func createLocation(workspaceId: UUID, name: String, color: TagColor) async -> DomainResult<Location>
+    func createLocation(workspaceId: UUID, location: Location) async -> DomainResult<Location>
 
     // 장소 수정
     func updateLocation(id: UUID, location: Location) async -> DomainResult<Void>
@@ -36,8 +36,8 @@ final class LocationUsecase: LocationUsecaseProtocol {
         await repository.fetchLocations(workspaceId: workspaceId)
     }
     
-    func createLocation(workspaceId: UUID, name: String, color: TagColor) async -> DomainResult<Location> {
-        await repository.createLocation(workspaceId: workspaceId, name: name, color: color)
+    func createLocation(workspaceId: UUID, location: Location) async -> DomainResult<Location> {
+        await repository.createLocation(workspaceId: workspaceId, location: location)
     }
     
     func updateLocation(id: UUID, location: Location) async -> DomainResult<Void> {

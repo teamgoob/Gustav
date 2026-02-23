@@ -23,7 +23,7 @@ extension Category {
             id: self.id,
             workspaceId: self.workspaceId,
             parentId: self.parentId,
-            indexKey: Decimal(self.indexKey),
+            indexKey: self.indexKey,
             name: self.name,
             color: self.color.rawValue,
             createdAt: nil,

@@ -14,57 +14,27 @@ final class CategoryRepository: CategoryRepositoryProtocol {
     }
     
     func fetchCategories(workspaceId: UUID) async -> DomainResult<[Category]> {
-        var categories: [Category] = []
-        do {
-            let result = try await dataSource.fetchCategories(workspaceId: workspaceId).get()
-            categories = result.map { $0.toEntity() }
-
-            return .success(categories)
-        } catch {
-            return .failure(DomainError.unknown)    // 임시
-        }
+        await dataSource.fetchCategories(workspaceId: workspaceId).toDomainResult()
     }
     
     func fetchCategory(id: UUID) async -> DomainResult<Category> {
-        do {
-            let result = try await dataSource.fetchCategory(id: id).get()
-            return .success(result.toEntity())
-        } catch {
-            return .failure(DomainError.entityNotFound)    // 임시
-        }
+        await dataSource.fetchCategory(id: id).toDomainResult()
     }
     
-    func createCategory(workspaceId: UUID, parentId: UUID?, name: String, color: TagColor) async -> DomainResult<Category> {
-        let dto = CategoryDTO(
-            id: UUID(),
-            workspaceId: workspaceId,
-            parentId: parentId,
-            indexKey: 10_000,
-            name: name,
-            color: color.rawValue,
-            createdAt: Date().description,
-            updatedAt: nil)
-        do {
-            let result = try await dataSource.createCategory(categoryDTO: dto).get()
-            return .success(result.toEntity())
-        } catch {
-            return .failure(DomainError.entityNotFound)    // 임시
-        }
+    func createCategory(category: Category) async -> DomainResult<Category> {
+        await dataSource.createCategory(category: category).toDomainResult()
     }
     
     func updateCategory(id: UUID, category: Category) async -> DomainResult<Void> {
-        let result = await dataSource.updateCategory(id: id, dto: category.toDTO())
-        return result.toDomainResult()
+        await dataSource.updateCategory(id: id, category: category).toDomainResult()
     }
     
     func deleteCategory(id: UUID) async -> DomainResult<Void> {
-        let result = await dataSource.deleteCategory(id: id)
-        return result.toDomainResult()
+        await dataSource.deleteCategory(id: id).toDomainResult()
     }
     
     func reorderCategories(workspaceId: UUID, order: [UUID]) async -> DomainResult<Void> {
-        let result = await dataSource.reorderCategories(workspaceId: workspaceId, order: order)
-        return result.toDomainResult()
+        await dataSource.reorderCategories(workspaceId: workspaceId, order: order).toDomainResult()
     }
     
 }

@@ -13,7 +13,7 @@ protocol LocationDataSourceProtocol {
     
     func fetchLocations(workspaceId: UUID) async -> RepositoryResult<[LocationDTO]>
 
-    func fetchLocation(id: UUID) async -> RepositoryResult<LocationDTO?>
+    func fetchLocation(id: UUID) async -> RepositoryResult<LocationDTO>
     
     func createLocation(location: Location) async -> RepositoryResult<LocationDTO>
 

@@ -16,7 +16,7 @@ protocol LocationRepositoryProtocol {
     func fetchLocation(id: UUID) async -> DomainResult<Location>
     
     // 장소 생성
-    func createLocation(workspaceId: UUID, name: String, color: TagColor) async -> DomainResult<Location>
+    func createLocation(workspaceId: UUID, location: Location) async -> DomainResult<Location>
 
     // 장소 수정
     func updateLocation(id: UUID, location: Location) async -> DomainResult<Void>

@@ -16,7 +16,7 @@ protocol ItemStateRepositoryProtocol {
     func fetchItemState(id: UUID) async -> DomainResult<ItemState>
     
     // 아이템 상태 생성
-    func createItemState(workspaceId: UUID, name: String, color: TagColor) async -> DomainResult<ItemState>
+    func createItemState(itemState: ItemState) async -> DomainResult<ItemState>
 
     // 아이템 상태 수정
     func updateItemState(id: UUID, itemState: ItemState) async -> DomainResult<Void>

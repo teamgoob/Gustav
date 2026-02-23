@@ -16,7 +16,7 @@ protocol CategoryRepositoryProtocol {
     func fetchCategory(id: UUID) async -> DomainResult<Category>
 
     // 카테고리 생성
-    func createCategory(workspaceId: UUID, parentId: UUID?, name: String, color: TagColor) async -> DomainResult<Category>
+    func createCategory(category: Category) async -> DomainResult<Category>
 
     // 카테고리 수정
     func updateCategory(id: UUID, category: Category) async -> DomainResult<Void>

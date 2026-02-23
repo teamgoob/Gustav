@@ -14,35 +14,19 @@ final class ViewPresetRepository: ViewPresetRepositoryProtocol {
         self.dataSource = remote
     }
     
-    func fetchViewPresets(workspaceId: UUID) async -> RepositoryResult<[ViewPreset]> {
-        do {
-            let result = try await dataSource.fetchViewPresets(workspaceId: workspaceId).get()
-            guard !result.isEmpty else {
-                return .success([])
-            }
-            return .success(result.map { $0.toEntity() })
-        } catch {
-            return .failure(.decoding)
-        }
-        
+    func fetchViewPresets(workspaceId: UUID) async -> DomainResult<[ViewPreset]> {
+        await dataSource.fetchViewPresets(workspaceId: workspaceId).toDomainResult()
     }
     
-    func createViewPreset(workspaceId: UUID, preset: ViewPreset) async -> RepositoryResult<ViewPreset> {
-        do {
-            let result = try await dataSource.createViewPreset(workspaceId: workspaceId, dto: preset.toDTO()).get()
-            return .success(result.toEntity())
-        } catch {
-            return .failure(.decoding)
-        }
+    func createViewPreset(workspaceId: UUID, preset: ViewPreset) async -> DomainResult<ViewPreset> {
+        await dataSource.createViewPreset(workspaceId: workspaceId, viewPreset: preset).toDomainResult()
     }
     
-    func updateViewPreset(id: UUID, preset: ViewPreset) async -> RepositoryResult<Void> {
-        let result = await dataSource.updateViewPreset(id: id, dto: preset.toDTO())
-        return .success(())
+    func updateViewPreset(id: UUID, preset: ViewPreset) async -> DomainResult<Void> {
+        await dataSource.updateViewPreset(id: id, viewPreset: preset).toDomainResult()
     }
     
-    func deleteViewPreset(id: UUID) async -> RepositoryResult<Void> {
-        let result = await dataSource.deleteViewPreset(id: id)
-        return .success(())
+    func deleteViewPreset(id: UUID) async -> DomainResult<Void> {
+        await dataSource.deleteViewPreset(id: id).toDomainResult()
     }
 }

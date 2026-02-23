@@ -16,7 +16,7 @@ protocol CategoryUsecaseProtocol {
 
     // 카테고리 생성
     // parentID == nil → 상위 카테고리
-    func createCategory(workspaceId: UUID, parentId: UUID?, name: String, color: TagColor) async -> DomainResult<Category>
+    func createCategory(category: Category) async -> DomainResult<Category>
 
     // 카테고리 수정
     func updateCategory(id: UUID, category: Category) async -> DomainResult<Void>
@@ -39,8 +39,8 @@ final class CategoryUsecase: CategoryUsecaseProtocol {
         await repository.fetchCategories(workspaceId: workspaceId)
     }
     
-    func createCategory(workspaceId: UUID, parentId: UUID?, name: String, color: TagColor) async -> DomainResult<Category> {
-        await repository.createCategory(workspaceId: workspaceId, parentId: parentId, name: name, color: color)
+    func createCategory(category: Category) async -> DomainResult<Category> {
+        await repository.createCategory(category: category)
     }
     
     func updateCategory(id: UUID, category: Category) async -> DomainResult<Void> {

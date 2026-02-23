@@ -13,49 +13,28 @@ final class LocationRepository: LocationRepositoryProtocol {
         self.dataSource = remote
     }
     
-    func fetchLocations(workspaceId: UUID) async -> RepositoryResult<[Location]> {
-        var locations: [Location] = []
-        do {
-            let result = try await dataSource.fetchLocations(workspaceId: workspaceId).get()
-            guard !result.isEmpty else {
-                return .success([])
-            }
-            locations = result.map { $0.toEntity() }
-            return .success(locations)
-        } catch {
-            return .failure(RepositoryError.decoding)   // 임시
-        }
+    func fetchLocations(workspaceId: UUID) async -> DomainResult<[Location]> {
+        await dataSource.fetchLocations(workspaceId: workspaceId).toDomainResult()
     }
     
-    func fetchLocation(id: UUID) async -> RepositoryResult<Location> {
-        do {
-            let result = try await dataSource.fetchLocation(id: id).get()
-            guard let result else {
-                return .failure(RepositoryError.notFound)   // 임시, Repo protocol 변경 필요
-            }
-            return .success(result.toEntity())
-        } catch {
-            return .failure(RepositoryError.decoding)   //  임시
-        }
+    func fetchLocation(id: UUID) async -> DomainResult<Location> {
+        await dataSource.fetchLocation(id: id).toDomainResult()
     }
     
-    func createLocation(workspaceId: UUID, name: String, color: TagColor) async -> RepositoryResult<Location> {
-        // Repo Protocol 수정 후 추가
+    func createLocation(workspaceId: UUID, location: Location) async -> DomainResult<Location> {
+        await dataSource.createLocation(location: location).toDomainResult()
     }
     
-    func updateLocation(id: UUID, location: Location) async -> RepositoryResult<Void> {
-        _ = await dataSource.updateLocation(id: id, dto: location.toDTO())
-        return .success(())
+    func updateLocation(id: UUID, location: Location) async -> DomainResult<Void> {
+        await dataSource.updateLocation(id: id, location: location).toDomainResult()
     }
     
-    func deleteLocation(id: UUID) async -> RepositoryResult<Void> {
-        _ = await dataSource.deleteLocation(id: id)
-        return .success(())
+    func deleteLocation(id: UUID) async -> DomainResult<Void> {
+        await dataSource.deleteLocation(id: id).toDomainResult()
     }
     
-    func reorderLocations(workspaceId: UUID, order: [UUID]) async -> RepositoryResult<Void> {
-        _ = await dataSource.reorderLocations(workspaceId: workspaceId, order: order)
-        return .success(())
+    func reorderLocations(workspaceId: UUID, order: [UUID]) async -> DomainResult<Void> {
+        await dataSource.reorderLocations(workspaceId: workspaceId, order: order).toDomainResult()
     }
     
     
