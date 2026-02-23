@@ -16,8 +16,9 @@ struct ItemStateDTO: Codable {
     let color: Int              // 아이템 상태 색상
 }
 
-extension ItemStateDTO {
-    func toEntity() -> ItemState {
+extension ItemStateDTO: DomainConvertible {
+    typealias DomainType = ItemState
+    func toDomain() -> ItemState {
         let tagColor: TagColor = TagColor(rawValue: self.color) ?? .darkGray
         return ItemState(
             id: self.id,

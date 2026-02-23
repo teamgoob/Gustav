@@ -19,8 +19,9 @@ struct ViewPresetDTO: Codable {
     let updatedAt: Date?             // 수정 시각
 }
 
-extension ViewPresetDTO {
-    func toEntity() -> ViewPreset {
+extension ViewPresetDTO: DomainConvertible {
+    typealias Domain = ViewPreset
+    func toDomain() -> ViewPreset {
         return ViewPreset(
             id: self.id,
             workspaceId: self.workspaceId,

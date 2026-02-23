@@ -16,8 +16,9 @@ struct LocationDTO: Codable {
     let color: Int              // 장소 색상
 }
 
-extension LocationDTO {
-    func toEntity() -> Location {
+extension LocationDTO: DomainConvertible {
+    typealias DomainType = Location
+    func toDomain() -> Location {
         let tagColor: TagColor = TagColor(rawValue: self.color) ?? .darkGray
         return Location(
             id: self.id,
