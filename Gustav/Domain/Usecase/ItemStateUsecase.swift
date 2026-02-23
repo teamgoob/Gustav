@@ -13,7 +13,7 @@ protocol ItemStateUsecaseProtocol {
     func fetchItemStates(workspaceId: UUID) async -> DomainResult<[ItemState]>
 
     // 아이템 상태 생성
-    func createItemState(workspaceId: UUID, name: String, color: TagColor) async -> DomainResult<ItemState>
+    func createItemState(itemState: ItemState) async -> DomainResult<ItemState>
 
     // 아이템 상태 수정
     func updateItemState(id: UUID, itemState: ItemState) async -> DomainResult<Void>
@@ -33,22 +33,22 @@ final class ItemStateUsecase: ItemStateUsecaseProtocol {
     }
     
     func fetchItemStates(workspaceId: UUID) async -> DomainResult<[ItemState]> {
-        await repository.fetchItemStates(workspaceId: workspaceId).toDomainResult()
+        await repository.fetchItemStates(workspaceId: workspaceId)
     }
     
-    func createItemState(workspaceId: UUID, name: String, color: TagColor) async -> DomainResult<ItemState> {
-        await repository.createItemState(workspaceId: workspaceId, name: name, color: color).toDomainResult()
+    func createItemState(itemState: ItemState) async -> DomainResult<ItemState> {
+        await repository.createItemState(itemState: itemState)
     }
     
     func updateItemState(id: UUID, itemState: ItemState) async -> DomainResult<Void> {
-        await repository.updateItemState(id: id, itemState: itemState).toDomainResult()
+        await repository.updateItemState(id: id, itemState: itemState)
     }
     
     func deleteItemState(id: UUID) async -> DomainResult<Void> {
-        await repository.deleteItemState(id: id).toDomainResult()
+        await repository.deleteItemState(id: id)
     }
     
     func reorderItemStates(workspaceId: UUID, order: [UUID]) async -> DomainResult<Void> {
-        await repository.reorderItemStates(workspaceId: workspaceId, order: order).toDomainResult()
+        await repository.reorderItemStates(workspaceId: workspaceId, order: order)
     }
 }

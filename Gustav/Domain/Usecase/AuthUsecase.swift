@@ -17,6 +17,7 @@ enum SessionRestoreResult {
 enum SignUpResult {
     case signedUp    // 신규 가입 완료
     case alreadyExists // 이미 계정 있음(가입이 아니라 로그인으로 유도)
+    case verificationRequired
 }
 
 // MARK: - 사용자 인증 상태 및 세션 관리 Usecase
@@ -39,17 +40,18 @@ protocol AuthUsecaseProtocol {
     func signOut() async -> DomainResult<Void>
 
     // 회원 탈퇴, Auth 계정 삭제
-    func withdraw() async -> DomainResult<Void>
+    func withdraw(reauth method: ReauthMethod) async -> DomainResult<Void>
 }
 
 // MARK: - 유스케이스 구현부
 final class AuthUsecase: AuthUsecaseProtocol {
-    private let appleProvider: AppleAuthProviding // 토큰 결과
-    private let authRepository: AuthRepositoryProtocol // repo 프로토콜
-    private let sessionStore: SessionStore // 세션 저장/조회/삭제
-    
-    init(appleProvider: AppleAuthProviding, authRepository: AuthRepositoryProtocol, sessionStore: SessionStore) {
-        self.appleProvider = appleProvider
+
+    // repo 프로토콜
+    private let authRepository: AuthRepositoryProtocol
+    // 세션 저장/조회/삭제
+    private let sessionStore: SessionStore
+
+    init(authRepository: AuthRepositoryProtocol, sessionStore: SessionStore) {
         self.authRepository = authRepository
         self.sessionStore = sessionStore
     }
@@ -81,7 +83,7 @@ final class AuthUsecase: AuthUsecaseProtocol {
                 try sessionStore.save(refreshed)
                 return .success(.restored)
                 
-            case .failure(let repoError):
+            case .failure:
                 // 5) 실패 시 세션 제거 후 비로그인 확정
                 //  서버 기준으로 로그인 유지 불가
                 try? sessionStore.clear()
@@ -97,39 +99,24 @@ final class AuthUsecase: AuthUsecaseProtocol {
     
     // 애플 아이디로 회원가입
     func signUpWithApple() async -> DomainResult<SignUpResult> {
-        do {
-            // 1) Apple 로그인 UI → idToken + nonce 획득
-            let token = try await appleProvider.signIn()
-            
-            // 2) repo 호출 (Result로 받음)
-            let repoResult = await authRepository.signUpWithApple(
-                idToken: token.idToken,
-                nonce: token.nonce
-            )
-            
-            switch repoResult {
-            case .success(let output):
-                // 3) 세션 저장
+        // 레포지토리 호출
+        let repoResult = await authRepository.signUpWithApple()
+
+        switch repoResult {
+        case .success(let output):
+            do {
+                // 세션 저장 시도
                 try sessionStore.save(output.session)
-
-                // 4) 가입 결과 반환
                 return .success(output.result)
-
-            case .failure(let repoError):
-                return .failure(repoError.mapToDomainError())
+            } catch {
+                // 저장 실패 시
+                return .failure(error.mapToDomainError())
             }
-    
-        } catch let e as AppleAuthError where e == .cancelled {
-            // 사용자가 취소한 케이스 : 보통 화면에서 그냥 무시하고 머무는 게 자연스러움 -> 에러나 실패가 아님
-            // SignUpResult에 cancelled가 없음. DomainError unknown으로 처리
-            return .success(.alreadyExists)
-            
-        } catch {
-            // 진짜 에러
-            return .failure(error.authToDomainError())
+        case .failure(let error):
+            return .failure(error)
         }
-        
     }
+
     
     // 이메일로 회원가입
     func signUpWithEmail(email: String, password: String) async -> DomainResult<SignUpResult> {
@@ -141,12 +128,14 @@ final class AuthUsecase: AuthUsecaseProtocol {
             let repoResult = await authRepository.signUpWithEmail(email: email, password: password)
 
             // 2) RepositoryResult -> DomainResult로 변환
-            let domainRepo = repoResult.toDomainResult()
+            let domainRepo = repoResult
 
             switch domainRepo {
             case .success(let output):
-                // 3) 세션 저장 (로그인 유지)
-                try sessionStore.save(output.session)
+                // 3) 세션이 있으면 저장 (로그인 유지)
+                if let session = output.session {
+                    try sessionStore.save(session)
+                }
 
                 // 4) 가입 결과 반환 (신규/기존)
                 return .success(output.result)
@@ -160,46 +149,27 @@ final class AuthUsecase: AuthUsecaseProtocol {
         } catch {
             // 유스케이스 내부에서 발생
             // 입력검증, SDK, 로컬저장 : 내부 실패
-            return .failure(error.authToDomainError())
+            return .failure(error.mapToDomainError())
         }
     }
     
     // 애플 로그인
     func signInWithApple() async -> DomainResult<Void> {
-        do {
-            // 1) Apple 로그인 UI → idToken + nonce 획득 (throws)
-            let token = try await appleProvider.signIn()
+        let repoResult = await authRepository.signInWithApple()
 
-            // 2) Repository 호출 → 세션 획득 (Result)
-            let repoResult = await authRepository.signInWithApple(
-                idToken: token.idToken,
-                nonce: token.nonce
-            )
-
-            // 3) RepositoryResult -> DomainResult 변환
-            let domainRepo: DomainResult<AuthSession> = repoResult.toDomainResult()
-
-            switch domainRepo {
-                //authRepository.signInWithApple가 서버(Supabase)에서 받아온 AuthSession
-            case .success(let session):
-                // 4) 세션 저장 (로그인 유지)
+        switch repoResult {
+        case .success(let session):
+            do {
                 try sessionStore.save(session)
                 return .success(())
-
-            case .failure(let domainError):
-                return .failure(domainError)
+            } catch {
+                return .failure(error.mapToDomainError())
             }
-
-        } catch let e as AppleAuthError where e == .cancelled {
-            // 사용자가 취소: 보통 에러로 취급하지 않고 "아무 일도 없음"으로 종료
-            return .success(())
-
-        } catch {
-            // AppleAuthProvider / SessionStore 등에서 throw된 에러
-            return .failure(error.authToDomainError())
+        case .failure(let error):
+            return .failure(error)
         }
     }
-    
+
     // 이메일로 로그인
     func signInWithEmail(email: String, password: String) async -> DomainResult<Void> {
         do {
@@ -213,7 +183,7 @@ final class AuthUsecase: AuthUsecaseProtocol {
             )
 
             // 2) RepositoryResult -> DomainResult 변환
-            let domainRepo: DomainResult<AuthSession> = repoResult.toDomainResult()
+            let domainRepo: DomainResult<AuthSession> = repoResult
 
             switch domainRepo {
             case .success(let session):
@@ -228,7 +198,7 @@ final class AuthUsecase: AuthUsecaseProtocol {
 
         } catch {
             // 입력 검증 실패(AuthError) 또는 세션 저장 실패
-            return .failure(error.authToDomainError())
+            return .failure(error.mapToDomainError())
         }
     }
     
@@ -252,28 +222,26 @@ final class AuthUsecase: AuthUsecaseProtocol {
     }
     
     //회원 탈퇴
-    func withdraw() async -> DomainResult<Void> {
-        // 1) 서버에 "데이터 삭제 + Auth 유저 삭제" 요청
-        let repoResult = await authRepository.withdraw()
-        let domainRepo: DomainResult<Void> = repoResult.toDomainResult()
+    func withdraw(reauth method: ReauthMethod) async -> DomainResult<Void> {
 
-        // 2) 로컬 세션은 항상 제거 시도
-        do {
-            try sessionStore.clear()
-        } catch {
-            return .failure(error.authToDomainError())
-        }
+        // 1) 서버 탈퇴(재인증 + 계정 삭제)
+        let result = await authRepository.withdraw(reauth: method)
 
-        // 3) 서버 결과 반환
-        switch domainRepo {
+        // 2) 성공했을 때만 로컬 세션 정리
+        switch result {
+        case .failure:
+            return result
+
         case .success:
-            // 서버 삭제 성공 + 로컬 세션 삭제 성공
-            return .success(())
-
-        case .failure(let domainError):
-            // 서버 삭제 실패(네트워크/권한/서버오류 등)
-            // 로컬은 이미 clear 됐으니 앱에서는 로그아웃 상태
-            return .failure(domainError)
+            do {
+                try sessionStore.clear()
+                return .success(())
+            } catch {
+                // 서버는 탈퇴 성공했는데 로컬 정리 실패
+                // => 앱은 이미 "로그아웃 상태"로 유도해야 해서,
+                //    여기서는 에러로 막기보다 unknown 처리하거나 성공 반환하는 편이 안전함(정책 선택)
+                return .failure(error.mapToDomainError())
+            }
         }
     }
     
@@ -310,4 +278,3 @@ final class AuthUsecase: AuthUsecaseProtocol {
     }
 
 }
-

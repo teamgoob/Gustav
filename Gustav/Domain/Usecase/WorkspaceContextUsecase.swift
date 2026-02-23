@@ -44,25 +44,36 @@ final class WorkspaceContextUsecase: WorkspaceContextUsecaseProtocol {
 
         
         // 결과
-        let w = await workspaceR.toDomainResult()
-        let c = await categoriesR.toDomainResult()
-        let l = await locationsR.toDomainResult()
-        let s = await statesR.toDomainResult()
+        let w = await workspaceR
+        let c = await categoriesR
+        let l = await locationsR
+        let s = await statesR
   
+
         // 실패 먼저 처리 (하나라도 실패면 종료)
         if case .failure(let e) = w { return .failure(e) }
         if case .failure(let e) = c { return .failure(e) }
         if case .failure(let e) = l { return .failure(e) }
         if case .failure(let e) = s { return .failure(e) }
 
-        // 성공값 추출 (위에서 실패를 다 걸렀으니 safe)
-        // states는 일단 빈 배열로(임시) — 타입 맞추기용
-        let context = WorkspaceContext(
-            workspace: try! w.get(),
-            categories: try! c.get(),
-            locations: try! l.get(),
-            states: try! s.get()
+        // 성공값 추출 (위에서 실패를 모두 걸렀으니 success 패턴만 남음)
+        guard
+            case .success(let workspace) = w,
+            case .success(let categories) = c,
+            case .success(let locations) = l,
+            case .success(let states) = s
+        else {
+            assertionFailure("WorkspaceContextUsecase.fetchContext: unreachable state")
+            return .failure(.unknown)
+        }
+
+        return .success(
+            WorkspaceContext(
+                workspace: workspace,
+                categories: categories,
+                locations: locations,
+                states: states
+            )
         )
-        return .success(context)
     }
 }

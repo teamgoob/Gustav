@@ -8,7 +8,7 @@
 import Foundation
 
 // MARK: - 아이템 필터 옵션
-enum FilterOption {
+enum FilterOption: Codable {
     case category(UUID)
     case itemState(UUID)
     case location(UUID)

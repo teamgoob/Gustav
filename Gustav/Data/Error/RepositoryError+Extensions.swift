@@ -22,6 +22,16 @@ extension RepositoryError {
             return .temporarilyUnavailable
         case .conflict:
             return .invalidOperation
+            
+        case .invalidCredentials:
+            // idToken/nonce mismatch 등
+            return .authenticationRequired
+        case .misconfigured:
+            // Supabase URL/Key/Provider 설정 오류
+            return .temporarilyUnavailable
+        case .sessionNotFound:
+            return .authenticationRequired
+        
         default:
             return .unknown
         }

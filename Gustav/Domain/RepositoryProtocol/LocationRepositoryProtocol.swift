@@ -10,20 +10,20 @@ import Foundation
 // MARK: - 장소 Repository Protocol
 protocol LocationRepositoryProtocol {
     // 워크스페이스 내 전체 장소 조회
-    func fetchLocations(workspaceId: UUID) async -> RepositoryResult<[Location]>
+    func fetchLocations(workspaceId: UUID) async -> DomainResult<[Location]>
 
     // 워크스페이스 내 단일 장소 조회
-    func fetchLocation(id: UUID) async -> RepositoryResult<Location>
+    func fetchLocation(id: UUID) async -> DomainResult<Location>
     
     // 장소 생성
-    func createLocation(workspaceId: UUID, name: String, color: TagColor) async -> RepositoryResult<Location>
+    func createLocation(workspaceId: UUID, location: Location) async -> DomainResult<Location>
 
     // 장소 수정
-    func updateLocation(id: UUID, location: Location) async -> RepositoryResult<Void>
+    func updateLocation(id: UUID, location: Location) async -> DomainResult<Void>
 
     // 장소 삭제
-    func deleteLocation(id: UUID) async -> RepositoryResult<Void>
+    func deleteLocation(id: UUID) async -> DomainResult<Void>
 
     // 장소 순서 변경
-    func reorderLocations(workspaceId: UUID, order: [UUID]) async -> RepositoryResult<Void>
+    func reorderLocations(workspaceId: UUID, order: [UUID]) async -> DomainResult<Void>
 }
