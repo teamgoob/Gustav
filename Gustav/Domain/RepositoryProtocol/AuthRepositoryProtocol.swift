@@ -16,25 +16,30 @@ protocol AuthRepositoryProtocol {
         ///로컬 세션을 받으면 세션을 기반으로 서버에서 복구하거나, 새 세션을 만들어서 돌려줘라
     
     // 애플 회원가입
-    func signUpWithApple(idToken: String, nonce: String) async -> DomainResult<(session: AuthSession, result: SignUpResult)>
+//    func signUpWithApple(idToken: String, nonce: String) async -> DomainResult<(session: AuthSession, result: SignUpResult)>
+    func signUpWithApple() async -> DomainResult<(session: AuthSession, result: SignUpResult)>
+    
+    // 애플 로그인 (성공하면 세션 반환)
+//    func signInWithApple(idToken: String, nonce: String) async -> DomainResult<AuthSession>
+    func signInWithApple() async -> DomainResult<AuthSession>
+    
     
     // 이메일 회원가입
     func signUpWithEmail(
         email: String,
         password: String
-    ) async -> DomainResult<(session: AuthSession, result: SignUpResult)>
-    
-    // 애플 로그인 (성공하면 세션 반환)
-    func signInWithApple(idToken: String, nonce: String) async -> DomainResult<AuthSession>
+    ) async -> DomainResult<(session: AuthSession?, result: SignUpResult)>
     
     // 이메일 로그인
     func signInWithEmail(email: String, password: String) async -> DomainResult<AuthSession>
 
     func signOut() async -> DomainResult<Void>
 
-    // 회원탈퇴(대개 서버 함수 필요)
-    func withdraw() async -> DomainResult<Void>
+    // 회원탈퇴
+    func withdraw(reauth: ReauthMethod) async -> DomainResult<Void>
     
     // 현재 로그인 유저 id 조회
     func currentUserId() async -> DomainResult<UUID>
 }
+
+
