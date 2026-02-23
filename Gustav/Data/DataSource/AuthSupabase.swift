@@ -41,7 +41,9 @@ final class AuthSupabase: AuthDataSourceProtocol {
             )
 
             // SDK Session -> 우리 앱의 AuthSession(Entity/Model)로 변환
-            return .success(Self.mapSession(session))
+            return .success(
+                Self.mapSession(session, provider: local.provider)
+            )
         } catch {
             // Supabase가 던진 원시 Error를 RepositoryError로 분류(파싱)해서 반환
             return .failure(Self.mapError(error))
@@ -63,7 +65,7 @@ final class AuthSupabase: AuthDataSourceProtocol {
             )
 
             // SDK Session -> AuthSession로 매핑
-            return .success(Self.mapSession(session))
+            return .success(Self.mapSession(session, provider: .apple))
         } catch {
             // Error -> RepositoryError로 파싱
             return .failure(Self.mapError(error))
@@ -97,7 +99,9 @@ final class AuthSupabase: AuthDataSourceProtocol {
     func signUpWithEmail(email: String, password: String) async -> RepositoryResult<EmailSignUpOutcome> {
         do {
             let response = try await client.auth.signUp(email: email, password: password)
-            let session = response.session.map(Self.mapSession)
+            let session = response.session.map { session in
+                Self.mapSession(session, provider: .email)
+            }
             let requiresEmailVerification = (session == nil)
 
             return .success(
@@ -115,7 +119,9 @@ final class AuthSupabase: AuthDataSourceProtocol {
     func signInWithEmail(email: String, password: String) async -> RepositoryResult<AuthSession> {
         do {
             let session = try await client.auth.signIn(email: email, password: password)
-            return .success(Self.mapSession(session))
+            return .success(
+                Self.mapSession(session, provider: .email)
+            )
         } catch {
             return .failure(Self.mapError(error))
         }
@@ -152,7 +158,7 @@ final class AuthSupabase: AuthDataSourceProtocol {
     
     // Supabase SDK의 Session 타입을
     // 앱 내부에서 쓰는 AuthSession 타입으로 변환하는 함수.
-    private static func mapSession(_ session: Session) -> AuthSession {
+    private static func mapSession(_ session: Session,  provider: AuthProvider) -> AuthSession {
         AuthSession(
             // Supabase 세션의 accessToken
             accessToken: session.accessToken,
@@ -166,7 +172,7 @@ final class AuthSupabase: AuthDataSourceProtocol {
 
             // Supabase Session.expiresAt은 UNIX timestamp(TimeInterval, 초)
             // 앱에서는 Date로 쓰고 싶으니 Date(timeIntervalSince1970:)로 변환
-            expiresAt: Date(timeIntervalSince1970: session.expiresAt)
+            expiresAt: Date(timeIntervalSince1970: session.expiresAt), provider: provider
         )
     }
 

@@ -26,7 +26,7 @@ protocol ItemUsecaseProtocol {
     func reorderItems(workspaceId: UUID, order: [UUID]) async -> DomainResult<Void>
 }
 
-struct ItemUsecase: ItemUsecaseProtocol {
+final class ItemUsecase: ItemUsecaseProtocol {
     
     let repository: ItemRepositoryProtocol  // Repo
     

@@ -13,9 +13,13 @@ protocol ItemQueryUsecaseProtocol {
     func queryItems(workspaceId: UUID, query: ItemQuery, pagination: Pagination?) async -> DomainResult<[Item]>
 }
 
-struct ItemQueryUsecase: ItemQueryUsecaseProtocol {
+final class ItemQueryUsecase: ItemQueryUsecaseProtocol {
     let itemRepository: ItemRepositoryProtocol      // Repo
-    
+  
+    init(itemRepository: ItemRepositoryProtocol) {
+        self.itemRepository = itemRepository
+    }  
+  
     func queryItems(workspaceId: UUID, query: ItemQuery, pagination: Pagination?) async -> DomainResult<[Item]> {
         await itemRepository.queryItems(workspaceId: workspaceId, query: query, pagination: pagination)
     }
