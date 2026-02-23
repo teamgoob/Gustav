@@ -10,7 +10,7 @@ import Supabase
 final class SupabaseLocationRemoteDataSource: LocationDataSourceProtocol {
     // 클라이언트
     private let client: SupabaseClient
-    
+    private let table = "locations"
     // 생성자
     init(client: SupabaseClient) {
         self.client = client
@@ -18,70 +18,77 @@ final class SupabaseLocationRemoteDataSource: LocationDataSourceProtocol {
     
     func fetchLocations(workspaceId: UUID) async -> RepositoryResult<[LocationDTO]> {
         do {
-            let response = try await client
-                .from("locations")
+            let response: [LocationDTO] = try await client
+                .from(table)
                 .select()
                 .eq("workspace_id", value: workspaceId)
                 .order("index_key")
                 .execute()
-            let data = response.data
-            do {
-                let locations = try JSONDecoder().decode([LocationDTO].self, from: data)
-                return .success(locations)
-            } catch {
-                return .failure(RepositoryError.decoding)
-            }
+                .value
+            return .success(response)
         } catch {
-            print("fetchCategories Error: \(error.localizedDescription)")
-            return .failure(RepositoryError.decoding)   // 임시
+            // 에러 타입에 따라 Repository Error로 매핑하여 반환
+            if let e = error as? RepositoryErrorConvertible {
+                return .failure(e.mapToRepositoryError())
+            }
+            return .failure(.unknown)
         }
     }
     
     func fetchLocation(id: UUID) async -> RepositoryResult<LocationDTO?> {
         do {
-            let response = try await client
-                .from("location")
+            let response: LocationDTO = try await client
+                .from(table)
                 .select()
                 .eq("id", value: id)
                 .execute()
-            let data = response.data
-            do {
-                let location = try JSONDecoder().decode(LocationDTO.self, from: data)
-                return .success(location)
-            } catch {
-                return .failure(RepositoryError.decoding)
-            }
+                .value
+            return .success(response)
         } catch {
-            print("Error: \(error.localizedDescription)")
-            return .failure(RepositoryError.decoding)   // 임시
+            // 에러 타입에 따라 Repository Error로 매핑하여 반환
+            if let e = error as? RepositoryErrorConvertible {
+                return .failure(e.mapToRepositoryError())
+            }
+            return .failure(.unknown)
         }
     }
     
-    func createLocation(dto: LocationDTO) async -> RepositoryResult<LocationDTO> {
+    func createLocation(location: Location) async -> RepositoryResult<LocationDTO> {
+        let locationDTO = LocationDTO(
+            id: location.id,
+            workspaceId: location.workspaceId,
+            indexKey: location.indexKey,
+            name: location.name,
+            color: location.color.rawValue)
         do {
-            let response = try await client
-                .from("locations")
-                .insert(dto)
+            let response: LocationDTO = try await client
+                .from(table)
+                .insert(locationDTO)
                 .select()
                 .single()
                 .execute()
-            let data = response.data
-            do {
-                let location = try JSONDecoder().decode(LocationDTO.self, from: data)
-                return .success(location)
-            } catch {
-                return .failure(RepositoryError.decoding)
-            }
+                .value
+            return .success(response)
         } catch {
-            return .failure(RepositoryError.unknown)    // 임시
+            // 에러 타입에 따라 Repository Error로 매핑하여 반환
+            if let e = error as? RepositoryErrorConvertible {
+                return .failure(e.mapToRepositoryError())
+            }
+            return .failure(.unknown)
         }
     }
     
-    func updateLocation(id: UUID, dto: LocationDTO) async -> RepositoryResult<Void> {
+    func updateLocation(id: UUID, location: Location) async -> RepositoryResult<Void> {
+        let locationDTO = LocationDTO(
+            id: location.id,
+            workspaceId: location.workspaceId,
+            indexKey: location.indexKey,
+            name: location.name,
+            color: location.color.rawValue)
         do {
             let response = try await client
-                .from("locations")
-                .update(dto)
+                .from(table)
+                .update(locationDTO)
                 .eq("id", value: id)
                 .execute()
             return .success(())
@@ -93,13 +100,17 @@ final class SupabaseLocationRemoteDataSource: LocationDataSourceProtocol {
     func deleteLocation(id: UUID) async -> RepositoryResult<Void> {
         do {
             _ = try await client
-                .from("locations")
+                .from(table)
                 .delete()
                 .eq("id", value: id)
                 .execute()
             return .success(())
         } catch {
-            return .failure(RepositoryError.unknown) //임시
+            // 에러 타입에 따라 Repository Error로 매핑하여 반환
+            if let e = error as? RepositoryErrorConvertible {
+                return .failure(e.mapToRepositoryError())
+            }
+            return .failure(.unknown)
         }
     }
     
@@ -108,7 +119,7 @@ final class SupabaseLocationRemoteDataSource: LocationDataSourceProtocol {
         do {
             for (i, id) in order.enumerated() {
                 try await client
-                    .from("locations")
+                    .from(table)
                     .update(["index_key": "\(offest + i)"])
                     .eq("id", value: id)
                     .execute()
@@ -116,36 +127,19 @@ final class SupabaseLocationRemoteDataSource: LocationDataSourceProtocol {
             
             for (i, id) in order.enumerated() {
                 try await client
-                    .from("locations")
+                    .from(table)
                     .update(["index_key": i])
                     .eq("id", value: id)
                     .execute()
             }
             
+            return .success(())
         } catch {
-            return .failure(RepositoryError.decoding)   // 임시
-        }
-    }
-    
-    func fetchNextIndexKey(workspaceId: UUID) async -> RepositoryResult<Int> {
-        do {
-            let result: IndexKeyDTO = try await client
-                .from("location")
-                .select("index_key")
-                .eq("workspace_id", value: workspaceId)
-                .order("index_key", ascending: false)
-                .limit(1)
-                .single()
-                .execute()
-                .value
-            
-            return .success(result.index_key + 1)
-        } catch let error as PostgrestError {
-            if error.code == "PGRST116" {
-                return .success(0)
+            // 에러 타입에 따라 Repository Error로 매핑하여 반환
+            if let e = error as? RepositoryErrorConvertible {
+                return .failure(e.mapToRepositoryError())
             }
-        } catch {
-                return .failure(RepositoryError.decoding)   // 임시
+            return .failure(.unknown)
         }
     }
 }

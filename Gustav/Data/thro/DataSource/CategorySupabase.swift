@@ -10,6 +10,7 @@ import Supabase
 final class SupabaseCategoryRemoteDataSource: CategoryDataSourceProtocol {
     // 클라이언트
     private let client: SupabaseClient
+    private let table = "categories"
     
     // 생성자
     init(client: SupabaseClient) {
@@ -19,93 +20,114 @@ final class SupabaseCategoryRemoteDataSource: CategoryDataSourceProtocol {
     
     func fetchCategories(workspaceId: UUID) async -> RepositoryResult<[CategoryDTO]> {
         do {
-            let response = try await client
-                .from("categories")
+            let response: [CategoryDTO] = try await client
+                .from(table)
                 .select()
                 .eq("workspace_id", value: workspaceId)
                 .order("index_key")
                 .execute()
-            let data = response.data
-            do {
-                let categories = try JSONDecoder().decode([CategoryDTO].self, from: data)
-                return .success(categories)
-            } catch {
-                return .failure(RepositoryError.decoding)
-            }
+                .value
+            return .success(response)
         } catch {
-            print("fetchCategories Error: \(error.localizedDescription)")
-            return .failure(RepositoryError.decoding)   // 임시
+            // 에러 타입에 따라 Repository Error로 매핑하여 반환
+            if let e = error as? RepositoryErrorConvertible {
+                return .failure(e.mapToRepositoryError())
+            }
+            
+            return .failure(.unknown)
         }
         
     }
     
     func fetchCategory(id: UUID) async -> RepositoryResult<CategoryDTO> {
         do {
-            let response = try await client
-                .from("categories")
+            let response: CategoryDTO = try await client
+                .from(table)
                 .select()
                 .eq("id", value: id)
                 .single()
                 .execute()
-            let data = response.data
-            do {
-                let category = try JSONDecoder().decode(CategoryDTO.self, from: data)
-                return .success(category)
-            } catch {
-                return .failure(RepositoryError.decoding)
-            }
+                .value
+            return .success(response)
         } catch {
-            print("fetchCategory Error: \(error.localizedDescription)")
-            return .failure(RepositoryError.decoding)   // 임시
+            // 에러 타입에 따라 Repository Error로 매핑하여 반환
+            if let e = error as? RepositoryErrorConvertible {
+                return .failure(e.mapToRepositoryError())
+            }
+            return .failure(.unknown)
         }
     }
     
-    func createCategory(categoryDTO: CategoryDTO) async -> RepositoryResult<CategoryDTO> {
+    func createCategory(category: Category) async -> RepositoryResult<CategoryDTO> {
+        let categoryDTO = CategoryDTO(
+            id: category.id,
+            workspaceId: category.workspaceId,
+            parentId: category.parentId,
+            indexKey: category.indexKey,
+            name: category.name,
+            color: category.color.rawValue,
+            createdAt: Date().description,
+            updatedAt: nil
+        )
         do {
-            let response = try await client
-                .from("categories")
+            let response: CategoryDTO = try await client
+                .from(table)
                 .insert(categoryDTO)
                 .select()
                 .single()
                 .execute()
-            let data = response.data
-            do {
-                let created = try JSONDecoder().decode(CategoryDTO.self, from: data)
-                return .success(created)
-            } catch {
-                return .failure(RepositoryError.decoding)
-            }
+                .value
+            return .success(response)
         } catch {
-            print("CreateCategory Error: \(error.localizedDescription)")
-            return .failure(RepositoryError.decoding)   // 임시
+            // 에러 타입에 따라 Repository Error로 매핑하여 반환
+            if let e = error as? RepositoryErrorConvertible {
+                return .failure(e.mapToRepositoryError())
+            }
+            return .failure(.unknown)
         }
     }
     
-    func updateCategory(id: UUID, dto: CategoryDTO) async -> RepositoryResult<Void> {
+    func updateCategory(id: UUID, category: Category) async -> RepositoryResult<Void> {
+        let categoryDTO = CategoryDTO(
+            id: category.id,
+            workspaceId: category.workspaceId,
+            parentId: category.parentId,
+            indexKey: category.indexKey,
+            name: category.name,
+            color: category.color.rawValue,
+            createdAt: nil,
+            updatedAt: Date().description
+        )
         do {
             _ = try await client
-                .from("categories")
-                .update(dto)
+                .from(table)
+                .update(categoryDTO)
                 .eq("id", value: id)
                 .execute()
             return .success(())
         } catch {
-            print("updateCategory Error: \(error.localizedDescription)")
-            return .failure(RepositoryError.decoding)   // 임시
+            // 에러 타입에 따라 Repository Error로 매핑하여 반환
+            if let e = error as? RepositoryErrorConvertible {
+                return .failure(e.mapToRepositoryError())
+            }
+            return .failure(.unknown)
         }
     }
     
     func deleteCategory(id: UUID) async -> RepositoryResult<Void> {
         do {
             _ = try await client
-                .from("categories")
+                .from(table)
                 .delete()
                 .eq("id", value: id)
                 .execute()
             return .success(())
         } catch {
-            print("deleteCategory Error: \(error.localizedDescription)")
-            return .failure(RepositoryError.decoding)   // 임시
+            // 에러 타입에 따라 Repository Error로 매핑하여 반환
+            if let e = error as? RepositoryErrorConvertible {
+                return .failure(e.mapToRepositoryError())
+            }
+            return .failure(.unknown)
         }
     }
     
@@ -114,44 +136,25 @@ final class SupabaseCategoryRemoteDataSource: CategoryDataSourceProtocol {
         do {
             for (index, id) in order.enumerated() {
                 _ = try await client
-                    .from("categories")
+                    .from(table)
                     .update(["index_key": index +  offset])
                     .eq("id", value: id)
                     .execute()
             }
             for (index, id) in order.enumerated() {
                 _ = try await client
-                    .from("categories")
+                    .from(table)
                     .update(["index_key": index])
                     .eq("id", value: id)
                     .execute()
             }
             return .success(())
         } catch {
-            print("reorderCategories Error: \(error.localizedDescription)")
-            return .failure(RepositoryError.decoding)   // 임시
-        }
-    }
-    
-    func fetchNextIndexKey(workspaceId: UUID) async -> RepositoryResult<Int> {
-        do {
-            let result: IndexKeyDTO = try await client
-                .from("categories")
-                .select("index_key")
-                .eq("workspace_id", value: workspaceId)
-                .order("index_key", ascending: false)
-                .limit(1)
-                .single()
-                .execute()
-                .value
-            
-            return .success(result.index_key + 1)
-        } catch let error as PostgrestError {
-            if error.code == "PGRST116" {
-                return .success(0)
+            // 에러 타입에 따라 Repository Error로 매핑하여 반환
+            if let e = error as? RepositoryErrorConvertible {
+                return .failure(e.mapToRepositoryError())
             }
-        } catch {
-                return .failure(RepositoryError.decoding)   // 임시
+            return .failure(.unknown)
         }
     }
 }

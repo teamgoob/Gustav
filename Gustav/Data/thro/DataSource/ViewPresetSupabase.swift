@@ -10,6 +10,7 @@ import Supabase
 final class SupabaseViewPresetRemoteDataSource: ViewPresetDataSourceProtocol {
     // 클라이언트
     private let client: SupabaseClient
+    private let table = "view_presets"
     
     // 생성자
     init(client: SupabaseClient) {
@@ -18,92 +19,91 @@ final class SupabaseViewPresetRemoteDataSource: ViewPresetDataSourceProtocol {
     
     func fetchViewPresets(workspaceId: UUID) async -> RepositoryResult<[ViewPresetDTO]> {
         do {
-            let response = try await client
-                .from("view_presets")
+            let response: [ViewPresetDTO] = try await client
+                .from(table)
                 .select()
                 .eq("workspace_id", value: workspaceId)
                 .order("index_key")
                 .execute()
-            let data = response.data
-            do {
-                let presets = try JSONDecoder().decode([ViewPresetDTO].self, from: data)
-                return .success(presets)
-            } catch {
-                return .failure(RepositoryError.decoding)
-            }
+                .value
+            return .success(response)
         } catch {
-            print("fetchPresets Error: \(error.localizedDescription)")
-            return .failure(RepositoryError.decoding)   // 임시
+            // 에러 타입에 따라 Repository Error로 매핑하여 반환
+            if let e = error as? RepositoryErrorConvertible {
+                return .failure(e.mapToRepositoryError())
+            }
+            return .failure(.unknown)
         }
     }
     
-    func createViewPreset(workspaceId: UUID, dto: ViewPresetDTO) async -> RepositoryResult<ViewPresetDTO> {
+    func createViewPreset(workspaceId: UUID, viewPreset: ViewPreset) async -> RepositoryResult<ViewPresetDTO> {
+        let viewPresetDTO = ViewPresetDTO(
+            id: viewPreset.id,
+            workspaceId: viewPreset.workspaceId,
+            name: viewPreset.name,
+            viewType: viewPreset.viewType,
+            sortingOption: viewPreset.sortingOption,
+            filters: viewPreset.filters,
+            createdAt: Date(),
+            updatedAt: nil)
         do {
-            let reponse = try await client
-                .from("view_presets")
-                .insert(dto)
+            let response: ViewPresetDTO = try await client
+                .from(table)
+                .insert(viewPresetDTO)
                 .select()
                 .single()
                 .execute()
-            let data = reponse.data
-            do {
-                let preset = try JSONDecoder().decode(ViewPresetDTO.self, from: data)
-                return .success(preset)
-            } catch {
-                return .failure(RepositoryError.decoding)
-            }
+                .value
+            return .success(response)
         } catch {
-            print("Error: \(error.localizedDescription)")
-            return .failure(RepositoryError.decoding)   // 임시
+            // 에러 타입에 따라 Repository Error로 매핑하여 반환
+            if let e = error as? RepositoryErrorConvertible {
+                return .failure(e.mapToRepositoryError())
+            }
+            return .failure(.unknown)
         }
     }
     
-    func updateViewPreset(id: UUID, dto: ViewPresetDTO) async -> RepositoryResult<Void> {
+    func updateViewPreset(id: UUID, viewPreset: ViewPreset) async -> RepositoryResult<Void> {
+        let viewPresetDTO = ViewPresetDTO(
+            id: viewPreset.id,
+            workspaceId: viewPreset.workspaceId,
+            name: viewPreset.name,
+            viewType: viewPreset.viewType,
+            sortingOption: viewPreset.sortingOption,
+            filters: viewPreset.filters,
+            createdAt: Date(),
+            updatedAt: nil)
         do {
             _ = try await client
-                .from("view_presets")
-                .update(dto)
+                .from(table)
+                .update(viewPresetDTO)
                 .eq("id", value: id)
                 .execute()
             return .success(())
         } catch {
-            return .failure(RepositoryError.decoding)   // 임시
+            // 에러 타입에 따라 Repository Error로 매핑하여 반환
+            if let e = error as? RepositoryErrorConvertible {
+                return .failure(e.mapToRepositoryError())
+            }
+            return .failure(.unknown)
         }
     }
     
     func deleteViewPreset(id: UUID) async -> RepositoryResult<Void> {
         do {
             _ = try await client
-                .from("view_presets")
+                .from(table)
                 .delete()
                 .eq("id", value: id)
                 .execute()
             return .success(())
         } catch {
-            return .failure(RepositoryError.decoding)   // 임시
-        }
-    }
-    
-    func fetchNextIndexKey(workspaceId: UUID) async -> RepositoryResult<Int> {
-        do {
-            let result: IndexKeyDTO = try await client
-                .from("view_presets")
-                .select("index_key")
-                .eq("workspace_id", value: workspaceId)
-                .order("index_key", ascending: false)
-                .limit(1)
-                .single()
-                .execute()
-                .value
-            
-            return .success(result.index_key + 1)
-        } catch let error as PostgrestError {
-            if error.code == "PGRST116" {
-                return .success(0)
+            // 에러 타입에 따라 Repository Error로 매핑하여 반환
+            if let e = error as? RepositoryErrorConvertible {
+                return .failure(e.mapToRepositoryError())
             }
-        } catch {
-                return .failure(RepositoryError.decoding)   // 임시
+            return .failure(.unknown)
         }
     }
-
 }
