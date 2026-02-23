@@ -29,20 +29,3 @@ struct CategoryDTO: Codable {
         case updatedAt = "updated_at"
     }
 }
-
-extension CategoryDTO: DomainConvertible {
-    typealias DomainType = Category
-    
-    func toDomain() -> Category {
-        let colorValue: Int = self.color ?? 0
-        let tagColor: TagColor = TagColor(rawValue: colorValue) ?? .darkGray
-        return Category(
-            id: self.id,
-            workspaceId: self.workspaceId,
-            parentId: self.parentId,
-            indexKey: self.indexKey,
-            name: self.name,
-            color: tagColor
-        )
-    }
-}

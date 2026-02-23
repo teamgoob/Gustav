@@ -15,17 +15,3 @@ struct ItemStateDTO: Codable {
     let name: String            // 아이템 상태 이름
     let color: Int              // 아이템 상태 색상
 }
-
-extension ItemStateDTO: DomainConvertible {
-    typealias DomainType = ItemState
-    func toDomain() -> ItemState {
-        let tagColor: TagColor = TagColor(rawValue: self.color) ?? .darkGray
-        return ItemState(
-            id: self.id,
-            workspaceId: self.workspaceId,
-            indexKey: self.indexKey,
-            name: self.name,
-            color: tagColor
-        )
-    }
-}
