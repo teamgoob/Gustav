@@ -10,10 +10,10 @@ import Foundation
 // MARK: - ItemReference를 생성하는 Usecase
 protocol ItemReferenceUsecaseProtocol {
     // ItemReference 생성
-    func createItemReference(item: Item) async -> DomainResult<ItemReference>
+    func createItemsReference(workspaceId: UUID) async -> DomainResult<[ItemReference]>
 }
 
-struct ItemReferenceUsecase: ItemReferenceUsecaseProtocol {
+final class ItemReferenceUsecase: ItemReferenceUsecaseProtocol {
     let itemRepository: ItemRepositoryProtocol
     let categoryRepository: CategoryRepositoryProtocol
     let locationRepository: LocationRepositoryProtocol
@@ -24,54 +24,6 @@ struct ItemReferenceUsecase: ItemReferenceUsecaseProtocol {
         self.categoryRepository = categoryRepository
         self.locationRepository = locationRepository
         self.itemStateRepository = itemStateRepository
-    }
-    
-    func createItemReference(item: Item) async -> DomainResult<ItemReference> {
-
-        // 1) Item이 들고 있는 참조 ID를 사용해야 한다.
-        let categoryId = item.categoryId
-        let locationId = item.locationId
-        let stateId = item.stateId
-
-        // 2) 병렬 조회 시작 (ID가 없으면 조회를 생략하고 success(nil)로 처리)
-        async let categoryResult: DomainResult<Category?> = fetchCategoryIfNeeded(categoryId)
-        async let locationResult: DomainResult<Location?> = fetchLocationIfNeeded(locationId)
-        async let stateResult: DomainResult<ItemState?> = fetchStateIfNeeded(stateId)
-
-        // 3) 결과를 꺼내면서 실패면 즉시 반환 (Strict)
-        let category: Category?
-        switch await categoryResult {
-        case .success(let value):
-            category = value
-        case .failure(let error):
-            return .failure(error)
-        }
-
-        let location: Location?
-        switch await locationResult {
-        case .success(let value):
-            location = value
-        case .failure(let error):
-            return .failure(error)
-        }
-
-        let state: ItemState?
-        switch await stateResult {
-        case .success(let value):
-            state = value
-        case .failure(let error):
-            return .failure(error)
-        }
-
-        // 4) 최종 묶음 생성 (여긴 async 아님 → await 붙이지 말기)
-        let itemReference = ItemReference(
-            item: item,
-            category: category,
-            location: location,
-            state: state
-        )
-
-        return .success(itemReference)
     }
     
     // 워크스페이스 아이디로 모든 아이템을 ItemReference로 생성하여 배열로 반환
@@ -131,82 +83,24 @@ struct ItemReferenceUsecase: ItemReferenceUsecaseProtocol {
         case .failure(let error):
             return .failure(error)
         }
-
+        
+        let itemsDic: [UUID: Item] = Dictionary(uniqueKeysWithValues: items.map { ($0.id, $0) })
+        let categoriesDic: [UUID: Category] = Dictionary(uniqueKeysWithValues: categories.map { ($0.id, $0) })
+        let locationsDic: [UUID: Location] = Dictionary(uniqueKeysWithValues: locations.map { ($0.id, $0) })
+        let statesDic: [UUID: ItemState] = Dictionary(uniqueKeysWithValues: states.map { ($0.id, $0) })
+        
         items.forEach { item in
-            
-            // 3) item이 들고 있는 참조 ID로 목록에서 매칭
-            let matchedCategory: Category? = {
-                guard let categoryId = item.categoryId else { return nil }
-                return categories.first { $0.id == categoryId }
-            }()
-            
-            let matchedLocation: Location? = {
-                guard let locationId = item.locationId else { return nil }
-                return locations.first { $0.id == locationId }
-            }()
-            
-            let matchedState: ItemState? = {
-                guard let stateId = item.stateId else { return nil }
-                return states.first { $0.id == stateId }
-            }()
-            
             // 4) 최종으로 “화면에서 쓰기 좋은 묶음”을 생성해서 성공으로 반환
             itemReferences.append(
                 ItemReference(
                     item: item,
-                    category: matchedCategory,
-                    location: matchedLocation,
-                    state: matchedState
+                    category: item.categoryId.flatMap { categoriesDic[$0] },
+                    location: item.locationId.flatMap { locationsDic[$0] },
+                    state: item.stateId.flatMap { statesDic[$0] }
                 )
             )
         }
 
         return .success(itemReferences)
-    }
-    
-    
-    /// categoryId가 있으면 단건 조회, 없으면 success(nil)
-    private func fetchCategoryIfNeeded(_ id: UUID?) async -> DomainResult<Category?> {
-        guard let id else { return .success(nil) }
-
-        let repoResult = await categoryRepository.fetchCategory(id: id)
-        let domain: DomainResult<Category> = repoResult.toDomainResult()
-
-        switch domain {
-        case .success(let category):
-            return .success(category)
-        case .failure(let error):
-            return .failure(error)
-        }
-    }
-
-    /// locationId가 있으면 단건 조회, 없으면 success(nil)
-    private func fetchLocationIfNeeded(_ id: UUID?) async -> DomainResult<Location?> {
-        guard let id else { return .success(nil) }
-
-        let repoResult = await locationRepository.fetchLocation(id: id)
-        let domain: DomainResult<Location> = repoResult.toDomainResult()
-
-        switch domain {
-        case .success(let location):
-            return .success(location)
-        case .failure(let error):
-            return .failure(error)
-        }
-    }
-
-    /// stateId가 있으면 단건 조회, 없으면 success(nil)
-    private func fetchStateIfNeeded(_ id: UUID?) async -> DomainResult<ItemState?> {
-        guard let id else { return .success(nil) }
-
-        let repoResult = await itemStateRepository.fetchItemState(id: id)
-        let domain: DomainResult<ItemState> = repoResult.toDomainResult()
-
-        switch domain {
-        case .success(let state):
-            return .success(state)
-        case .failure(let error):
-            return .failure(error)
-        }
     }
 }
