@@ -21,21 +21,33 @@ protocol AuthUsecaseProtocol {
     // 앱 시작 시 호출하여 Supabase 세션 복원 시도
     // 성공: 로그인 상태 유지
     // 실패: 비로그인 상태
-    func restoreSession() async -> DomainResult<SessionRestoreResult>
-    
-    // 회원 가입
-    func signUpWithApple() async -> DomainResult<SignUpResult>
-    func signUpWithEmail(email: String, password: String) async -> DomainResult<SignUpResult>
-    
-    // 로그인
-    func signInWithApple() async -> DomainResult<Void>
-    func signInWithEmail(email: String, password: String) async -> DomainResult<Void>
-    
-    // 로그아웃, 로컬 세션 제거
+    // 앱 시작 시 자동 로그인 시도
+    func restoreSession() async -> DomainResult<AuthSession?>
+
+    // 애플 인증(가입/로그인 통합) + 필요 시 bootstrap까지 내부 처리
+    func authenticateWithApple() async -> DomainResult<AuthOutcome>
+/* uthenticateWithApple()구현할 때
+ 프로필 초기화
+ true: 신규 프로필 생성(첫 가입 취급), false: 기존 프로필
+ func bootstrapAfterAppleAuth(
+     userId: UUID,
+     email: String?,
+     fullName: String?,
+     policy: ProfileBootstrapPolicy
+ ) async -> DomainResult<Bool>
+ */
+    // 이메일 가입
+    func signUpWithEmail(email: String, password: String) async -> DomainResult<AuthOutcome>
+
+    // 이메일 로그인
+    func signInWithEmail(email: String, password: String) async -> DomainResult<AuthOutcome>
+
+    // 로그아웃
     func signOut() async -> DomainResult<Void>
 
-    // 회원 탈퇴, Auth 계정 삭제
-    func withdraw(reauth method: ReauthMethod) async -> DomainResult<Void>
+    // 탈퇴
+    func withdraw(reauth: ReauthMethod) async -> DomainResult<Void>
+
 }
 
 // MARK: - 유스케이스 구현부

@@ -38,7 +38,7 @@ final class AuthRepository: AuthRepositoryProtocol {
     // Apple 로그인 기반 - 가입
     // - session: 생성된 AuthSession
     // - result: SignUpResult(.signedUp / .alreadyExists 등)로 신규/기존 판단을 상위에 전달
-    func signUpWithApple() async -> DomainResult<(session: AuthSession, result: SignUpResult)> {
+    func signUpWithApple() async -> DomainResult<(session: AuthSession, result: AuthOutcome)> {
         do {
             // 1) Apple 로그인 UI를 띄우고 성공 시 토큰/nonce/email/fullName을 얻는다.
             let token = try await appleProvider.signIn()
