@@ -9,15 +9,10 @@ import Foundation
 
 
 // MARK: - 분기 결과
+// presentation 구현 후에 상태 분기 코드 수정/ 업데이트 필요
 enum SessionRestoreResult {
     case restored   // 로그인 유지
     case notRestored // 비로그인
-}
-
-enum SignUpResult {
-    case signedUp    // 신규 가입 완료
-    case alreadyExists // 이미 계정 있음(가입이 아니라 로그인으로 유도)
-    case verificationRequired
 }
 
 // MARK: - 사용자 인증 상태 및 세션 관리 Usecase
