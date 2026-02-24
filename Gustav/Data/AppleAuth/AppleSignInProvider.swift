@@ -9,6 +9,14 @@ import Foundation
 import AuthenticationServices
 import UIKit
 
+
+///의문
+/// 애플로그인 요청을 시작한다
+///  성공 시 identityToken(idToken) 과 사용자 식별자, 이메일(있을 수도), 이름(있을 수도)를 반환한다
+///     nonce를 포함해 보안 흐름을 맞춘다
+///     실패/취소를 에러로 정리해서 반환한다
+
+
 // Apple SDK(콜백 기반)를 async/await 형태로 감싼 구현체.
 // Apple SDK 상세를 몰라도 되게
 final class AppleSignInProvider: NSObject, AppleAuthProviding {
