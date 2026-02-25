@@ -86,7 +86,7 @@ final class SupabaseLocationRemoteDataSource: LocationDataSourceProtocol {
             name: location.name,
             color: location.color.rawValue)
         do {
-            let response = try await client
+            _ = try await client
                 .from(table)
                 .update(locationDTO)
                 .eq("id", value: id)
