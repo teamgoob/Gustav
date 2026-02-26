@@ -9,9 +9,10 @@ import Foundation
 
 // MARK: - SessionStore
 //AuthSession을 기기 로컬에 저장/조회/삭제하는 저장소 역할
-public protocol SessionStore {
-    func load() throws -> AuthSession?          // 세션 읽어오기
-    func save(_ session: AuthSession) throws    // 세션 저장/갱신
+//다시 로그인하지 않게 하려면 세션을 기기에 저장해둬야함 = 자동로그인
+protocol SessionStore {
+    func load() throws -> AuthDTO?          // 세션 읽어오기
+    func save(_ session: AuthDTO) throws    // 세션 저장/갱신
     func clear() throws                         // 세션 삭세
 }
 
