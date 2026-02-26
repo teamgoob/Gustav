@@ -39,9 +39,3 @@ extension Result where Failure == RepositoryError, Success == Void {
     }
 }
 
-// Success가 이미 "도메인 타입"인 경우에 사용
-extension Result where Failure == RepositoryError {
-    func toDomain() -> DomainResult<Success> {
-        self.mapError { $0.mapToDomainError() }
-    }
-}

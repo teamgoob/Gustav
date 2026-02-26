@@ -118,3 +118,51 @@ extension ViewPresetDTO: DomainConvertible {
             updatedAt: self.updatedAt)
     }
 }
+
+// Auth DTO -> Auth 변환 메서드 정의 
+extension AuthDTO: DomainConvertible {
+    typealias DomainType = AuthSession
+
+    func toDomain() -> AuthSession {
+        // provider 문자열 → 도메인 enum으로 변환
+        let domainProvider = AuthProvider(rawValue: provider) ?? .unknown
+
+        return AuthSession(
+            accessToken: accessToken,
+            refreshToken: refreshToken,
+            userId: userId,
+            expiresAt: expiresAt,
+            provider: domainProvider
+        )
+    }
+}
+
+
+extension ProfileDTO: DomainConvertible {
+    typealias DomainType = Profile
+
+    func toDomain() -> Profile {
+        return Profile(
+            id: id,
+            displayName: name,
+            email: email,
+            isPrivateEmail: isPrivateEmail,
+            createdAt: Self.parseDate(createdAt) ?? Date(timeIntervalSince1970: 0),
+            updatedAt: Self.parseDate(updatedAt) ?? Date(timeIntervalSince1970: 0)
+        )
+    }
+
+    /// Supabase timestamp(대부분 ISO8601)을 Date로 파싱
+    private static func parseDate(_ raw: String) -> Date? {
+        // 1) ISO8601 기본 (예: 2026-02-27T12:34:56Z)
+        let iso = ISO8601DateFormatter()
+        if let d = iso.date(from: raw) { return d }
+
+        // 2) 소수점(밀리초) 포함 케이스 대응
+        let isoFrac = ISO8601DateFormatter()
+        isoFrac.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        if let d = isoFrac.date(from: raw) { return d }
+
+        return nil
+    }
+}

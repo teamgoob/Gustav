@@ -7,13 +7,13 @@
 
 import Foundation
 
-struct ProfileRecord: Decodable {
+struct ProfileDTO: Decodable {
     let id: UUID
     let name: String?
     let email: String?
     let isPrivateEmail: Bool
-    let createdAt: Date
-    let updatedAt: Date
+    let createdAt: String
+    let updatedAt: String
 
     enum CodingKeys: String, CodingKey {
         case id

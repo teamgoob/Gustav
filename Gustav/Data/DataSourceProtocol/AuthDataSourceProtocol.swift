@@ -11,26 +11,20 @@ import Foundation
 
 protocol AuthDataSourceProtocol {
     
-    func restoreOrRefreshSession(from local: AuthSession) async -> RepositoryResult<AuthSession>
+    func signInWithApple(idToken: String, nonce: String) async -> RepositoryResult<AuthDTO>
+    func signInWithEmail(email: String, password: String) async -> RepositoryResult<AuthDTO>
+    func refreshSession(refreshToken: String) async -> RepositoryResult<AuthDTO>
     
-    func signInWithApple(idToken: String, nonce: String) async -> RepositoryResult<AuthSession>
-    
-    func signUpWithEmail(email: String, password: String) async -> RepositoryResult<EmailSignUpOutcome>
-    func signInWithEmail(email: String, password: String) async -> RepositoryResult<AuthSession>
+    func signUpWithEmail(email: String, password: String) async -> RepositoryResult<EmailSignUpOutcomeDTO>
 
     func signOut() async -> RepositoryResult<Void>
     func withdrawCurrentUser() async -> RepositoryResult<Void>
-    
-    func currentUserId() async -> RepositoryResult<UUID>
-    func currentUserProfileHint() async -> RepositoryResult<UserProfileHint>
+
+//AuthSessionRepository(또는 SessionStore) 에서 해결
+//    func currentUserId() async -> RepositoryResult<UUID>
+
 }
 
-struct UserProfileHint {
-    let email: String?
-    let fullName: String?
-}
-struct EmailSignUpOutcome {
-    let session: AuthSession?
-    let email: String
-    let requiresEmailVerification: Bool
-}
+
+
+
