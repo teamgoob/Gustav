@@ -7,34 +7,76 @@
 import Foundation
 
 final class CategoryRepository: CategoryRepositoryProtocol {
-    let dataSource: CategoryDataSourceProtocol
     
-    init(dataSource remote: CategoryDataSourceProtocol) {
+    private let dataSource: CategoryDataSourceProtocol
+    private let cache: CategoryCache
+    
+    init(dataSource remote: CategoryDataSourceProtocol, cache: CategoryCache) {
         self.dataSource = remote
+        self.cache = cache
     }
     
     func fetchCategories(workspaceId: UUID) async -> DomainResult<[Category]> {
-        await dataSource.fetchCategories(workspaceId: workspaceId).toDomainResult()
+        let cache = await self.cache.getAll()
+        if !cache.isEmpty {
+            return .success(cache)
+        }
+        switch await dataSource.fetchCategories(workspaceId: workspaceId).toDomainResult() {
+        case .success(let categories):
+            await self.cache.save(categories)
+            return .success(categories)
+        case .failure(let error):
+            return .failure(error)
+        }
+        
     }
     
     func fetchCategory(id: UUID) async -> DomainResult<Category> {
-        await dataSource.fetchCategory(id: id).toDomainResult()
+        if let cache = await self.cache.get(id: id) {
+            return .success(cache)
+        }
+        
+        switch await dataSource.fetchCategory(id: id).toDomainResult() {
+        case .success(let category):
+            await self.cache.insert(category)
+            return .success(category)
+        case .failure(let error):
+            return .failure(error)
+        }
     }
     
     func createCategory(category: Category) async -> DomainResult<Category> {
-        await dataSource.createCategory(category: category).toDomainResult()
+        switch await dataSource.createCategory(category: category).toDomainResult() {
+        case .success(let newCategory):
+            await self.cache.insert(newCategory)
+            return .success(newCategory)
+        case .failure(let error):
+            return .failure(error)
+        }
     }
     
     func updateCategory(id: UUID, category: Category) async -> DomainResult<Void> {
-        await dataSource.updateCategory(id: id, category: category).toDomainResult()
+        let result = await dataSource.updateCategory(id: id, category: category).toDomainResult()
+        if case .success = result {
+            await cache.updateCategory(category: category)
+        }
+        return result
     }
     
     func deleteCategory(id: UUID) async -> DomainResult<Void> {
-        await dataSource.deleteCategory(id: id).toDomainResult()
+        let result = await dataSource.deleteCategory(id: id).toDomainResult()
+        if case .success = result {
+            await cache.remove(id: id)
+        }
+        return result
     }
     
     func reorderCategories(workspaceId: UUID, order: [UUID]) async -> DomainResult<Void> {
-        await dataSource.reorderCategories(workspaceId: workspaceId, order: order).toDomainResult()
+        let result = await dataSource.reorderCategories(workspaceId: workspaceId, order: order).toDomainResult()
+        if case .success = result {
+            await cache.updateOrder(order: order)
+        }
+        return result 
     }
     
 }
