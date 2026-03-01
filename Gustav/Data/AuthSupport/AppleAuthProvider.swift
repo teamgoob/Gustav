@@ -1,5 +1,5 @@
 //
-//  AppleSignInProvider.swift
+//  AppleAuthProvider.swift
 //  Gustav
 //
 //  Created by kaeun on 2/23/26.

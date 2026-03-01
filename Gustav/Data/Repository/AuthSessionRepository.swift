@@ -79,7 +79,7 @@ final class AuthSessionRepository: AuthSessionRepositoryProtocol {
         case .success(let token):
 
             // 3) Apple에서 받은 idToken + nonce를 Supabase로 보내서 세션을 발급받습니다.
-            let authResult = await authDataSource.signInWithApple(
+            let authResult = await authDataSource.authenticateWithApple(
                 idToken: token.idToken,
                 nonce: token.nonce
             )

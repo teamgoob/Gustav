@@ -11,7 +11,7 @@ import Foundation
 
 protocol AuthDataSourceProtocol {
     
-    func signInWithApple(idToken: String, nonce: String) async -> RepositoryResult<AuthDTO>
+    func authenticateWithApple(idToken: String, nonce: String) async -> RepositoryResult<AuthDTO>
     func signInWithEmail(email: String, password: String) async -> RepositoryResult<AuthDTO>
     
     // SDK가 이미 저장하고 있는 세션을 읽어오기 (없으면 nil)

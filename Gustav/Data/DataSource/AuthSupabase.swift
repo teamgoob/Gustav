@@ -24,7 +24,6 @@ import Supabase
 
 final class AuthSupabase: AuthDataSourceProtocol {
 
-
     private let client: SupabaseClient
 
     // provider 문자열 오타 방지용
@@ -41,7 +40,7 @@ final class AuthSupabase: AuthDataSourceProtocol {
     // MARK: - 세션 조회(검증 없이)
     /// SDK가 "현재 들고 있는 세션"을 그대로 가져옵니다.
     /// - 검증/리프레시를 하지 않습니다.
-    func currentSession() async -> RepositoryResult<AuthDTO> {
+    func currentSession() async -> RepositoryResult<AuthDTO?> {
         guard let session = client.auth.currentSession else {
             return .failure(.sessionNotFound)
         }
@@ -50,7 +49,7 @@ final class AuthSupabase: AuthDataSourceProtocol {
 
     // MARK: - 세션 조회(검증 + 필요 시 refresh)
     /// SDK가 세션을 "검증"하고, 필요하면 refresh까지 수행한 결과를 가져옵니다.
-    func validSession() async -> RepositoryResult<AuthDTO> {
+    func validSession() async -> RepositoryResult<AuthDTO?> {
         do {
             let session: Session = try await client.auth.session
             return .success(Self.mapAuthDTO(session, provider: ProviderString.unknown))
@@ -66,7 +65,7 @@ final class AuthSupabase: AuthDataSourceProtocol {
     }
 
     // MARK: - Apple 로그인 (idToken + nonce -> Supabase 세션 생성)
-    func signInWithApple(idToken: String, nonce: String) async -> RepositoryResult<AuthDTO?> {
+    func authenticateWithApple(idToken: String, nonce: String) async -> RepositoryResult<AuthDTO> {
         do {
             let session = try await client.auth.signInWithIdToken(
                 credentials: OpenIDConnectCredentials(
@@ -107,7 +106,7 @@ final class AuthSupabase: AuthDataSourceProtocol {
     }
 
     // MARK: - 이메일 로그인
-    func signInWithEmail(email: String, password: String) async -> RepositoryResult<AuthDTO?> {
+    func signInWithEmail(email: String, password: String) async -> RepositoryResult<AuthDTO> {
         do {
             let session = try await client.auth.signIn(email: email, password: password)
             return .success(Self.mapAuthDTO(session, provider: ProviderString.email))

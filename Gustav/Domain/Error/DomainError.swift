@@ -13,6 +13,7 @@ enum DomainError: Error {
     case permissionDenied         // 권한 없음
     case entityNotFound           // 데이터 없음
     case invalidOperation         // 제약 조건 충돌
+    case invalidParameter 
     case invalidInput(AuthInputError) // 입력값 오류
     case temporarilyUnavailable   // 네트워크, 서버 오류
     case cancelled                // 애플 로그인 취소
