@@ -1,30 +1,76 @@
+
 import Foundation
 import Supabase
 
 /// Supabase Auth를 "직접 호출"하는 DataSource 구현체입니다.
 ///
 /// ✅ 여기서 하는 일
-/// - Supabase SDK(auth) 호출
-/// - 성공하면 DTO(AuthDTO, EmailSignUpOutcomeDTO)로 반환
-/// - 실패하면 mapError로 RepositoryError로 통일해서 반환
+/// - Supabase SDK(auth / functions)를 직접 호출합니다.
+/// - Apple idToken + nonce를 받아 Supabase 세션을 생성합니다.
+/// - Email 로그인 / 회원가입을 수행합니다.
+/// - SDK가 보관 중인 현재 세션을 조회하거나,
+///   필요 시 refresh까지 수행하여 "유효한 세션"을 가져옵니다.
+/// - Edge Function을 호출해 회원탈퇴를 수행합니다.
+/// - 모든 에러를 RepositoryError로 통일하여 반환합니다.
 ///
-/// ❌ 여기서 안 하는 일
-/// - Keychain 저장/복구(SessionStore)
-/// - "자동로그인 전체 흐름" 조립(Repository/UseCase 책임)
+/// ❌ 여기서 하지 않는 일
+/// - 세션을 Keychain 등에 직접 저장/복구하지 않습니다.
+///   (세션 관리는 Supabase SDK 내부에 맡깁니다.)
+/// - 로그인 흐름(자동 로그인, 가입/로그인 분기 등)을 조립하지 않습니다.
+///   → 그 책임은 Repository / UseCase 계층에 있습니다.
+/// - Domain 모델로 변환하지 않습니다.
+///   → DTO → Domain 변환은 Repository 계층에서 수행합니다.
+
 
 final class AuthSupabase: AuthDataSourceProtocol {
 
+
     private let client: SupabaseClient
+
+    // provider 문자열 오타 방지용
+    private enum ProviderString {
+        static let apple = "apple"
+        static let email = "email"
+        static let unknown = "unknown"
+    }
 
     init(client: SupabaseClient) {
         self.client = client
     }
 
-    // MARK: - Apple 로그인 (idToken + nonce -> Supabase 세션 생성)
-    func signInWithApple(idToken: String, nonce: String) async -> RepositoryResult<AuthDTO> {
+    // MARK: - 세션 조회(검증 없이)
+    /// SDK가 "현재 들고 있는 세션"을 그대로 가져옵니다.
+    /// - 검증/리프레시를 하지 않습니다.
+    /// - 세션이 없으면 nil
+    func currentSession() async -> RepositoryResult<AuthDTO?> {
+        let session: Session? = client.auth.currentSession
+        let dto: AuthDTO? = session.map { Self.mapAuthDTO($0, provider: ProviderString.unknown) }
+        return .success(dto)
+    }
+
+    // MARK: - 세션 조회(검증 + 필요 시 refresh)
+    /// SDK가 세션을 "검증"하고, 필요하면 refresh까지 수행한 결과를 가져옵니다.
+    /// - 세션이 없으면 nil로 처리(비로그인 상태)
+    func validSession() async -> RepositoryResult<AuthDTO?> {
         do {
-            // Apple에서 받은 idToken, nonce(원문)를 Supabase에 전달하면
-            // Supabase가 accessToken/refreshToken이 포함된 "세션"을 만들어 줍니다.
+            // Supabase SDK: 필요하면 refresh 수행 후 세션 반환
+            let session: Session = try await client.auth.session
+            return .success(Self.mapAuthDTO(session, provider: ProviderString.unknown))
+        } catch {
+            let repoError = Self.mapError(error)
+
+            // 세션 없음/만료 성격은 "비로그인"으로 보고 nil 처리
+            if repoError == .sessionNotFound || repoError == .unauthorized {
+                return .success(nil)
+            }
+
+            return .failure(repoError)
+        }
+    }
+
+    // MARK: - Apple 로그인 (idToken + nonce -> Supabase 세션 생성)
+    func signInWithApple(idToken: String, nonce: String) async -> RepositoryResult<AuthDTO?> {
+        do {
             let session = try await client.auth.signInWithIdToken(
                 credentials: OpenIDConnectCredentials(
                     provider: .apple,
@@ -33,10 +79,8 @@ final class AuthSupabase: AuthDataSourceProtocol {
                 )
             )
 
-            // Supabase Session -> 우리 앱 DTO(AuthDTO)로 변환
-            return .success(Self.mapAuthDTO(session, provider: "apple"))
+            return .success(Self.mapAuthDTO(session, provider: ProviderString.apple))
         } catch {
-            // Supabase가 던진 Error를 "우리 앱 규격(RepositoryError)"로 변환
             return .failure(Self.mapError(error))
         }
     }
@@ -44,22 +88,20 @@ final class AuthSupabase: AuthDataSourceProtocol {
     // MARK: - 이메일 회원가입
     func signUpWithEmail(email: String, password: String) async -> RepositoryResult<EmailSignUpOutcomeDTO> {
         do {
-            // signUp 결과로 session이 "있을 수도 있고 없을 수도" 있습니다.
-            // - 세션이 있으면: 가입과 동시에 로그인 완료
-            // - 세션이 nil이면: 이메일 인증 필요(verification)
             let response = try await client.auth.signUp(email: email, password: password)
 
-            let sessionDTO: AuthDTO? = response.session.map { session in
-                Self.mapAuthDTO(session, provider: "email")
+            // 가입 응답에서 session은 있을 수도, 없을 수도 있습니다.
+            // - session != nil : 가입과 동시에 로그인 완료
+            // - session == nil : 이메일 인증 필요
+            let sessionDTO: AuthDTO? = response.session.map {
+                Self.mapAuthDTO($0, provider: ProviderString.email)
             }
-
-            let requiresEmailVerification = (sessionDTO == nil)
 
             return .success(
                 EmailSignUpOutcomeDTO(
                     session: sessionDTO,
                     email: email,
-                    requiresEmailVerification: requiresEmailVerification
+                    requiresEmailVerification: (sessionDTO == nil)
                 )
             )
         } catch {
@@ -68,33 +110,10 @@ final class AuthSupabase: AuthDataSourceProtocol {
     }
 
     // MARK: - 이메일 로그인
-    func signInWithEmail(email: String, password: String) async -> RepositoryResult<AuthDTO> {
+    func signInWithEmail(email: String, password: String) async -> RepositoryResult<AuthDTO?> {
         do {
-            // 이메일/비밀번호가 맞으면 세션이 바로 만들어집니다.
             let session = try await client.auth.signIn(email: email, password: password)
-            return .success(Self.mapAuthDTO(session, provider: "email"))
-        } catch {
-            return .failure(Self.mapError(error))
-        }
-    }
-
-    // MARK: - 세션 갱신(Refresh)
-    func refreshSession(refreshToken: String) async -> RepositoryResult<AuthDTO> {
-        do {
-            // ⚠️ Supabase Swift SDK 버전에 따라 refresh 함수 시그니처가 다를 수 있습니다.
-            //
-            // (1) 어떤 버전은 refreshSession()만 제공(내부 저장된 refreshToken 사용)
-            // (2) 어떤 버전은 refreshToken을 인자로 받음
-            //
-            // ✅ 아래 한 줄만 너희 프로젝트의 Supabase SDK에 맞게 수정하면 됩니다.
-
-            // 예시 A) refreshToken을 인자로 받는 버전인 경우:
-            // let session = try await client.auth.refreshSession(refreshToken: refreshToken)
-
-            // 예시 B) 인자 없이 갱신하는 버전인 경우:
-            let session = try await client.auth.refreshSession()
-
-            return .success(Self.mapAuthDTO(session, provider: "unknown"))
+            return .success(Self.mapAuthDTO(session, provider: ProviderString.email))
         } catch {
             return .failure(Self.mapError(error))
         }
@@ -103,7 +122,6 @@ final class AuthSupabase: AuthDataSourceProtocol {
     // MARK: - 로그아웃
     func signOut() async -> RepositoryResult<Void> {
         do {
-            // Supabase 서버/클라이언트 세션 정리
             try await client.auth.signOut()
             return .success(())
         } catch {
@@ -111,66 +129,87 @@ final class AuthSupabase: AuthDataSourceProtocol {
         }
     }
 
-    // MARK: - 회원탈퇴(서버 RPC/Edge Function)
+    // MARK: - 회원탈퇴 (Edge Function)
+    /// Edge Function을 호출해서 "현재 로그인 유저"를 삭제합니다.
+    /// - 클라이언트는 service_role을 절대 가지면 안 되므로
+    /// - 서버(Edge Function)에서 service_role로 auth.admin.deleteUser(...) 수행
     func withdrawCurrentUser() async -> RepositoryResult<Void> {
         do {
-            // Edge Function 호출 (auth.users 삭제)
             _ = try await client.functions.invoke("delete-user")
             return .success(())
         } catch {
             return .failure(Self.mapError(error))
         }
     }
-    
 }
 
-// MARK: - 매핑(변환) 함수들
+// MARK: - Mapping / Error Parsing
 private extension AuthSupabase {
 
-    /// Supabase의 Session 타입을 우리 앱의 AuthDTO로 바꿉니다.
+    /// Supabase Session -> AuthDTO 변환
     static func mapAuthDTO(_ session: Session, provider: String) -> AuthDTO {
-        AuthDTO(
+        // expiresAt이 Unix seconds인 경우가 대부분
+        // 일부 버전/상황에서 옵셔널일 수 있다고 가정하고 방어적으로 처리
+        let expires: Date? = {
+            // session.expiresAt이 TimeInterval(Double) 타입인 경우가 많음
+            // 만약 컴파일 에러가 나면, 해당 SDK 버전의 타입에 맞춰 아래 한 줄만 수정하면 됨.
+            Date(timeIntervalSince1970: session.expiresAt)
+        }()
+
+        return AuthDTO(
             accessToken: session.accessToken,
             refreshToken: session.refreshToken,
             userId: session.user.id,
-            expiresAt: Date(timeIntervalSince1970: session.expiresAt),
+            expiresAt: expires,
             provider: provider
         )
     }
 
-    /// Supabase / 네트워크 / 디코딩 등 다양한 Error를 RepositoryError로 통일합니다.
+    /// 다양한 Error를 RepositoryError로 통일
     static func mapError(_ error: Error) -> RepositoryError {
 
-        // 1) 이미 RepositoryError면 그대로 사용(중복 변환 방지)
+        // 1) 이미 RepositoryError면 그대로
         if let e = error as? RepositoryError { return e }
 
-        // 2) 디코딩 문제
+        // 2) AppleAuthError가 섞여 들어오면 RepositoryError로 변환
+        if let apple = error as? AppleAuthError { return apple.mapToRepositoryError() }
+
+        // 3) 디코딩
         if error is DecodingError { return .decoding }
 
-        // 3) 네트워크 문제(URLError / NSURLErrorDomain)
+        // 4) 네트워크(URLError / NSURLErrorDomain)
         if let urlError = error as? URLError { return urlError.mapToRepositoryError() }
         let nsError = error as NSError
         if nsError.domain == NSURLErrorDomain { return .network }
 
-        // 4) 메시지 기반 추정(최후의 수단)
+        // 5) 메시지 기반(최후의 수단)
         let message = nsError.localizedDescription.lowercased()
+
+        // 세션 없음
+        if message.contains("session not found")
+            || message.contains("no current session")
+            || message.contains("not logged in") {
+            return .sessionNotFound
+        }
 
         // 취소
         if message.contains("cancel") { return .cancelled }
 
         // 레이트 리밋
-        if message.contains("rate limit") || message.contains("too many requests") || message.contains("429") {
+        if message.contains("rate limit")
+            || message.contains("too many requests")
+            || message.contains("429") {
             return .rateLimited
         }
 
-        // 이메일 인증 필요(문구는 프로젝트/설정에 따라 다를 수 있음)
+        // 이메일 인증 필요
         if message.contains("email not confirmed")
             || message.contains("email not verified")
             || message.contains("confirm your email") {
             return .emailNotVerified
         }
 
-        // 자격증명 문제(로그인 정보/토큰/nonce 문제)
+        // 자격증명 문제(로그인 정보/토큰/nonce)
         if message.contains("invalid login credentials")
             || message.contains("invalid credentials")
             || message.contains("invalid grant")
@@ -180,7 +219,7 @@ private extension AuthSupabase {
             return .invalidCredentials
         }
 
-        // 설정 문제(Provider 미활성화, 키/URL 문제 등)
+        // 설정 문제
         if message.contains("provider is not enabled")
             || message.contains("provider disabled")
             || message.contains("not configured")
@@ -190,14 +229,13 @@ private extension AuthSupabase {
             return .misconfigured
         }
 
-        // 권한 문제(RLS)
+        // 권한 문제(RLS 등)
         if message.contains("row level security")
             || message.contains("permission denied")
             || message.contains("forbidden") {
             return .forbidden
         }
 
-        // 그 외
         return .unknown
     }
 }
