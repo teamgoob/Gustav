@@ -12,8 +12,8 @@ struct ProfileDTO: Decodable {
     let name: String?
     let email: String?
     let isPrivateEmail: Bool
-    let createdAt: String
-    let updatedAt: String
+    let createdAt: Date
+    let updatedAt: Date
 
     enum CodingKeys: String, CodingKey {
         case id

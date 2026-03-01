@@ -41,27 +41,24 @@ final class AuthSupabase: AuthDataSourceProtocol {
     // MARK: - 세션 조회(검증 없이)
     /// SDK가 "현재 들고 있는 세션"을 그대로 가져옵니다.
     /// - 검증/리프레시를 하지 않습니다.
-    /// - 세션이 없으면 nil
-    func currentSession() async -> RepositoryResult<AuthDTO?> {
-        let session: Session? = client.auth.currentSession
-        let dto: AuthDTO? = session.map { Self.mapAuthDTO($0, provider: ProviderString.unknown) }
-        return .success(dto)
+    func currentSession() async -> RepositoryResult<AuthDTO> {
+        guard let session = client.auth.currentSession else {
+            return .failure(.sessionNotFound)
+        }
+        return .success(Self.mapAuthDTO(session, provider: ProviderString.unknown))
     }
 
     // MARK: - 세션 조회(검증 + 필요 시 refresh)
     /// SDK가 세션을 "검증"하고, 필요하면 refresh까지 수행한 결과를 가져옵니다.
-    /// - 세션이 없으면 nil로 처리(비로그인 상태)
-    func validSession() async -> RepositoryResult<AuthDTO?> {
+    func validSession() async -> RepositoryResult<AuthDTO> {
         do {
-            // Supabase SDK: 필요하면 refresh 수행 후 세션 반환
             let session: Session = try await client.auth.session
             return .success(Self.mapAuthDTO(session, provider: ProviderString.unknown))
         } catch {
             let repoError = Self.mapError(error)
 
-            // 세션 없음/만료 성격은 "비로그인"으로 보고 nil 처리
             if repoError == .sessionNotFound || repoError == .unauthorized {
-                return .success(nil)
+                return .failure(.sessionNotFound)
             }
 
             return .failure(repoError)
