@@ -31,4 +31,4 @@ public struct AuthSession: Equatable, Codable {
     }
 }
 
-///  그리고 data 영역에서 DTO를 만들어 두기로 했음. 다른 파일들은 codable, equatable을 사용하지 않음. 왜 이 파일에는 두어야함?
+

@@ -12,14 +12,12 @@ import Foundation
 
 protocol AuthFlowRepositoryProtocol {
 
-    // 세션 복구(자동 로그인) / 필요 시 refresh
+    // SDK 내부 세션 조회(+ 필요시 refresh)
     func restoreSession() async -> DomainResult<AuthSession?>
 
     // 로그아웃
     func signOut() async -> DomainResult<Void>
 
-    // 회원탈퇴
-    func withdraw(reauth: ReauthMethod) async -> DomainResult<Void>
 
     // 현재 로그인 유저 id 조회
     func currentUserId() -> UUID?

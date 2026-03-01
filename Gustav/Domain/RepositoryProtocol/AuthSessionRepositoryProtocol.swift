@@ -20,4 +20,7 @@ protocol AuthSessionRepositoryProtocol {
 
     // Email 로그인
     func signInWithEmail(email: String, password: String) async -> DomainResult<AuthOutcome>
+    
+    // 회원탈퇴
+    func withdraw() async -> DomainResult<Void>
 }
