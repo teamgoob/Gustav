@@ -146,3 +146,37 @@ extension ViewPresetDTO: DomainConvertible {
             updatedAt: self.updatedAt)
     }
 }
+
+// Auth DTO -> Auth 변환 메서드 정의 
+extension AuthDTO: DomainConvertible {
+    typealias DomainType = AuthSession
+
+    func toDomain() -> AuthSession {
+        // provider 문자열 → 도메인 enum으로 변환
+        let domainProvider = AuthProvider(rawValue: provider) ?? .unknown
+
+        return AuthSession(
+            accessToken: accessToken,
+            refreshToken: refreshToken,
+            userId: userId,
+            expiresAt: expiresAt,
+            provider: domainProvider
+        )
+    }
+}
+
+
+extension ProfileDTO: DomainConvertible {
+    typealias DomainType = Profile
+
+    func toDomain() -> Profile {
+        Profile(
+            id: id,
+            displayName: name,
+            email: email,
+            isPrivateEmail: isPrivateEmail,
+            createdAt: createdAt,
+            updatedAt: updatedAt
+        )
+    }
+}

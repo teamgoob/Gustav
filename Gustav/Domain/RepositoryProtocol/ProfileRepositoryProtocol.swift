@@ -14,13 +14,12 @@ protocol ProfileRepositoryProtocol {
     func fetchProfile(userId: UUID) async -> DomainResult<Profile>
     // 사용자 이름 변경
     func updateUserName(userId: UUID, name: String) async -> DomainResult<Void>
-    
-    // 프로필 초기화
-    // true: 신규 프로필 생성(첫 가입 취급), false: 기존 프로필
-    func bootstrapAfterAppleAuth(
+
+    //upsert = update + insert
+    // 프로필이 없으면 만들고, 있으면 최신 정보로 갱신
+    func upsertProfile(
         userId: UUID,
         email: String?,
-        fullName: String?,
-        policy: ProfileBootstrapPolicy
-    ) async -> DomainResult<Bool>
+        displayName: String?
+    ) async -> DomainResult<Void>
 }

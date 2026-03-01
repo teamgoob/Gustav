@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct ProfileRecord: Decodable {
+struct ProfileDTO: Decodable {
     let id: UUID
     let name: String?
     let email: String?

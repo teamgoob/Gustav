@@ -9,15 +9,15 @@ import Foundation
 
 // MARK: - Apple ID Token Result
 
-public struct AppleIDTokenResult: Equatable {
-    public let idToken: String
-    public let nonce: String
+struct AppleIDTokenResult: Equatable {
+    let idToken: String
+    let nonce: String
 
     // Apple은 최초 동의 시에만 내려줄 수 있음
-    public let email: String?
-    public let fullName: String?
+    let email: String?
+    let fullName: String?
 
-    public init(
+    init(
         idToken: String,
         nonce: String,
         email: String?,
