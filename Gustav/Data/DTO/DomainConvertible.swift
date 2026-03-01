@@ -18,6 +18,20 @@ protocol DomainConvertible {
 extension ItemDTO: DomainConvertible {
     typealias DomainType = Item
     
+    // Supabase timestamp(대부분 ISO8601)을 Date로 파싱
+    private static func parseDate(_ raw: String) -> Date? {
+        // 1) ISO8601 기본 (예: 2026-02-27T12:34:56Z)
+        let iso = ISO8601DateFormatter()
+        if let d = iso.date(from: raw) { return d }
+
+        // 2) 소수점(밀리초) 포함 케이스 대응
+        let isoFrac = ISO8601DateFormatter()
+        isoFrac.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        if let d = isoFrac.date(from: raw) { return d }
+
+        return nil
+    }
+    
     func toDomain() -> Item {
         Item(
             id: id,
@@ -34,8 +48,8 @@ extension ItemDTO: DomainConvertible {
             price: price,
             quantity: quantity,
             memo: memo,
-            createdAt: createdAt,
-            updatedAt: updatedAt
+            createdAt: Self.parseDate(createdAt) ?? Date(timeIntervalSince1970: 0),
+            updatedAt: Self.parseDate(updatedAt) ?? Date(timeIntervalSince1970: 0)
         )
     }
 }
@@ -44,14 +58,28 @@ extension ItemDTO: DomainConvertible {
 extension WorkspaceDTO: DomainConvertible {
     typealias DomainType = Workspace
     
+    // Supabase timestamp(대부분 ISO8601)을 Date로 파싱
+    private static func parseDate(_ raw: String) -> Date? {
+        // 1) ISO8601 기본 (예: 2026-02-27T12:34:56Z)
+        let iso = ISO8601DateFormatter()
+        if let d = iso.date(from: raw) { return d }
+
+        // 2) 소수점(밀리초) 포함 케이스 대응
+        let isoFrac = ISO8601DateFormatter()
+        isoFrac.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        if let d = isoFrac.date(from: raw) { return d }
+
+        return nil
+    }
+    
     func toDomain() -> Workspace {
         Workspace(
             id: id,
             userId: userId,
             indexKey: indexKey,
             name: name,
-            createdAt: createdAt,
-            updatedAt: updatedAt
+            createdAt: Self.parseDate(createdAt) ?? Date(timeIntervalSince1970: 0),
+            updatedAt: Self.parseDate(updatedAt) ?? Date(timeIntervalSince1970: 0)
         )
     }
 }
