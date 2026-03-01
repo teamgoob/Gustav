@@ -30,10 +30,6 @@ final class AuthRepository: AuthRepositoryProtocol {
         self.sessionStore = sessionStore
     }
     
-    // 앱 시작/재실행 시 로컬에 저장된 세션(access/refresh)으로 세션을 복구/갱신
-    func restoreOrRefreshSession(from local: AuthSession) async -> DomainResult<AuthSession> {
-        await dataSource.restoreOrRefreshSession(from: local).toDomain()
-    }
     
     // Apple 로그인 기반 - 가입
     // - session: 생성된 AuthSession

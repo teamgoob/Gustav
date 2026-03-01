@@ -12,5 +12,5 @@ import AuthenticationServices
 protocol AppleAuthProviding {
     /// Apple 로그인 UI를 띄울 창(anchor)을 외부에서 주입받는다.
     ///     ASPresentationAnchor는 UIKit의 UIWindow typealias
-    func signIn(presentationAnchor: ASPresentationAnchor) async throws -> AppleIDTokenResult
+    func signIn(presentationAnchor: ASPresentationAnchor) async -> Result<AppleIDTokenResult, AppleAuthError>
 }
