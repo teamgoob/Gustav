@@ -8,7 +8,7 @@
 
 // MARK: - Apple Auth Error
 
-public enum AppleAuthError: Error, Equatable {
+enum AppleAuthError: Error, Equatable {
     case invalidCredential // Apple SDK에서 기대한 credential 아님
     case missingNonce // 내부 상태 꼬임
     case missingIdentityToken // Apple 응답에 토큰 없음
@@ -19,22 +19,20 @@ public enum AppleAuthError: Error, Equatable {
     // 계정 잠김
 }
 
-
-// MARK: - AppleAuthError → DomainError
-extension AppleAuthError {
-    func mapToDomainError() -> DomainError {
+extension AppleAuthError: RepositoryErrorConvertible {
+    func mapToRepositoryError() -> RepositoryError {
         switch self {
-        case .inProgress,
-             .missingPresentationAnchor:
-            return .invalidOperation
+        case .cancelled:
+            return .cancelled
 
         case .invalidCredential,
              .missingNonce,
              .missingIdentityToken:
-            return .authenticationRequired
+            return .invalidCredentials
 
-        case .cancelled:
-            return .cancelled
+        case .inProgress,
+             .missingPresentationAnchor:
+            return .misconfigured
         }
     }
 }

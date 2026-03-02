@@ -10,7 +10,9 @@ import Foundation
 // MARK: - ItemReference를 생성하는 Usecase
 protocol ItemReferenceUsecaseProtocol {
     // ItemReference 생성
-    func createItemsReference(workspaceId: UUID) async -> DomainResult<[ItemReference]>
+    func createAllItemReferences(workspaceId: UUID) async -> DomainResult<[ItemReference]>
+    
+    func createItemReferences(workspaceId: UUID, items: [Item]) async -> DomainResult<[ItemReference]>
 }
 
 final class ItemReferenceUsecase: ItemReferenceUsecaseProtocol {
@@ -27,7 +29,7 @@ final class ItemReferenceUsecase: ItemReferenceUsecaseProtocol {
     }
     
     // 워크스페이스 아이디로 모든 아이템을 ItemReference로 생성하여 배열로 반환
-    func createItemsReference(workspaceId: UUID) async -> DomainResult<[ItemReference]> {
+    func createAllItemReferences(workspaceId: UUID) async -> DomainResult<[ItemReference]> {
         var itemReferences: [ItemReference] = []
         
         // 1) ItemReference에 필요한 데이터들
@@ -80,7 +82,6 @@ final class ItemReferenceUsecase: ItemReferenceUsecaseProtocol {
             return .failure(error)
         }
         
-        let itemsDic: [UUID: Item] = Dictionary(uniqueKeysWithValues: items.map { ($0.id, $0) })
         let categoriesDic: [UUID: Category] = Dictionary(uniqueKeysWithValues: categories.map { ($0.id, $0) })
         let locationsDic: [UUID: Location] = Dictionary(uniqueKeysWithValues: locations.map { ($0.id, $0) })
         let statesDic: [UUID: ItemState] = Dictionary(uniqueKeysWithValues: states.map { ($0.id, $0) })
@@ -97,6 +98,50 @@ final class ItemReferenceUsecase: ItemReferenceUsecaseProtocol {
             )
         }
 
+        return .success(itemReferences)
+    }
+    
+    func createItemReferences(workspaceId: UUID, items: [Item]) async -> DomainResult<[ItemReference]> {
+        var itemReferences: [ItemReference] = []
+        
+        async let categories = categoryRepository.fetchCategories(workspaceId: workspaceId)
+        async let locations = locationRepository.fetchLocations(workspaceId: workspaceId)
+        async let states = itemStateRepository.fetchItemStates(workspaceId: workspaceId)
+        
+        var categoriesDic: [UUID: Category] = [:]
+        switch await categories {
+        case .success(let value):
+            categoriesDic = Dictionary(uniqueKeysWithValues: value.map {($0.id, $0) })
+        case .failure(let error):
+            return .failure(error)
+        }
+        
+        var locationsDic: [UUID: Location] = [:]
+        switch await locations {
+        case .success(let value):
+            locationsDic = Dictionary(uniqueKeysWithValues: value.map {($0.id, $0) })
+        case .failure(let error):
+            return .failure(error)
+        }
+        
+        var statesDic: [UUID: ItemState] = [:]
+        switch await states {
+        case .success(let value):
+            statesDic = Dictionary(uniqueKeysWithValues: value.map {($0.id, $0) })
+        case .failure(let error):
+            return .failure(error)
+        }
+        
+        items.forEach { item in
+            itemReferences.append(
+                ItemReference(
+                    item: item,
+                    category: item.categoryId.flatMap { categoriesDic[$0] },
+                    location: item.locationId.flatMap { locationsDic[$0] },
+                    state: item.stateId.flatMap { statesDic[$0] }
+                )
+            )
+        }
         return .success(itemReferences)
     }
 }

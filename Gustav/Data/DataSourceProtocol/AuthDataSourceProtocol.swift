@@ -11,26 +11,25 @@ import Foundation
 
 protocol AuthDataSourceProtocol {
     
-    func restoreOrRefreshSession(from local: AuthSession) async -> RepositoryResult<AuthSession>
+    func authenticateWithApple(idToken: String, nonce: String) async -> RepositoryResult<AuthDTO>
+    func signInWithEmail(email: String, password: String) async -> RepositoryResult<AuthDTO>
     
-    func signInWithApple(idToken: String, nonce: String) async -> RepositoryResult<AuthSession>
+    // SDK가 이미 저장하고 있는 세션을 읽어오기 (없으면 nil)
+    func currentSession() async -> RepositoryResult<AuthDTO?>
+
+    // 검증 + 필요 시 refresh된 세션을 반환(없으면 nil)
+    func validSession() async -> RepositoryResult<AuthDTO?>
     
-    func signUpWithEmail(email: String, password: String) async -> RepositoryResult<EmailSignUpOutcome>
-    func signInWithEmail(email: String, password: String) async -> RepositoryResult<AuthSession>
+    func signUpWithEmail(email: String, password: String) async -> RepositoryResult<EmailSignUpOutcomeDTO>
 
     func signOut() async -> RepositoryResult<Void>
     func withdrawCurrentUser() async -> RepositoryResult<Void>
-    
-    func currentUserId() async -> RepositoryResult<UUID>
-    func currentUserProfileHint() async -> RepositoryResult<UserProfileHint>
+
+//AuthSessionRepository(또는 SessionStore) 에서 해결
+//    func currentUserId() async -> RepositoryResult<UUID>
+
 }
 
-struct UserProfileHint {
-    let email: String?
-    let fullName: String?
-}
-struct EmailSignUpOutcome {
-    let session: AuthSession?
-    let email: String
-    let requiresEmailVerification: Bool
-}
+
+
+

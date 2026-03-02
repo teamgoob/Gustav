@@ -12,7 +12,6 @@ import Foundation
 final class ItemRepository: ItemRepositoryProtocol {
     // Supabase API 호출을 담당하는 remote datasource
     private let remote: ItemDataSourceProtocol
-    
     init(remote: ItemDataSourceProtocol) {
         self.remote = remote
     }

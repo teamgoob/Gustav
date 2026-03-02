@@ -30,48 +30,79 @@ protocol WorkspaceUsecaseProtocol {
 final class WorkspaceUsecase: WorkspaceUsecaseProtocol {
     
     //userID 들고오려고
-    private let authRepository: AuthRepositoryProtocol
+//    private let authFlowRepository: AuthFlowRepositoryProtocol
+//    private let AuthSessionRepository: AuthSessionRepositoryProtocol
+    
+    /// UserID는 UseCaseProtocol에서 들고와야합니다
+    private let authUseCase: AuthUseCaseProtocol
     private let workspaceRepository: WorkspaceRepositoryProtocol
     
-    init(authRepository: AuthRepositoryProtocol, workspaceRepository: WorkspaceRepositoryProtocol) {
-        self.authRepository = authRepository
+//    init(authRepository: AuthRepositoryProtocol, workspaceRepository: WorkspaceRepositoryProtocol) {
+//        self.authRepository = authRepository
+//        self.workspaceRepository = workspaceRepository
+//    }
+    init(authUseCase: AuthUseCaseProtocol, workspaceRepository: WorkspaceRepositoryProtocol) {
+        self.authUseCase = authUseCase
         self.workspaceRepository = workspaceRepository
     }
     
     // 사용자 소유 워크스페이스 목록 조회 (indexKey 기준 정렬)
     func fetchWorkspaces() async -> DomainResult<[Workspace]> {
 
+//        // 1) 현재 유저 id 확보
+//        let userIdResult = await authRepository.currentUserId()
+//        switch userIdResult {
+//        case .failure(let error):
+//            return .failure(error)
+//        case .success(let userId):
+//
+//            // 2) Repository 호출
+//            let repoResult = await workspaceRepository.fetchWorkspaces(userId: userId)
+//
+//            // 3) RepoResult -> DomainResult 변환 + 도메인 규칙(정렬) 적용
+//            return repoResult
+//                .map { workspaces in
+//                    workspaces.sorted { $0.indexKey < $1.indexKey }
+//                }
+//        }
+        
         // 1) 현재 유저 id 확보
-        let userIdResult = await authRepository.currentUserId()
-        switch userIdResult {
-        case .failure(let error):
-            return .failure(error)
-        case .success(let userId):
-
-            // 2) Repository 호출
-            let repoResult = await workspaceRepository.fetchWorkspaces(userId: userId)
-
-            // 3) RepoResult -> DomainResult 변환 + 도메인 규칙(정렬) 적용
-            return repoResult
-                .map { workspaces in
-                    workspaces.sorted { $0.indexKey < $1.indexKey }
-                }
+        /// currentUserId는 리절트 반환하지 않아서 수정했습니다.
+        guard let userId = authUseCase.currentUserId() else {
+            return .failure(.authenticationRequired)
         }
+        // 2) Repository 호출
+        let repoResult = await workspaceRepository.fetchWorkspaces(userId: userId)
+        // 3) RepoResult -> DomainResult 변환 + 도메인 규칙(정렬) 적용
+        return repoResult.map { $0.sorted { $0.indexKey < $1.indexKey } }
+        
+        
     }
     
     // 워크스페이스 생성
     func createWorkspace(name: String) async -> DomainResult<Workspace> {
+//        // 1) 현재 유저 id 확보
+//        let userIdResult = await authRepository.currentUserId()
+//        switch userIdResult {
+//        case .failure(let error):
+//            return .failure(error)
+//        case .success(let userId):
+//            // 2) Repository 호출
+//            let repoResult = await workspaceRepository.createWorkspace(userId: userId, name: name)
+//            // 3) RepoResult -> DomainResult 변환
+//            return repoResult
+//        }
+        
         // 1) 현재 유저 id 확보
-        let userIdResult = await authRepository.currentUserId()
-        switch userIdResult {
-        case .failure(let error):
-            return .failure(error)
-        case .success(let userId):
-            // 2) Repository 호출
-            let repoResult = await workspaceRepository.createWorkspace(userId: userId, name: name)
-            // 3) RepoResult -> DomainResult 변환
-            return repoResult
+        /// currentUserId는 리절트 반환하지 않아서 수정했습니다.
+        guard let userId = authUseCase.currentUserId() else {
+            return .failure(.authenticationRequired)
         }
+        // 2) Repository 호출
+        let repoResult = await workspaceRepository.createWorkspace(userId: userId, name: name)
+        
+        // 3) RepoResult -> DomainResult 변환
+        return repoResult
     }
     
     // 워크스페이스 삭제
@@ -89,19 +120,29 @@ final class WorkspaceUsecase: WorkspaceUsecaseProtocol {
     // 워크스페이스 순서 변경
     // indexKey 재정렬
     func reorderWorkspaces(order: [UUID]) async -> DomainResult<Void> {
-        // 1) 현재 유저 ID 확보 (RepositoryResult -> DomainResult 변환)
-        let userIdResult: DomainResult<UUID> = await authRepository
-            .currentUserId()
-
-        switch userIdResult {
-        case .failure(let error):
-            return .failure(error)
-
-        case .success(let userId):
-            // 2) Repository 호출 + Domain 변환
-            let repoResult = await workspaceRepository.reorderWorkspaces(userId: userId, order: order)
-            return repoResult
+//        // 1) 현재 유저 ID 확보 (RepositoryResult -> DomainResult 변환)
+//        let userIdResult: DomainResult<UUID> = await authRepository
+//            .currentUserId()
+//
+//        switch userIdResult {
+//        case .failure(let error):
+//            return .failure(error)
+//
+//        case .success(let userId):
+//            // 2) Repository 호출 + Domain 변환
+//            let repoResult = await workspaceRepository.reorderWorkspaces(userId: userId, order: order)
+//            return repoResult
+//        }
+        
+        // 1) 현재 유저 ID 확보
+        guard let userId = authUseCase.currentUserId() else {
+            return .failure(.authenticationRequired)
         }
+
+        // 2) Repository 호출 + Domain 변환
+        let repoResult = await workspaceRepository.reorderWorkspaces(userId: userId, order: order)
+        return repoResult
+        
     }
 }
 

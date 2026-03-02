@@ -35,7 +35,7 @@ final class SupabaseLocationRemoteDataSource: LocationDataSourceProtocol {
         }
     }
     
-    func fetchLocation(id: UUID) async -> RepositoryResult<LocationDTO?> {
+    func fetchLocation(id: UUID) async -> RepositoryResult<LocationDTO> {
         do {
             let response: LocationDTO = try await client
                 .from(table)
@@ -86,7 +86,7 @@ final class SupabaseLocationRemoteDataSource: LocationDataSourceProtocol {
             name: location.name,
             color: location.color.rawValue)
         do {
-            let response = try await client
+            _ = try await client
                 .from(table)
                 .update(locationDTO)
                 .eq("id", value: id)
