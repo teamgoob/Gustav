@@ -13,8 +13,8 @@ struct WorkspaceDTO: Codable {
     let userId: UUID
     let indexKey: Int
     let name: String
-    let createdAt: String
-    let updatedAt: String
+    let createdAt: Date
+    let updatedAt: Date
 
     enum CodingKeys: String, CodingKey {
         case id

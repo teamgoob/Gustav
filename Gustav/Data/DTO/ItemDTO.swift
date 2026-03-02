@@ -23,9 +23,9 @@ struct ItemDTO: Codable {
     let price: Int?
     let quantity: Int?
     let memo: String?
-    let createdAt: String
-    let updatedAt: String
-    let deletedAt: String?
+    let createdAt: Date
+    let updatedAt: Date
+    let deletedAt: Date?
     
     enum CodingKeys: String, CodingKey {
         case id
