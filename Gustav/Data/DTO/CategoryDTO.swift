@@ -12,10 +12,10 @@ struct CategoryDTO: Codable {
     let id: UUID              // 카테고리 ID
     let workspaceId: UUID     // 소속 워크스페이스 ID
     let parentId: UUID?       // 상위 카테고리 ID(nil인 경우 상위, 존재하는 경우 하위)
-    let indexKey: Int    // 정렬 순서
+    let indexKey: Int         // 정렬 순서
     let name: String          // 카테고리 이름
     let color: Int?           // 카테고리 색상
-    let createdAt: String?    // 생성 시각
+    let createdAt: String     // 생성 시각
     let updatedAt: String?    // 수정 시각
     
     enum CodingKeys: String, CodingKey {
