@@ -15,8 +15,8 @@ struct CategoryDTO: Codable {
     let indexKey: Int         // 정렬 순서
     let name: String          // 카테고리 이름
     let color: Int?           // 카테고리 색상
-    let createdAt: String     // 생성 시각
-    let updatedAt: String?    // 수정 시각
+    let createdAt: Date?     // 생성 시각
+    let updatedAt: Date?    // 수정 시각
     
     enum CodingKeys: String, CodingKey {
         case id

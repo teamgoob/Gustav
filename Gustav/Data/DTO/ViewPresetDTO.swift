@@ -15,7 +15,7 @@ struct ViewPresetDTO: Codable {
     let viewType: Int                // 뷰 타입
     let sortingOption: SortingOption // 정렬 기준
     let filters: [FilterOption]      // 필터 옵션들
-    let createdAt: Date              // 생성 시각
+    let createdAt: Date?             // 생성 시각
     let updatedAt: Date?             // 수정 시각
     
     enum CodingKeys: String, CodingKey {

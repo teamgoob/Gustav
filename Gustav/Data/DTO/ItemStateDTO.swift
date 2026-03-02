@@ -14,7 +14,7 @@ struct ItemStateDTO: Codable {
     let indexKey: Int           // 정렬 순서
     let name: String            // 아이템 상태 이름
     let color: Int              // 아이템 상태 색상
-    let createdAt: Date         // 생성일
+    let createdAt: Date?         // 생성일
     let updatedAt: Date?         // 수정일
     
     enum CodingKeys: String, CodingKey {
