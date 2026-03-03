@@ -59,7 +59,10 @@ final class SupabaseItemStateRemoteDataSource: ItemStateDataSourceProtocol {
             workspaceId: itemState.workspaceId,
             indexKey: itemState.indexKey,
             name: itemState.name,
-            color: itemState.color.rawValue)
+            color: itemState.color.rawValue,
+            createdAt: Date(),
+            updatedAt: nil
+        )
         do {
             let response: ItemStateDTO = try await client
                 .from(table)
@@ -85,7 +88,10 @@ final class SupabaseItemStateRemoteDataSource: ItemStateDataSourceProtocol {
             workspaceId: itemState.workspaceId,
             indexKey: itemState.indexKey,
             name: itemState.name,
-            color: itemState.color.rawValue)
+            color: itemState.color.rawValue,
+            createdAt: nil,
+            updatedAt: Date()
+        )
         do {
             _ = try await client
                 .from(table)

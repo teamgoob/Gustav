@@ -17,4 +17,10 @@ struct ViewPresetDTO: Codable {
     let filters: [FilterOption]      // 필터 옵션들
     let createdAt: Date?             // 생성 시각
     let updatedAt: Date?             // 수정 시각
+    
+    enum CodingKeys: String, CodingKey {
+        case id, workspaceId, name, viewType, sortingOption, filters
+        case createdAt = "created_at"
+        case updatedAt = "updated_at"
+    }
 }
