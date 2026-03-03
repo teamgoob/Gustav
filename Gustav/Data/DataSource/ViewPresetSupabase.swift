@@ -72,8 +72,8 @@ final class SupabaseViewPresetRemoteDataSource: ViewPresetDataSourceProtocol {
             viewType: viewPreset.viewType,
             sortingOption: viewPreset.sortingOption,
             filters: viewPreset.filters,
-            createdAt: Date(),
-            updatedAt: nil)
+            createdAt: nil,
+            updatedAt: Date())
         do {
             _ = try await client
                 .from(table)
