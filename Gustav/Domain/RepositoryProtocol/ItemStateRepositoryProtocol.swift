@@ -1,0 +1,29 @@
+//
+//  ItemStateRepositoryProtocol.swift
+//  Gustav
+//
+//  Created by 최명수 on 2026/2/9.
+//
+
+import Foundation
+
+// MARK: - 아이템 상태 Repository Protocol
+protocol ItemStateRepositoryProtocol {
+    // 워크스페이스 내 전체 아이템 상태 조회
+    func fetchItemStates(workspaceId: UUID) async -> DomainResult<[ItemState]>
+
+    // 워크스페이스 내 단일 아이템 상태 조회
+    func fetchItemState(id: UUID) async -> DomainResult<ItemState>
+    
+    // 아이템 상태 생성
+    func createItemState(itemState: ItemState) async -> DomainResult<ItemState>
+
+    // 아이템 상태 수정
+    func updateItemState(id: UUID, itemState: ItemState) async -> DomainResult<Void>
+
+    // 아이템 상태 삭제
+    func deleteItemState(id: UUID) async -> DomainResult<Void>
+
+    // 아이템 상태 순서 변경
+    func reorderItemStates(workspaceId: UUID, order: [UUID]) async -> DomainResult<Void>
+}
