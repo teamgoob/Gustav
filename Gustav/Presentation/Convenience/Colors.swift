@@ -18,6 +18,8 @@ struct Colors {
         static let textBackground: UIColor = UIColor(named: "TextBackgroundColor")!
         // Outline Color
         static let outline: UIColor = UIColor(named: "OutlineColor")!
+        // Background Color
+        static let background: UIColor = UIColor(named: "BackgroundColor")!
         
         private init() {}
     }
