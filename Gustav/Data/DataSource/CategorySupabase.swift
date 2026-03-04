@@ -66,7 +66,7 @@ final class SupabaseCategoryRemoteDataSource: CategoryDataSourceProtocol {
             indexKey: category.indexKey,
             name: category.name,
             color: category.color.rawValue,
-            createdAt: Date().description,
+            createdAt: Date(),
             updatedAt: nil
         )
         do {
@@ -96,7 +96,7 @@ final class SupabaseCategoryRemoteDataSource: CategoryDataSourceProtocol {
             name: category.name,
             color: category.color.rawValue,
             createdAt: nil,
-            updatedAt: Date().description
+            updatedAt: Date()
         )
         do {
             _ = try await client

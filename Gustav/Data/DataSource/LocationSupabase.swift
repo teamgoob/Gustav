@@ -59,7 +59,10 @@ final class SupabaseLocationRemoteDataSource: LocationDataSourceProtocol {
             workspaceId: location.workspaceId,
             indexKey: location.indexKey,
             name: location.name,
-            color: location.color.rawValue)
+            color: location.color.rawValue,
+            createdAt: Date(),
+            updatedAt: nil
+        )
         do {
             let response: LocationDTO = try await client
                 .from(table)
@@ -84,7 +87,10 @@ final class SupabaseLocationRemoteDataSource: LocationDataSourceProtocol {
             workspaceId: location.workspaceId,
             indexKey: location.indexKey,
             name: location.name,
-            color: location.color.rawValue)
+            color: location.color.rawValue,
+            createdAt: nil,
+            updatedAt: Date()
+        )
         do {
             _ = try await client
                 .from(table)
