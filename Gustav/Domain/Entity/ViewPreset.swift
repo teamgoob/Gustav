@@ -19,18 +19,18 @@ struct ViewPreset {
     let updatedAt: Date?             // 수정 시각
 }
 
-
-extension ViewPreset {
-    func toDTO() -> ViewPresetDTO {
-        return ViewPresetDTO(
-            id: self.id,
-            workspaceId: self.workspaceId,
-            name: self.name,
-            viewType: self.viewType,
-            sortingOption: self.sortingOption,
-            filters: self.filters,
-            createdAt: self.createdAt,
-            updatedAt: self.updatedAt
-        )
-    }
-}
+//
+//extension ViewPreset {
+//    func toDTO() -> ViewPresetDTO {
+//        return ViewPresetDTO(
+//            id: self.id,
+//            workspaceId: self.workspaceId,
+//            name: self.name,
+//            viewType: self.viewType,
+//            sortingOption: self.sortingOption,
+//            filters: self.filters,
+//            createdAt: self.createdAt,
+//            updatedAt: self.updatedAt
+//        )
+//    }
+//}

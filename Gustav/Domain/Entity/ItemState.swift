@@ -15,15 +15,15 @@ struct ItemState {
     let name: String            // 아이템 상태 이름
     let color: TagColor   // 아이템 상태 색상
 }
-
-extension ItemState {
-    func toDTO() -> ItemStateDTO {
-        return ItemStateDTO(
-            id: self.id,
-            workspaceId: self.workspaceId,
-            indexKey: self.indexKey,
-            name: self.name,
-            color: self.color.rawValue
-        )
-    }
-}
+//
+//extension ItemState {
+//    func toDTO() -> ItemStateDTO {
+//        return ItemStateDTO(
+//            id: self.id,
+//            workspaceId: self.workspaceId,
+//            indexKey: self.indexKey,
+//            name: self.name,
+//            color: self.color.rawValue
+//        )
+//    }
+//}
