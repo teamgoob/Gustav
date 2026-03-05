@@ -18,8 +18,7 @@ final class AppSettingTableCell: UITableViewCell {
     // Cell Container
     private let containerView: UIView = {
         let view = UIView()
-        view.backgroundColor = Colors.Theme.background
-        view.layer.cornerRadius = 14
+        view.backgroundColor = .clear
         return view
     }()
     
@@ -52,7 +51,7 @@ final class AppSettingTableCell: UITableViewCell {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         
         selectionStyle = .none
-        backgroundColor = .clear
+        backgroundColor = Colors.Theme.background
         
         setupViews()
         setupConstraints()
@@ -74,23 +73,24 @@ final class AppSettingTableCell: UITableViewCell {
     // 오토레이아웃 설정
     private func setupConstraints() {
         containerView.snp.makeConstraints {
-            $0.edges.equalToSuperview().inset(4)
-            $0.height.equalTo(56)
+            $0.edges.equalToSuperview()
+            $0.height.equalTo(52)
         }
         
         iconImageView.snp.makeConstraints {
             $0.leading.equalToSuperview().offset(16)
             $0.centerY.equalToSuperview()
-            $0.width.height.equalTo(24)
+            $0.width.height.equalTo(28)
         }
         
         titleLabel.snp.makeConstraints {
             $0.leading.equalTo(iconImageView.snp.trailing).offset(16)
+            $0.trailing.equalTo(arrowImageView.snp.leading).offset(-16)
             $0.centerY.equalToSuperview()
         }
         
         arrowImageView.snp.makeConstraints {
-            $0.trailing.equalToSuperview().offset(-16)
+            $0.trailing.equalToSuperview().offset(-24)
             $0.centerY.equalToSuperview()
             $0.width.height.equalTo(16)
         }
