@@ -15,12 +15,11 @@ enum DomainError: Error {
     case invalidOperation         // 제약 조건 충돌
     case invalidParameter         // 파라미터 오류
     case invalidInput(AuthInputError) // 입력값 오류 (Validator 결과)
-    case temporarilyUnavailable   // 네트워크, 서버 오류
-    case cancelled                // 사용자 취소(애플 로그인 등)
     case emailAlreadyInUse        // 회원가입: 이메일 중복
+    case temporarilyUnavailable   // 네트워크, 서버 오류
+    case cancelled                // 애플 로그인 취소
     case unknown                  // 그 외
 }
-
 
 
 enum AuthInputError: Equatable {

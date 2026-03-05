@@ -8,7 +8,7 @@
 import Foundation
 
 // MARK: - 아이템 정렬 옵션
-enum SortingOption {
+enum SortingOption: Codable {
     case indexKey(order: SortingOrder)
     case name(order: SortingOrder)
     case nameDetail(order: SortingOrder)

@@ -15,6 +15,4 @@ struct ItemQuery {
     let filters: [FilterOption]
     // 검색 텍스트
     let searchText: String?
-    // 페이지네이션 정보
-    let pagination: Pagination?
 }

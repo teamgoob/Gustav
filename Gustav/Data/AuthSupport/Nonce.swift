@@ -10,6 +10,8 @@ import CryptoKit
 
 // MARK: - Apple 로그인용 nonce생성 유틸리티
 //Apple에 전달할 SHA-256 해시값을 만들기 위한 유틸리티
+///     Apple request에는 sha256(nonce)
+///     Supabase에는 원문 nonce
 enum Nonce {
     static func randomString(length: Int = 32) -> String {
         precondition(length > 0) // 실행 중 조건이 false면 즉시 크래시

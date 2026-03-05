@@ -8,7 +8,7 @@
 import Foundation
 
 // MARK: - 아이템 정렬 순서
-enum SortingOrder: Int {
+enum SortingOrder: Int, Codable {
     case ascending = 0
     case descending = 1
 }

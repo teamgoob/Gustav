@@ -31,18 +31,18 @@ final class ViewPresetUsecase: ViewPresetUsecaseProtocol {
     }
     
     func fetchViewPresets(workspaceId: UUID) async -> DomainResult<[ViewPreset]> {
-        await repository.fetchViewPresets(workspaceId: workspaceId).toDomainResult()
+        await repository.fetchViewPresets(workspaceId: workspaceId)
     }
     
     func createViewPreset(workspaceId: UUID, preset: ViewPreset) async -> DomainResult<ViewPreset> {
-        await repository.createViewPreset(workspaceId: workspaceId, preset: preset).toDomainResult()
+        await repository.createViewPreset(workspaceId: workspaceId, preset: preset)
     }
     
     func updateViewPreset(id: UUID, preset: ViewPreset) async -> DomainResult<Void> {
-        await repository.updateViewPreset(id: id, preset: preset).toDomainResult()
+        await repository.updateViewPreset(id: id, preset: preset)
     }
     
     func deleteViewPreset(id: UUID) async -> DomainResult<Void> {
-        await repository.deleteViewPreset(id: id).toDomainResult()
+        await repository.deleteViewPreset(id: id)
     }
 }

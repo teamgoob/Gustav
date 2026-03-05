@@ -10,14 +10,14 @@ import Foundation
 // MARK: - 워크스페이스 보기 프리셋 Repository Protocol
 protocol ViewPresetRepositoryProtocol {
     // 프리셋 목록 조회 (created_at 기준)
-    func fetchViewPresets(workspaceId: UUID) async -> RepositoryResult<[ViewPreset]>
+    func fetchViewPresets(workspaceId: UUID) async -> DomainResult<[ViewPreset]>
 
     // 프리셋 생성
-    func createViewPreset(workspaceId: UUID, preset: ViewPreset) async -> RepositoryResult<ViewPreset>
+    func createViewPreset(workspaceId: UUID, preset: ViewPreset) async -> DomainResult<ViewPreset>
 
     // 프리셋 수정
-    func updateViewPreset(id: UUID, preset: ViewPreset) async -> RepositoryResult<Void>
+    func updateViewPreset(id: UUID, preset: ViewPreset) async -> DomainResult<Void>
 
     // 프리셋 삭제
-    func deleteViewPreset(id: UUID) async -> RepositoryResult<Void>
+    func deleteViewPreset(id: UUID) async -> DomainResult<Void>
 }
