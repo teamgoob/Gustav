@@ -53,7 +53,7 @@ actor LocationCache {
             let newLocation = Location(
                 id: location.id,
                 workspaceId: location.workspaceId,
-                indexKey: location.indexKey,
+                indexKey: index,
                 name: location.name,
                 color: location.color
             )

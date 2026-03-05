@@ -54,7 +54,7 @@ actor CategoryCache {
                 id: category.id,
                 workspaceId: category.workspaceId,
                 parentId: category.parentId,
-                indexKey: category.indexKey,
+                indexKey: index,
                 name: category.name,
                 color: category.color
             )

@@ -53,7 +53,7 @@ actor ItemStateCache {
             let newItemState = ItemState(
                 id: itemState.id,
                 workspaceId: itemState.workspaceId,
-                indexKey: itemState.indexKey,
+                indexKey: index,
                 name: itemState.name,
                 color: itemState.color
             )
