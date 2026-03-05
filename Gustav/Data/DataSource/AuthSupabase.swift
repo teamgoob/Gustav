@@ -204,6 +204,16 @@ private extension AuthSupabase {
             || message.contains("confirm your email") {
             return .emailNotVerified
         }
+        
+        // 이메일 중복(이미 가입된 계정)
+        if message.contains("user already registered")
+            || message.contains("already registered")
+            || message.contains("email already")
+            || message.contains("already exists")
+            || message.contains("duplicate key value")
+            || message.contains("email address already") {
+            return .conflict
+        }
 
         // 자격증명 문제(로그인 정보/토큰/nonce)
         if message.contains("invalid login credentials")
@@ -233,5 +243,8 @@ private extension AuthSupabase {
         }
 
         return .unknown
+        
+
     }
+    
 }
