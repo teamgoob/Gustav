@@ -84,3 +84,21 @@ final class LoginView: UIView {
         }
     }
 }
+
+// MARK: - preView
+#if DEBUG
+import SwiftUI
+
+struct LoginViewPreView: UIViewRepresentable {
+
+    func makeUIView(context: Context) -> UIView {
+        LoginView()
+    }
+
+    func updateUIView(_ uiView: UIView, context: Context) {}
+}
+
+#Preview {
+    LoginView()
+}
+#endif
