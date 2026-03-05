@@ -22,7 +22,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let window = UIWindow(windowScene: windowScene)
         
         // Root ViewController 생성
-        let rootViewController = ViewController()
+        let rootViewController = AppSettingViewController(viewModel: AppSettingViewModel(authUsecase: TestAuthUsecase(), profileUsecase: TestProfileUsecase()))
         
         // Navigation Controller 생성
         let navigationController = UINavigationController(rootViewController: rootViewController)

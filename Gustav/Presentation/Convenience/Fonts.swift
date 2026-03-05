@@ -14,10 +14,10 @@ struct Fonts {
     static let largeTitle: UIFont = .systemFont(ofSize: 34, weight: .bold)
     
     // Headline
-    static let headline: UIFont = .systemFont(ofSize: 17, weight: .semibold)
+    static let headline: UIFont = .systemFont(ofSize: 20, weight: .semibold)
     
     // Body
-    static let body: UIFont = .systemFont(ofSize: 15, weight: .regular)
+    static let body: UIFont = .systemFont(ofSize: 16, weight: .regular)
     
     // Caption
     static let caption: UIFont = .systemFont(ofSize: 10, weight: .regular)
