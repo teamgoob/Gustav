@@ -66,7 +66,7 @@ final class AppSettingView: UIView {
     // MARK: - Loading View
     let loadingView: LoadingView = {
         let view = LoadingView()
-        view.descriptionLabel.text = "Loading Profile..."
+        view.descriptionLabel.text = "Loading Settings..."
         return view
     }()
     

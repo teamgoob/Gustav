@@ -33,9 +33,7 @@ final class AppSettingViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        // 네비게이션 타이틀 설정
-        title = "Setting"
-        
+        setupNavigationItem()
         setupDelegate()
         bindViewModel()
         
@@ -46,6 +44,12 @@ final class AppSettingViewController: UIViewController {
 
 // MARK: - Setup
 private extension AppSettingViewController {
+    // Navigation Item 설정
+    func setupNavigationItem() {
+        // 네비게이션 타이틀 설정
+        navigationItem.title = "Settings"
+    }
+    
     // Delegate 설정
     func setupDelegate() {
         customView.tableView.dataSource = self

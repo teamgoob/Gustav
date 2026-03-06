@@ -13,6 +13,9 @@ struct Fonts {
     // Large Title
     static let largeTitle: UIFont = .systemFont(ofSize: 34, weight: .bold)
     
+    // Large TextField
+    static let largeTextField: UIFont = .systemFont(ofSize: 28, weight: .semibold)
+    
     // Headline
     static let headline: UIFont = .systemFont(ofSize: 20, weight: .semibold)
     
