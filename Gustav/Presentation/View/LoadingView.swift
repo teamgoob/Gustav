@@ -45,7 +45,7 @@ final class LoadingView: UIView {
     // MARK: - Setup
     // 하위 뷰 추가
     private func setupViews() {
-        backgroundColor = Colors.Theme.background2
+        backgroundColor = Colors.Theme.mainBackground
         addSubview(loadingIndicator)
         addSubview(descriptionLabel)
     }

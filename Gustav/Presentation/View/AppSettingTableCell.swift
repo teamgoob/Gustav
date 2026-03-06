@@ -51,7 +51,7 @@ final class AppSettingTableCell: UITableViewCell {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         
         selectionStyle = .none
-        backgroundColor = Colors.Theme.background
+        backgroundColor = Colors.Theme.cardBackground
         
         setupViews()
         setupConstraints()

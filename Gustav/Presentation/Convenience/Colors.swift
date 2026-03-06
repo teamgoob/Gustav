@@ -12,17 +12,17 @@ struct Colors {
     
     // 앱 테마 색상
     struct Theme {
-        // Primary Color
+        // Primary Color (Yellow)
         static let primary: UIColor = UIColor(named: "PrimaryColor")!
-        // Text Background Color
+        // Text Background Color (Gray)
         static let textBackground: UIColor = UIColor(named: "TextBackgroundColor")!
-        // Outline Color
+        // Outline Color (Gray)
         static let outline: UIColor = UIColor(named: "OutlineColor")!
-        // Background Color
-        static let background: UIColor = UIColor(named: "BackgroundColor")!
-        // Background Color 2
-        static let background2: UIColor = UIColor.systemGray6
-        // Red Color
+        // Card Background Color (White)
+        static let cardBackground: UIColor = UIColor(named: "CardBackgroundColor")!
+        // Main Background Color (Light Gray)
+        static let mainBackground: UIColor = UIColor.systemGray6
+        // Red Color (Red)
         static let red: UIColor = UIColor.red
         
         private init() {}
