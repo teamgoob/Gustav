@@ -15,6 +15,7 @@ enum RepositoryError: Error {
     case notFound            // 데이터 없음
     case network             // 네트워크, 서버 오류
     case decoding            // DTO 변환 실패  (API 응답 구조 변경 등)
+    
     case conflict            // 데이터 중복, 제약 조건 충돌
     
     case sessionNotFound     // 로컬 저장소에 세션이 존재하지 않음 (앱 시작 시 로그인 안 된 상태)

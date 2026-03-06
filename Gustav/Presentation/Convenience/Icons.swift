@@ -25,5 +25,11 @@ struct Icons {
     // Delete Icon
     static let delete: UIImage? = UIImage(systemName: "trash")
     
+    // Email Icon
+    static let email: UIImage? = UIImage(systemName: "envelope.fill")
+    
+    // Password Icon
+    static let password: UIImage? = UIImage(systemName: "lock.fill")
+    
     private init() {}
 }

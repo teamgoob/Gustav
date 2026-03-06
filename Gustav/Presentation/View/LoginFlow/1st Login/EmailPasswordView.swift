@@ -19,7 +19,7 @@ class EmailPasswordView: UIView {
     // 이메일 아이콘
     private let emailIconView: UIImageView = {
         let iv = UIImageView()
-        iv.image = UIImage(systemName: "envelope.fill")
+        iv.image = Icons.email
         iv.tintColor = Colors.Theme.primary
         iv.contentMode = .scaleAspectFit
         return iv
@@ -58,7 +58,7 @@ class EmailPasswordView: UIView {
     // 비밀번호 아이콘
     private let passwordIconView: UIImageView = {
         let iv = UIImageView()
-        iv.image = UIImage(systemName: "lock.fill")
+        iv.image = Icons.password
         iv.tintColor = Colors.Theme.primary
         iv.contentMode = .scaleAspectFit
         return iv
@@ -68,8 +68,8 @@ class EmailPasswordView: UIView {
     let passwordToggleButton: UIButton = {
         let button = UIButton(type: .system)
         button.setImage(UIImage(systemName: "eye.slash"), for: .normal)
-        button.tintColor = .gray
-        button.frame = CGRect(x: 0, y: 0, width: 30, height: 30)
+        button.tintColor = Colors.Text.additionalInfo
+        button.frame = CGRect(x: 0, y: 0, width: 15, height: 15)
         return button
     }()
     

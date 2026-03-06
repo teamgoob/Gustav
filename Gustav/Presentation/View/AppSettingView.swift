@@ -13,7 +13,11 @@ import SnapKit
 final class AppSettingView: UIView {
     // MARK: - Container
     // Content View
-    private let contentView: UIView = UIView()
+    private let contentView: UIView = {
+        let view = UIView()
+        view.backgroundColor = .clear
+        return view
+    }()
     
     // MARK: - Profile
     // Profile Image
@@ -51,18 +55,28 @@ final class AppSettingView: UIView {
     // Table View
     let tableView: UITableView = {
         let tableView = UITableView(frame: .zero, style: .insetGrouped)
-        tableView.separatorStyle = .none
-        tableView.backgroundColor = Colors.Theme.outline
+        tableView.separatorStyle = .singleLine
+        tableView.backgroundColor = .clear
+        tableView.isScrollEnabled = false
         tableView.showsVerticalScrollIndicator = false
         tableView.register(AppSettingTableCell.self, forCellReuseIdentifier: AppSettingTableCell.identifier)
         return tableView
     }()
     
+    // MARK: - Loading View
+    let loadingView: LoadingView = {
+        let view = LoadingView()
+        view.descriptionLabel.text = "Loading Settings..."
+        return view
+    }()
+    
+    // MARK: - Initializer
     override init(frame: CGRect) {
         super.init(frame: frame)
         
         setupViews()
         setupConstraints()
+        loadingView.stopLoading()
     }
     
     required init?(coder: NSCoder) {
@@ -72,7 +86,9 @@ final class AppSettingView: UIView {
     // MARK: - Setup
     // 하위 뷰 추가
     private func setupViews() {
+        backgroundColor = Colors.Theme.background2
         addSubview(contentView)
+        addSubview(loadingView)
         contentView.addSubview(profileImageView)
         contentView.addSubview(nameLabel)
         contentView.addSubview(emailLabel)
@@ -85,8 +101,12 @@ final class AppSettingView: UIView {
             $0.edges.equalTo(safeAreaLayoutGuide)
         }
         
+        loadingView.snp.makeConstraints {
+            $0.edges.equalToSuperview()
+        }
+        
         profileImageView.snp.makeConstraints {
-            $0.top.equalToSuperview().offset(24)
+            $0.top.equalToSuperview().offset(16)
             $0.centerX.equalToSuperview()
             $0.width.height.equalTo(100)
         }
@@ -102,9 +122,9 @@ final class AppSettingView: UIView {
         }
         
         tableView.snp.makeConstraints {
-            $0.top.equalTo(emailLabel.snp.bottom).offset(24)
-            $0.leading.trailing.equalToSuperview().inset(32)
-            $0.bottom.equalToSuperview().inset(128)
+            $0.top.equalTo(emailLabel.snp.bottom)
+            $0.leading.trailing.equalToSuperview()
+            $0.bottom.equalToSuperview()
         }
     }
 }
