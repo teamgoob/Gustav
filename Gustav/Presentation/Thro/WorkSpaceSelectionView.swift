@@ -1,0 +1,99 @@
+//
+//  WorkSpaceSelectionView.swift
+//  Gustav
+//
+//  Created by 박선린 on 3/1/26.
+//
+
+import UIKit
+import SnapKit
+import Kingfisher
+class WorkSpaceSelectionView: UIView {
+    
+    private let profileImage = UIImageView()
+    private let nameLabel = UILabel()
+    
+    // MARK: - Header (사진 + 이름만)
+    private lazy var headerView: UIView = {
+        let header = UIView()
+        header.backgroundColor = .systemBackground
+
+        profileImage.image = UIImage(systemName: "person.crop.circle.fill")
+        profileImage.backgroundColor = .blue
+        profileImage.contentMode = .scaleAspectFill
+        profileImage.layer.cornerRadius = 60
+        profileImage.clipsToBounds = true
+
+        nameLabel.text = "Gustav"
+        nameLabel.font = .systemFont(ofSize: 28, weight: .bold)
+        nameLabel.textAlignment = .center
+
+        header.addSubview(profileImage)
+        header.addSubview(nameLabel)
+
+        profileImage.snp.makeConstraints {
+            $0.centerX.equalToSuperview()
+            $0.top.equalToSuperview().offset(40)
+            $0.size.equalTo(120)
+        }
+
+        nameLabel.snp.makeConstraints {
+            $0.top.equalTo(profileImage.snp.bottom).offset(16)
+            $0.centerX.equalToSuperview()
+        }
+
+        header.frame.size.height = 250
+
+        return header
+    }()
+    
+    
+    let tableView: UITableView = {
+        let tv = UITableView(frame: .zero, style: .plain)
+        tv.separatorStyle = .none
+        tv.backgroundColor = .white
+        tv.showsVerticalScrollIndicator = false
+        tv.tableFooterView = UIView()
+        return tv
+    }()
+
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        setUI()
+        updateProfile(imageUrl: "https://i.namu.wiki/i/-3hx1gOT-t78qUFbUABxB_n9hBSzjOlCg8MP6dRno_73aKPW0m73CF0FRxfLOhS2AsJgRQqA3zkEJ2PVItW4NWP_3i07idYy8WdgTm0Fw2H0fICP0HGh3T_hV1x3u5CabluUilNKlERahLLTuetOKA.webp", name: "박지원")
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError()
+    }
+    
+    private func setUI() {
+        addSubview(tableView)
+        tableView.tableHeaderView = headerView
+        
+        setAutoLayout()
+    }
+    
+    private func setAutoLayout() {
+        tableView.snp.makeConstraints {
+            $0.edges.equalToSuperview()
+        }
+    }
+    
+
+    func updateProfile(imageUrl: String?, name: String) {
+        nameLabel.text = name
+        guard let urlString = imageUrl,
+              let url = URL(string: urlString) else {
+
+            profileImage.image = UIImage(systemName: "person.crop.circle.fill")
+            return
+        }
+
+        profileImage.kf.setImage(
+            with: url,
+            placeholder: UIImage(systemName: "person.crop.circle.fill")
+        )
+    }
+}
