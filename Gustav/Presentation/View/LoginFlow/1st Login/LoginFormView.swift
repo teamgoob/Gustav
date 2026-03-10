@@ -14,7 +14,7 @@ final class LoginFormView: UIView {
     
     // MARK: - UI 요소
     // 이메일 + 비밀번호 입력창
-    let emanilPasswordView = EmailPasswordView()
+    let emailPasswordView = EmailPasswordView()
     
     // 로그인 버튼
     let signInButton: UIButton = {
@@ -120,8 +120,8 @@ final class LoginFormView: UIView {
         addSubview(contentStack)
 
         // 스택 순서
-        contentStack.addArrangedSubview(emanilPasswordView)
-        contentStack.setCustomSpacing(24, after: emanilPasswordView)
+        contentStack.addArrangedSubview(emailPasswordView)
+        contentStack.setCustomSpacing(24, after: emailPasswordView)
 
         contentStack.addArrangedSubview(signInButton)
         contentStack.addArrangedSubview(forgotPasswordButton)
@@ -167,4 +167,14 @@ final class LoginFormView: UIView {
     @objc private func didTapCreateAccount() { onTapCreateAccount?() }
     @objc private func didTapApple() { onTapAppleLogin?() }
 
+}
+
+extension LoginFormView {
+    var emailText: String {
+        emailPasswordView.emailText
+    }
+
+    var passwordText: String {
+        emailPasswordView.passwordText
+    }
 }
