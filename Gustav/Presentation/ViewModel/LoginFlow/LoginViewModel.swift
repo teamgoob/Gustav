@@ -97,7 +97,7 @@ final class LoginViewModel {
 
     // 로그인 실행 함수
     func submitLogin() async {
-        
+        print("submitLogin called")
         // 입력 검증
         let emailError = validator.validateEmail(email)
         let passwordError = validator.validateSignInPassword(password)
@@ -125,6 +125,7 @@ final class LoginViewModel {
             generalErrorMessage = nil
 
         case .failure(let error):
+            print("login failed:", error)
             generalErrorMessage = mapDomainErrorToMessage(error)
         }
     }
@@ -188,12 +189,11 @@ private extension LoginViewModel {
 
     func mapDomainErrorToMessage(_ error: DomainError) -> String {
         switch error {
-        case .authenticationRequired:
-            return "Authentication is required."
+        case .authenticationRequired,
+             .entityNotFound:
+            return "아이디 또는 비밀번호를 틀렸습니다."
         case .permissionDenied:
             return "Permission denied."
-        case .entityNotFound:
-            return "Account not found."
         case .invalidOperation:
             return "Invalid operation."
         case .invalidParameter:

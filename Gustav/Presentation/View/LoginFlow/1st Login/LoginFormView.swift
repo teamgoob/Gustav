@@ -135,7 +135,7 @@ final class LoginFormView: UIView {
         contentStack.setCustomSpacing(24, after: emailPasswordView)
 
         contentStack.addArrangedSubview(signInButton)
-        contentStack.addArrangedSubview(generalErrorLabel)
+//        contentStack.addArrangedSubview(generalErrorLabel)
         contentStack.addArrangedSubview(forgotPasswordButton)
         contentStack.setCustomSpacing(16, after: forgotPasswordButton)
 

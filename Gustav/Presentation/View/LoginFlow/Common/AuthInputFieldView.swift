@@ -103,10 +103,15 @@ private extension AuthInputFieldView {
         // 에러 라벨 스타일
         errorLabel.textColor = Colors.Text.error
         errorLabel.font = Fonts.caption
-        errorLabel.numberOfLines = 0
+//        errorLabel.font = .systemFont(ofSize: 12, weight: .regular)
+        errorLabel.numberOfLines = 1
+        errorLabel.lineBreakMode = .byTruncatingTail
+        errorLabel.setContentCompressionResistancePriority(.required, for: .vertical)
+        errorLabel.setContentHuggingPriority(.required, for: .vertical)
 
-        // 기본은 숨김
-        errorLabel.isHidden = true
+        // 기본은 공간만 확보하고, 보이지만 않게 처리
+        errorLabel.text = " "
+        errorLabel.alpha = 0
 
         // View 계층 구성
         addSubview(containerView)
@@ -139,8 +144,9 @@ private extension AuthInputFieldView {
 
         // 에러 메시지 위치
         errorLabel.snp.makeConstraints { make in
-            make.top.equalTo(containerView.snp.bottom).offset(8)
+            make.top.equalTo(containerView.snp.bottom).offset(2)
             make.leading.trailing.equalToSuperview().inset(4)
+            make.height.greaterThanOrEqualTo(26)
             make.bottom.equalToSuperview()
         }
     }
@@ -253,11 +259,8 @@ extension AuthInputFieldView {
 
     // 입력 오류 메시지 표시
     func updateError(_ message: String?) {
-
-        // 메시지 업데이트
-        errorLabel.text = message
-
-        // 메시지가 없으면 숨김
-        errorLabel.isHidden = (message == nil)
+        // 메시지가 없어도 공간은 유지
+        errorLabel.text = message ?? " "
+        errorLabel.alpha = (message == nil) ? 0 : 1
     }
 }

@@ -57,7 +57,7 @@ private extension EmailPasswordView {
         contentStack.axis = .vertical
         contentStack.alignment = .fill
         contentStack.distribution = .fill
-        contentStack.spacing = 14
+        contentStack.spacing = 1
 
         addSubview(contentStack)
 

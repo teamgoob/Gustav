@@ -89,9 +89,9 @@ final class LoginView: UIView {
         }
         
         
-        loadingView.snp.makeConstraints {
-            $0.edges.equalToSuperview()
-        }
+//        loadingView.snp.makeConstraints {
+//            $0.edges.equalToSuperview()
+//        }
     }
 }
 
