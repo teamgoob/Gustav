@@ -22,6 +22,9 @@ struct Fonts {
     // Body
     static let body: UIFont = .systemFont(ofSize: 16, weight: .regular)
     
+    // Accent
+    static let accent: UIFont = .systemFont(ofSize: 16, weight: .semibold)
+    
     // Caption
     static let caption: UIFont = .systemFont(ofSize: 10, weight: .regular)
     
