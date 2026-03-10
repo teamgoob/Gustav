@@ -85,20 +85,12 @@ final class LoginView: UIView {
     }
 }
 
-// MARK: - preView
-#if DEBUG
-import SwiftUI
-
-struct LoginViewPreView: UIViewRepresentable {
-
-    func makeUIView(context: Context) -> UIView {
-        LoginView()
+extension LoginView {
+    var emailText: String {
+        formView.emailText
     }
 
-    func updateUIView(_ uiView: UIView, context: Context) {}
+    var passwordText: String {
+        formView.passwordText
+    }
 }
-
-#Preview {
-    LoginView()
-}
-#endif
