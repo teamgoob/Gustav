@@ -39,13 +39,13 @@ final class AuthCoordinator: AuthCoordinatorProtocol {
 
     // 회원가입 화면으로 이동
     func showEmailSignUp() {
-        let viewModel = EmailSignUpViewModel(
-            authUseCase: authUseCase,
-            coordinator: self
-        )
-
-        let viewController = EmailSignUpViewController(viewModel: viewModel)
-        navigationController.pushViewController(viewController, animated: true)
+//        let viewModel = EmailSignUpViewModel(
+//            authUseCase: authUseCase,
+//            coordinator: self
+//        )
+//
+//        let viewController = EmailSignUpViewController(viewModel: viewModel)
+//        navigationController.pushViewController(viewController, animated: true)
     }
 
     // 뒤로가기
