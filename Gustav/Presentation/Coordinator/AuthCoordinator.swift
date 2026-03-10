@@ -11,6 +11,11 @@ protocol AuthCoordinatorProtocol: AnyObject {
     func start() // 로그인 화면 시작
     func showEmailSignUp() // 회원가입 화면으로
     func pop() // 뒤로가기
+    
+    // 구현해야 하는 함수
+    // showAppleSignIn()       // 애플 로그인
+    // func showForgotPassword()    // 비밀번호 찾기
+    // func showMainApp()   // 메인화면으로 이동 (상위에 알림)
 }
 
 
@@ -39,13 +44,16 @@ final class AuthCoordinator: AuthCoordinatorProtocol {
 
     // 회원가입 화면으로 이동
     func showEmailSignUp() {
-//        let viewModel = EmailSignUpViewModel(
-//            authUseCase: authUseCase,
-//            coordinator: self
-//        )
-//
-//        let viewController = EmailSignUpViewController(viewModel: viewModel)
-//        navigationController.pushViewController(viewController, animated: true)
+        let viewModel = EmailSignUpViewModel(
+            authUseCase: authUseCase,
+            coordinator: self
+        )
+
+        let viewController = EmailSignUpViewController(
+            viewModel: viewModel
+        )
+
+        navigationController.pushViewController(viewController, animated: true)
     }
 
     // 뒤로가기

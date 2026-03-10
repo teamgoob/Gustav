@@ -136,8 +136,8 @@ final class LoginViewModel {
         let passwordError = shouldShowPasswordError ? validator.validateSignInPassword(password) : nil
 
         return Output(
-            emailErrorMessage: mapInputErrorToMessage(emailError),
-            passwordErrorMessage: mapInputErrorToMessage(passwordError),
+            emailErrorMessage: mapEmailErrorToMessage(emailError),
+            passwordErrorMessage: mapPasswordErrorToMessage(passwordError),
             generalErrorMessage: generalErrorMessage,
             isLoginButtonEnabled: canSubmitLogin(),
             isLoading: isLoading
@@ -165,8 +165,8 @@ private extension LoginViewModel {
 
         return emailError == nil && passwordError == nil
     }
-
-    func mapInputErrorToMessage(_ error: AuthInputError?) -> String? {
+    
+    func mapEmailErrorToMessage(_ error: AuthInputError?) -> String? {
         guard let error else { return nil }
 
         switch error {
@@ -174,40 +174,34 @@ private extension LoginViewModel {
             return "Invalid email format."
         case .emptyEmail:
             return nil
-        case .emptyPassword:
-            return nil
-        case .passwordTooShort(let minLength):
-            return "Password must be \(minLength) or more characters."
-        case .passwordMissingSpecialCharacter:
-            return "Password must include a special character."
-        case .emptyRepeatPassword:
-            return nil
-        case .passwordMismatch:
+        default:
             return nil
         }
     }
 
+    func mapPasswordErrorToMessage(_ error: AuthInputError?) -> String? {
+        guard let error else { return nil }
+
+        switch error {
+        case .emptyPassword:
+            return nil
+        default:
+            return nil
+        }
+    }
+    
     func mapDomainErrorToMessage(_ error: DomainError) -> String {
         switch error {
         case .authenticationRequired,
-             .entityNotFound:
-            return "아이디 또는 비밀번호를 틀렸습니다."
-        case .permissionDenied:
-            return "Permission denied."
-        case .invalidOperation:
-            return "Invalid operation."
-        case .invalidParameter:
-            return "Invalid parameter."
-        case .invalidInput(let inputError):
-            return mapInputErrorToMessage(inputError) ?? "Invalid input."
+             .entityNotFound,
+             .unknown:
+            return "Incorrect email or password."
+
         case .temporarilyUnavailable:
-            return "Temporary server error. Please try again."
-        case .cancelled:
-            return "The operation was cancelled."
-        case .emailAlreadyInUse:
-            return "This email is already in use."
-        case .unknown:
-            return "An unknown error occurred."
+            return "Please try again later."
+
+        default:
+            return "Incorrect email or password."
         }
     }
 }
