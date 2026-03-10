@@ -47,10 +47,11 @@ protocol AuthUseCaseProtocol {
 
     // 현재 로그인 유저 id 조회 (동기)
     func currentUserId() -> UUID?
+
 }
 
 final class AuthUseCase: AuthUseCaseProtocol {
-
+    
     /// 세션 복구 / 로그아웃 / 현재 userId 조회를 담당하는 Repository
     /// - “이미 존재하는 세션 기반 흐름” 담당
     private let flowRepository: AuthFlowRepositoryProtocol
