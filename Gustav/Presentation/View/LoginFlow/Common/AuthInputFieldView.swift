@@ -39,7 +39,12 @@ final class AuthInputFieldView: UIView {
     // password / repeatPassword에서만 사용
     private let toggleButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setImage(UIImage(systemName: "eye.slash"), for: .normal)
+        
+        // 눈 토클 사이즈 줄이기
+        let config = UIImage.SymbolConfiguration(pointSize: 14, weight: .regular)
+        let image = UIImage(systemName: "eye.slash", withConfiguration: config)
+
+        button.setImage(image, for: .normal)
         button.tintColor = Colors.Text.additionalInfo
         button.isHidden = true
         return button
@@ -231,8 +236,11 @@ private extension AuthInputFieldView {
         textField.isSecureTextEntry.toggle()
 
         // 아이콘 변경
+        
         let imageName = textField.isSecureTextEntry ? "eye.slash" : "eye"
-        toggleButton.setImage(UIImage(systemName: imageName), for: .normal)
+        let config = UIImage.SymbolConfiguration(pointSize: 14, weight: .regular)
+        let image = UIImage(systemName: imageName, withConfiguration: config)
+        toggleButton.setImage(image, for: .normal)
 
         // 커서 튐 방지
         if wasFirstResponder {

@@ -61,7 +61,6 @@ class WorkSpaceSelectionView: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         setUI()
-        updateProfile(imageUrl: "https://i.namu.wiki/i/-3hx1gOT-t78qUFbUABxB_n9hBSzjOlCg8MP6dRno_73aKPW0m73CF0FRxfLOhS2AsJgRQqA3zkEJ2PVItW4NWP_3i07idYy8WdgTm0Fw2H0fICP0HGh3T_hV1x3u5CabluUilNKlERahLLTuetOKA.webp", name: "박지원")
     }
 
     required init?(coder: NSCoder) {
