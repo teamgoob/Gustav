@@ -9,8 +9,8 @@ import UIKit
 import SnapKit
 
 // MARK: - 워크스페이스 이름 변경 셀
-class WorkspaceNameEditCell: UITableViewCell {
-    static let reuseID = "WorkspaceNameEditCell"
+class WorkspaceNameEditingCell: UITableViewCell {
+    static let reuseID = "WorkspaceNameEditingCell"
     
     // 셀의 텍스트가 변경되었을 때 바깥으로 전달하는 클로저
     var onTextChanged: ((String) -> Void)?
@@ -19,7 +19,7 @@ class WorkspaceNameEditCell: UITableViewCell {
     
     private let cardView: UIView = {
         let v = UIView()
-        v.backgroundColor = UIColor(white: 0.90, alpha: 1.0)
+        v.backgroundColor = Colors.Theme.cardBackground
         v.layer.cornerRadius = 18
         v.clipsToBounds = true
         return v
@@ -28,7 +28,7 @@ class WorkspaceNameEditCell: UITableViewCell {
     let nameTextField: UITextField = {
         let tf = UITextField()
         tf.font = .systemFont(ofSize: 16, weight: .semibold)
-        tf.textColor = .black
+        tf.textColor = Colors.Text.main
         tf.textAlignment = .center
         tf.returnKeyType = .done
         return tf
@@ -37,14 +37,14 @@ class WorkspaceNameEditCell: UITableViewCell {
     let clearButton: UIButton = {
         let btn = UIButton(type: .system)
         btn.setImage(UIImage(systemName: "xmark.circle.fill"), for: .normal)
-        btn.tintColor = .secondaryLabel
+        btn.tintColor = Colors.Theme.inactive
         return btn
     }()
     
     private let updatedLabel: UILabel = {
         let l = UILabel()
         l.font = .systemFont(ofSize: 12, weight: .regular)
-        l.textColor = .secondaryLabel
+        l.textColor = Colors.Text.additionalInfo
         l.textAlignment = .right
         l.numberOfLines = 1
         return l
@@ -137,7 +137,7 @@ class WorkspaceNameEditCell: UITableViewCell {
     }
 }
 
-extension WorkspaceNameEditCell: UISearchTextFieldDelegate {
+extension WorkspaceNameEditingCell: UISearchTextFieldDelegate {
     // nameTextField의 text 속성 변경 이벤트 
     @objc private func textDidChange() {
         onTextChanged?(nameTextField.text ?? "")

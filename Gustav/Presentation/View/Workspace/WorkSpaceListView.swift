@@ -8,7 +8,7 @@
 import UIKit
 import SnapKit
 import Kingfisher
-class WorkSpaceSelectionView: UIView {
+class WorkSpaceListView: UIView {
     
     private let profileImage = UIImageView()
     private let nameLabel = UILabel()
@@ -16,10 +16,11 @@ class WorkSpaceSelectionView: UIView {
     // MARK: - Header (사진 + 이름만)
     private lazy var headerView: UIView = {
         let header = UIView()
-        header.backgroundColor = .systemBackground
+        header.backgroundColor = Colors.Theme.mainBackground
 
-        profileImage.image = UIImage(systemName: "person.crop.circle.fill")
-        profileImage.backgroundColor = .blue
+        profileImage.image = UIImage(systemName: "person.crop.circle")
+        profileImage.backgroundColor = Colors.Theme.mainBackground
+        profileImage.tintColor = Colors.Theme.inactive
         profileImage.contentMode = .scaleAspectFill
         profileImage.layer.cornerRadius = 60
         profileImage.clipsToBounds = true
@@ -27,6 +28,7 @@ class WorkSpaceSelectionView: UIView {
         nameLabel.text = "Gustav"
         nameLabel.font = .systemFont(ofSize: 28, weight: .bold)
         nameLabel.textAlignment = .center
+        nameLabel.textColor = Colors.Text.main
 
         header.addSubview(profileImage)
         header.addSubview(nameLabel)
@@ -51,9 +53,9 @@ class WorkSpaceSelectionView: UIView {
     let tableView: UITableView = {
         let tv = UITableView(frame: .zero, style: .plain)
         tv.separatorStyle = .none
-        tv.backgroundColor = .white
         tv.showsVerticalScrollIndicator = false
         tv.tableFooterView = UIView()
+        tv.backgroundColor = Colors.Theme.mainBackground
         return tv
     }()
 

@@ -1,5 +1,5 @@
 //
-//  WorkSpaceTableViewCell.swift
+//  WorkSpaceTableViewBasicCell.swift
 //  Gustav
 //
 //  Created by 박선린 on 3/1/26.
@@ -8,14 +8,14 @@
 import UIKit
 import SnapKit
 
-class WorkSpaceSelectionTableViewCell: UITableViewCell {
-    static let reuseID = "WorkSpaceSelectionTableViewCell"
+class WorkSpaceTableViewBasicCell: UITableViewCell {
+    static let reuseID = "WorkSpaceTableViewBasicCell"
     
     // MARK: - UI
     
     private let cardView: UIView = {
         let v = UIView()
-        v.backgroundColor = UIColor(white: 0.90, alpha: 1.0) // 연회색 캡슐
+        v.backgroundColor = Colors.Theme.cardBackground
         v.layer.cornerRadius = 18
         v.clipsToBounds = true
         return v
@@ -24,7 +24,7 @@ class WorkSpaceSelectionTableViewCell: UITableViewCell {
     private let titleLabel: UILabel = {
         let l = UILabel()
         l.font = .systemFont(ofSize: 16, weight: .semibold)
-        l.textColor = .label
+        l.textColor = Colors.Text.main
         l.textAlignment = .center
         l.numberOfLines = 1
         return l
@@ -33,7 +33,7 @@ class WorkSpaceSelectionTableViewCell: UITableViewCell {
     private let updatedLabel: UILabel = {
         let l = UILabel()
         l.font = .systemFont(ofSize: 12, weight: .regular)
-        l.textColor = .secondaryLabel
+        l.textColor = Colors.Text.additionalInfo
         l.textAlignment = .right
         l.numberOfLines = 1
         return l

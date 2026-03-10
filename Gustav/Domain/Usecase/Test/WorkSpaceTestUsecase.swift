@@ -7,7 +7,7 @@
 
 import Foundation
 
-final class WorkSpaceTestUsecase: WorkspaceUsecaseProtocol {
+final class TestWorkSpaceUsecase: WorkspaceUsecaseProtocol {
     var database: [Workspace] = [
         
         Workspace(id: UUID(), userId: UUID(), indexKey: 0, name: "워크스페이스 1", createdAt: Date(), updatedAt: Date()),
