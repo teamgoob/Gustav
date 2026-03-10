@@ -34,6 +34,10 @@ struct Colors {
         static let main: UIColor = UIColor(named: "MainTextColor")!
         // Additional Information Color
         static let additionalInfo: UIColor = UIColor(named: "AdditionalInfoTextColor")!
+        // Red Color (Red)
+        static let red: UIColor = UIColor.red
+        // Green Color (Green)
+        static let green: UIColor = UIColor.green
         
         private init() {}
     }
