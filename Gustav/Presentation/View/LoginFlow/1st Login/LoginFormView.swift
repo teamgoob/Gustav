@@ -38,6 +38,17 @@ final class LoginFormView: UIView {
         return b
     }()
     
+    // 일반 에러 메시지
+    private let generalErrorLabel: UILabel = {
+        let lb = UILabel()
+        lb.font = Fonts.caption
+        lb.textColor = Colors.Text.error
+        lb.textAlignment = .center
+        lb.numberOfLines = 0
+        lb.isHidden = true
+        return lb
+    }()
+    
     // 선 디바이더
     private let dividerLine: UIView = {
         let v = UIView()
@@ -124,6 +135,7 @@ final class LoginFormView: UIView {
         contentStack.setCustomSpacing(24, after: emailPasswordView)
 
         contentStack.addArrangedSubview(signInButton)
+        contentStack.addArrangedSubview(generalErrorLabel)
         contentStack.addArrangedSubview(forgotPasswordButton)
         contentStack.setCustomSpacing(16, after: forgotPasswordButton)
 
@@ -138,6 +150,7 @@ final class LoginFormView: UIView {
         createAccountButton.snp.makeConstraints { $0.height.equalTo(56) }
         appleLoginButton.snp.makeConstraints { $0.height.equalTo(56) }
         dividerLine.snp.makeConstraints { $0.height.equalTo(1) }
+        generalErrorLabel.snp.makeConstraints { $0.height.greaterThanOrEqualTo(0) }
 
         // forgot 버튼 중앙정렬
         forgotPasswordButton.contentHorizontalAlignment = .center
@@ -176,5 +189,26 @@ extension LoginFormView {
 
     var passwordText: String {
         emailPasswordView.passwordText
+    }
+
+    func updateEmailError(_ message: String?) {
+        emailPasswordView.updateEmailError(message)
+    }
+
+    func updatePasswordError(_ message: String?) {
+        emailPasswordView.updatePasswordError(message)
+    }
+
+    func updateGeneralError(_ message: String?) {
+        generalErrorLabel.text = message
+        generalErrorLabel.isHidden = (message == nil)
+    }
+
+    func updateLoginButton(isEnabled: Bool, isLoading: Bool) {
+        signInButton.isEnabled = isEnabled
+        signInButton.alpha = isEnabled ? 1.0 : 0.5
+
+        let title = isLoading ? "Loading..." : "Sign In"
+        signInButton.setTitle(title, for: .normal)
     }
 }

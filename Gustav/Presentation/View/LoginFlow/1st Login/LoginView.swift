@@ -14,6 +14,8 @@ final class LoginView: UIView {
     private let cardView = UIView()
     private let contentStack = UIStackView()
 
+    let loadingView = LoadingView()
+    
     // Welcome
     private let titleLabel: UILabel = {
         let lb = UILabel()
@@ -63,6 +65,9 @@ final class LoginView: UIView {
         contentStack.addArrangedSubview(titleLabel)
 //        contentStack.setCustomSpacing(42, after: titleLabel) // 스샷처럼 타이틀 아래 공간 크게
         contentStack.addArrangedSubview(formView)
+        
+        
+        addSubview(loadingView)
     }
 
     private func setupLayout() {
@@ -81,6 +86,11 @@ final class LoginView: UIView {
         contentStack.snp.makeConstraints { make in
             make.edges.equalTo(cardView.layoutMarginsGuide)
             make.centerY.equalTo(cardView)
+        }
+        
+        
+        loadingView.snp.makeConstraints {
+            $0.edges.equalToSuperview()
         }
     }
 }
