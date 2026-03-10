@@ -39,6 +39,7 @@ final class ProfileEditingView: UIView {
         textField.backgroundColor = .clear
         textField.font = Fonts.largeTextField
         textField.textAlignment = .center
+        textField.returnKeyType = .done
         return textField
     }()
     

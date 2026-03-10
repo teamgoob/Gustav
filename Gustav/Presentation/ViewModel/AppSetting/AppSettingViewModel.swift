@@ -135,7 +135,7 @@ private extension AppSettingViewModel {
         self.settingListSections = [generalSetting, accountSetting]
     }
     
-    // viewDidLoad 이벤트 처리
+    // viewDidLoad, profileEdited 이벤트 처리
     func fetchProfileDataAndUpdateView() async {
         // 로딩 중 처리
         isLoading = true

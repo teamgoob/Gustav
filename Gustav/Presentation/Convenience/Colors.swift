@@ -13,7 +13,7 @@ struct Colors {
     // 앱 테마 색상
     struct Theme {
         // Primary Color (Yellow)
-        static let primary: UIColor = UIColor(named: "PrimaryColor")!
+        static let primary: UIColor = UIColor(named: "PrimaryThemeColor")!
         // Text Background Color (Gray)
         static let textBackground: UIColor = UIColor(named: "TextBackgroundColor")!
         // Outline Color (Gray)
