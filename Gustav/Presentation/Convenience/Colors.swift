@@ -40,6 +40,8 @@ struct Colors {
         static let red: UIColor = UIColor.red
         // Green Color (Green)
         static let green: UIColor = UIColor.green
+        // Error Color
+        static let error: UIColor = UIColor(named: "ErrorColor")!
         
         private init() {}
     }
