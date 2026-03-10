@@ -45,7 +45,7 @@ final class LoadingView: UIView {
     // MARK: - Setup
     // 하위 뷰 추가
     private func setupViews() {
-        backgroundColor = Colors.Theme.background2
+        backgroundColor = Colors.Theme.mainBackground
         addSubview(loadingIndicator)
         addSubview(descriptionLabel)
     }
@@ -73,3 +73,37 @@ final class LoadingView: UIView {
         isHidden = true
     }
 }
+
+/* MARK: - Loading View 사용 방법
+ 
+ // ~ View 파일
+ 
+ // UI Components 선언
+ let loadingView: LoadingView = {
+     let view = LoadingView()
+     // 안내 문구 설정
+     view.descriptionLabel.text = "Loading Settings..."
+     return view
+ }()
+ 
+ override init(frame: CGRect) {
+     super.init(frame: frame)
+     
+     // 하위 뷰 추가
+     addSubview(loadingView)
+     // 제약 조건 설정
+     loadingView.snp.makeConstraints {
+         $0.edges.equalToSuperview()
+     }
+ }
+ 
+ // ~ ViewController 파일
+ 
+ // 로딩 상태에 따라 동작 결정
+ if output.isLoading {
+     customView.loadingView.startLoading()
+ } else {
+     customView.loadingView.stopLoading()
+ }
+ 
+ */

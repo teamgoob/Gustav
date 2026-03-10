@@ -86,7 +86,7 @@ final class AppSettingView: UIView {
     // MARK: - Setup
     // 하위 뷰 추가
     private func setupViews() {
-        backgroundColor = Colors.Theme.background2
+        backgroundColor = Colors.Theme.mainBackground
         addSubview(contentView)
         addSubview(loadingView)
         contentView.addSubview(profileImageView)
