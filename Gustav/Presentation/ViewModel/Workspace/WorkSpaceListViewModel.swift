@@ -6,7 +6,7 @@
 //
 import Foundation
 
-final class WorkSpaceSelectionViewModel {
+final class WorkSpaceListViewModel {
 
     // VC가 구독(바인딩)할 콜백
     var onStateChange: ((State) -> Void)?

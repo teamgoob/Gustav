@@ -7,10 +7,10 @@
 
 import UIKit
 import SnapKit
-class WorkSpaceSelectionViewController: UIViewController {
-    private let contentView = WorkSpaceSelectionView()  // 기본 뷰에 사용할 뷰
+class WorkSpaceListViewController: UIViewController {
+    private let contentView = WorkSpaceListView()  // 기본 뷰에 사용할 뷰
     private let loadingView = LoadingView()             // 로딩뷰
-    private let viewModel: WorkSpaceSelectionViewModel  // 뷰모델
+    private let viewModel: WorkSpaceListViewModel  // 뷰모델
     private var cellMode: cellMode = .normal            // 현재 셀 모드
 
     // 셀 모드
@@ -21,7 +21,7 @@ class WorkSpaceSelectionViewController: UIViewController {
         case changeOrder
     }
     
-    init(viewModel: WorkSpaceSelectionViewModel) {
+    init(viewModel: WorkSpaceListViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
     }
@@ -49,9 +49,9 @@ class WorkSpaceSelectionViewController: UIViewController {
         // table 설정
         contentView.tableView.dataSource = self
         contentView.tableView.delegate = self
-        contentView.tableView.register(WorkSpaceSelectionTableViewCell.self, forCellReuseIdentifier: WorkSpaceSelectionTableViewCell.reuseID)
-        contentView.tableView.register(WorkspaceNameEditCell.self, forCellReuseIdentifier: WorkspaceNameEditCell.reuseID)
-        contentView.tableView.register(WorkSpaceReorderCell.self, forCellReuseIdentifier: WorkSpaceReorderCell.reuseID)
+        contentView.tableView.register(WorkSpaceTableViewBasicCell.self, forCellReuseIdentifier: WorkSpaceTableViewBasicCell.reuseID)
+        contentView.tableView.register(WorkspaceNameEditingCell.self, forCellReuseIdentifier: WorkspaceNameEditingCell.reuseID)
+        contentView.tableView.register(WorkSpaceReorderingCell.self, forCellReuseIdentifier: WorkSpaceReorderingCell.reuseID)
         
         
         // 2) VM 바인딩
@@ -265,7 +265,7 @@ class WorkSpaceSelectionViewController: UIViewController {
 }
 
 // MARK: - UITableViewDataSource
-extension WorkSpaceSelectionViewController: UITableViewDataSource {
+extension WorkSpaceListViewController: UITableViewDataSource {
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         viewModel.workSpaces.count
@@ -276,9 +276,9 @@ extension WorkSpaceSelectionViewController: UITableViewDataSource {
         switch self.cellMode {
         case .normal:
             let cell = tableView.dequeueReusableCell(
-                withIdentifier: WorkSpaceSelectionTableViewCell.reuseID,
+                withIdentifier: WorkSpaceTableViewBasicCell.reuseID,
                 for: indexPath
-            ) as! WorkSpaceSelectionTableViewCell
+            ) as! WorkSpaceTableViewBasicCell
             
             cell.configure(
                 title: workspace.name,
@@ -288,9 +288,9 @@ extension WorkSpaceSelectionViewController: UITableViewDataSource {
         
         case .addWorkSpace:
             let cell = tableView.dequeueReusableCell(
-                withIdentifier: WorkSpaceSelectionTableViewCell.reuseID,
+                withIdentifier: WorkSpaceTableViewBasicCell.reuseID,
                 for: indexPath
-            ) as! WorkSpaceSelectionTableViewCell
+            ) as! WorkSpaceTableViewBasicCell
             
             cell.configure(
                 title: workspace.name,
@@ -300,9 +300,9 @@ extension WorkSpaceSelectionViewController: UITableViewDataSource {
             
         case .changeName:
             let cell = tableView.dequeueReusableCell(
-                withIdentifier: WorkspaceNameEditCell.reuseID,
+                withIdentifier: WorkspaceNameEditingCell.reuseID,
                 for: indexPath
-            ) as! WorkspaceNameEditCell
+            ) as! WorkspaceNameEditingCell
             cell.configure(title: workspace.name, updatedAt: workspace.updatedAt)
             
             // 셀이 직접 indexPath를 기억하지 않고,
@@ -322,9 +322,9 @@ extension WorkSpaceSelectionViewController: UITableViewDataSource {
             
         case .changeOrder:
             let cell = tableView.dequeueReusableCell(
-                withIdentifier: WorkSpaceReorderCell.reuseID,
+                withIdentifier: WorkSpaceReorderingCell.reuseID,
                 for: indexPath
-            ) as! WorkSpaceReorderCell
+            ) as! WorkSpaceReorderingCell
             
             cell.configure(title: workspace.name)
             
@@ -344,7 +344,7 @@ extension WorkSpaceSelectionViewController: UITableViewDataSource {
     }
 }
 
-extension WorkSpaceSelectionViewController: UITableViewDelegate {
+extension WorkSpaceListViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
 
         tableView.deselectRow(at: indexPath, animated: true)
