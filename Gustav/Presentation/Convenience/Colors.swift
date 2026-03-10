@@ -34,6 +34,8 @@ struct Colors {
         static let main: UIColor = UIColor(named: "MainTextColor")!
         // Additional Information Color
         static let additionalInfo: UIColor = UIColor(named: "AdditionalInfoTextColor")!
+        // Error Color
+        static let error: UIColor = UIColor(named: "ErrorColor")!
         
         private init() {}
     }
