@@ -84,7 +84,7 @@ final class AccountDeletingView: UIView {
     }()
     
     // 이메일 텍스트필드
-    private let emailTextField: UITextField = {
+    let emailTextField: UITextField = {
         let textField = UITextField()
         textField.placeholder = "E - mail"
         textField.keyboardType = .emailAddress
@@ -104,7 +104,7 @@ final class AccountDeletingView: UIView {
     
     // MARK: - UIButton
     // Agree Button
-    private let agreeButton: UIButton = {
+    let agreeButton: UIButton = {
         var config = UIButton.Configuration.plain()
         // 버튼 텍스트 설정
         var attributedTitle = AttributedString("I agree to delete my account.")
@@ -134,7 +134,7 @@ final class AccountDeletingView: UIView {
     }()
     
     // Delete Button
-    private let deleteButton: UIButton = {
+    let deleteButton: UIButton = {
         var config = UIButton.Configuration.filled()
         // 버튼 텍스트 설정
         var attributedTitle = AttributedString("Delete my account")
@@ -289,12 +289,12 @@ extension AccountDeletingView {
     
     // MARK: - Button
     // Agree Button
-    func toggleAgreeButtonSelected() {
-        agreeButton.isSelected.toggle()
+    func setAgreeButtonSelection(to isSelected: Bool) {
+        agreeButton.isSelected = isSelected
     }
     
     // Delete Button
-    func toggleDeleteButtonEnabled() {
-        deleteButton.isEnabled.toggle()
+    func setDeleteButtonAvailability(to isEnabled: Bool) {
+        deleteButton.isEnabled = isEnabled
     }
 }
