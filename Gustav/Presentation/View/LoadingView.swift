@@ -63,7 +63,10 @@ final class LoadingView: UIView {
     }
     
     // MARK: - Visible / Animation Control
-    func startLoading() {
+    func startLoading(with text: String? = nil) {
+        if let text = text {
+            descriptionLabel.text = text
+        }
         isHidden = false
         loadingIndicator.startAnimating()
     }
@@ -105,5 +108,9 @@ final class LoadingView: UIView {
  } else {
      customView.loadingView.stopLoading()
  }
+ 
+ ************ 추가 ************
+ customView.loadingView.startLoading(with: "Loading Profile...")
+ 위와 같이 사용하여 ViewController에서 로딩 시 표시할 메세지 설정 가능
  
  */

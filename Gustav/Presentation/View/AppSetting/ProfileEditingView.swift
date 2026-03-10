@@ -38,7 +38,14 @@ final class ProfileEditingView: UIView {
         textField.clearButtonMode = .whileEditing
         textField.backgroundColor = .clear
         textField.font = Fonts.largeTextField
+        textField.textColor = Colors.Text.main
         textField.textAlignment = .center
+        textField.returnKeyType = .done
+        // 자동 대문자 방지
+        textField.autocapitalizationType = .none
+        // 맞춤법 수정 비활성화
+        textField.autocorrectionType = .no
+        textField.spellCheckingType = .no
         return textField
     }()
     
