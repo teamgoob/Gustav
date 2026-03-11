@@ -124,7 +124,8 @@ final class WorkSpaceListViewModel {
             switch result {
             case .success(let workspaces):
                 self.workSpaces = workspaces
-                self.emit(.data(workspaces))
+//                self.emit(.data(workspaces))
+                self.emit(.success)
 
             case .failure(let error):
                 self.emit(.error(String(describing: error)))
@@ -200,6 +201,7 @@ final class WorkSpaceListViewModel {
     
     // Reorder
     private func reorderWorkspaces() {
+        guard !editingWorkSpaces.isEmpty else { return }
         workspaceTask?.cancel()
         workspaceTask = Task { [weak self] in
             guard let self else { return }
