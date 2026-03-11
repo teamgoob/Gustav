@@ -4,7 +4,6 @@
 //
 //  Created by kaeun on 3/11/26.
 //
-
 import UIKit
 
 final class LoginViewController: UIViewController {
@@ -56,7 +55,12 @@ private extension LoginViewController {
         }
 
         rootView.formView.onTapAppleLogin = { [weak self] in
-            self?.viewModel.action(input: .tapAppleLogin)
+            guard let self else { return }
+
+            Task { @MainActor in
+                await self.viewModel.handleAppleLogin()
+                self.render()
+            }
         }
     }
 
@@ -110,6 +114,7 @@ private extension LoginViewController {
         present(alert, animated: true)
     }
 }
+
 extension LoginViewController: UITextFieldDelegate {
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         let emailField = rootView.formView.emailPasswordView.emailTextField

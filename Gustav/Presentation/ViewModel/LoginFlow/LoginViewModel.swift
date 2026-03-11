@@ -129,6 +129,24 @@ final class LoginViewModel {
             generalErrorMessage = mapDomainErrorToMessage(error)
         }
     }
+    
+    // 애플 로그인 핸들링
+    func handleAppleLogin() async {
+        isLoading = true
+        generalErrorMessage = nil
+
+        let result = await authUseCase.authenticateWithApple()
+
+        isLoading = false
+
+        switch result {
+        case .success:
+            generalErrorMessage = nil
+
+        case .failure(let error):
+            generalErrorMessage = mapDomainErrorToMessage(error)
+        }
+    }
 
     // ViewController가 현재 UI 상태를 가져오는 함수
     func getCurrentOutput() -> Output {
