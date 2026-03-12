@@ -47,6 +47,15 @@ final class ProfileEditingViewController: UIViewController {
         
         viewModel.action(.viewDidLoad)
     }
+    
+    // ViewController Pop 이벤트 전달
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        
+        if isMovingFromParent {
+            viewModel.action(.dismiss)
+        }
+    }
 }
 
 // MARK: - Setup

@@ -46,6 +46,7 @@ final class AccountDeletingViewModel {
     
     // MARK: - Input
     enum Input {
+        case dismiss
         case viewDidLoad
         case emailEntered(email: String)
         case agreeButtonTapped
@@ -62,6 +63,7 @@ final class AccountDeletingViewModel {
     
     // MARK: - Navigation Route (화면 이동 경로)
     enum Route {
+        case dismiss
         case dismissAfterDeleteAccount
         case showAlertToNoticeDeleteAccountFailure
     }
@@ -78,6 +80,8 @@ extension AccountDeletingViewModel {
     // Input 처리 메서드
     func action(_ input: Input) {
         switch input {
+        case .dismiss:
+            onNavigation?(.dismiss)
         case .viewDidLoad:
             Task {
                 await fetchUserEmail()

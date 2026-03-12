@@ -49,6 +49,7 @@ final class AppSettingViewModel {
     
     // MARK: - Input
     enum Input {
+        case dismiss
         case viewDidLoad
         case profileEdited
         case didSelectSettingListItem(SettingListItem)
@@ -65,6 +66,7 @@ final class AppSettingViewModel {
     
     // MARK: - Navigation Route (화면 이동 경로)
     enum Route {
+        case dismiss
         case pushTo(next: SettingListItem)
         case showAlertForSignOutConfirmation
         case showAlertToNoticeSignOutFailure
@@ -82,6 +84,8 @@ extension AppSettingViewModel {
     // Input 처리 메서드
     func action(_ input: Input) {
         switch input {
+        case .dismiss:
+            onNavigation?(.dismiss)
         case .profileEdited:
             Task {
                 await fetchProfileDataAndUpdateView()
