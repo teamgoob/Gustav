@@ -7,7 +7,7 @@
 import Foundation
 import Supabase
 
-final class SupabaseLocationRemoteDataSource: LocationDataSourceProtocol {
+final class LocationSupabase: LocationDataSourceProtocol {
     // 클라이언트
     private let client: SupabaseClient
     private let table = "locations"
