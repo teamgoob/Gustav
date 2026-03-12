@@ -44,10 +44,10 @@ final class EmailSignUpView: UIView {
 // MARK: - Setup
 private extension EmailSignUpView {
     func setupUI() {
-        backgroundColor = UIColor.systemGray6
+        backgroundColor = Colors.Theme.mainBackground
 
         // 카드 스타일
-        cardView.backgroundColor = .white
+        cardView.backgroundColor = Colors.Theme.cardBackground
         cardView.layer.cornerRadius = 24
         cardView.layer.masksToBounds = true
 
@@ -58,7 +58,7 @@ private extension EmailSignUpView {
         contentStack.axis = .vertical
         contentStack.alignment = .fill
         contentStack.distribution = .fill
-        contentStack.spacing = 36
+        contentStack.spacing = 40
 
         addSubview(cardView)
         cardView.addSubview(contentStack)
@@ -77,7 +77,6 @@ private extension EmailSignUpView {
         // 스택은 카드 margin 기준으로 꽉 채움
         contentStack.snp.makeConstraints { make in
             make.edges.equalTo(cardView.layoutMarginsGuide)
-//            make.centerY.equalTo(cardView)
         }
     }
 }
