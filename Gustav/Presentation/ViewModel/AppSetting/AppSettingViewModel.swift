@@ -28,7 +28,7 @@ final class AppSettingViewModel {
     // 사용자 이메일
     private var userEmail: String?
     // 로딩 상태
-    private var isLoading: Bool = false
+    private var isLoading: LoadingState = .notLoading
     
     // 설정 목록 배열
     private var settingListSections: [SettingListSection] = []
@@ -61,7 +61,7 @@ final class AppSettingViewModel {
         let profileImageUrl: String?
         let userName: String?
         let userEmail: String?
-        let isLoading: Bool
+        let isLoading: LoadingState
     }
     
     // MARK: - Navigation Route (화면 이동 경로)
@@ -70,6 +70,13 @@ final class AppSettingViewModel {
         case pushTo(next: SettingListItem)
         case showAlertForSignOutConfirmation
         case showAlertToNoticeSignOutFailure
+    }
+    
+    // MARK: - Loading State
+    // 로딩 상태의 종류를 구별하기 위한 열거형
+    enum LoadingState {
+        case loading(for: String)
+        case notLoading
     }
     
     // MARK: - Closures
@@ -142,7 +149,7 @@ private extension AppSettingViewModel {
     // viewDidLoad, profileEdited 이벤트 처리
     func fetchProfileDataAndUpdateView() async {
         // 로딩 중 처리
-        isLoading = true
+        isLoading = .loading(for: "Loading Settings...")
         notifyOutput()
         
         // 프로필 정보 불러오기
@@ -161,7 +168,7 @@ private extension AppSettingViewModel {
         }
         
         // 로딩 완료 처리
-        isLoading = false
+        isLoading = .notLoading
         notifyOutput()
     }
     
@@ -179,11 +186,23 @@ private extension AppSettingViewModel {
     
     // 로그아웃 처리
     func handleSignOut() async {
+        // 로딩 중 처리
+        isLoading = .loading(for: "Signing Out...")
+        notifyOutput()
+        
         let result = await authUsecase.signOut()
         switch result {
         case .success:
-            break
+            // 로딩 완료 처리
+            isLoading = .notLoading
+            // NotificationCenter를 통해 AppCoordinator에 로그아웃 완료 전달
+            NotificationCenter.default.post(name: .logout, object: nil)
         case .failure:
+            // 로딩 완료 처리
+            isLoading = .notLoading
+            // 화면 표시
+            notifyOutput()
+            // Coordinator에 로그아웃 실패 전달
             onNavigation?(.showAlertToNoticeSignOutFailure)
         }
     }
