@@ -57,7 +57,7 @@ private extension EmailSignUpViewController {
 
     // 네비게이션 바 설정
     func setupNavigation() {
-        title = ""
+        title = "Create an account"
         navigationItem.largeTitleDisplayMode = .never
     }
 

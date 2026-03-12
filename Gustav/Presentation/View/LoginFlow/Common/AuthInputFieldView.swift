@@ -92,7 +92,7 @@ private extension AuthInputFieldView {
         iconImageView.contentMode = .scaleAspectFit
 
         // 텍스트 필드 기본 스타일
-        textField.font = Fonts.body
+        textField.font = Fonts.accent
         textField.textColor = Colors.Text.additionalInfo
 
         // 자동 입력 수정 방지
@@ -102,7 +102,7 @@ private extension AuthInputFieldView {
 
         // 에러 라벨 스타일
         errorLabel.textColor = Colors.Text.error
-        errorLabel.font = Fonts.caption
+        errorLabel.font = Fonts.accent
 //        errorLabel.font = .systemFont(ofSize: 12, weight: .regular)
         errorLabel.numberOfLines = 1
         errorLabel.lineBreakMode = .byTruncatingTail

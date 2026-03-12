@@ -91,11 +91,6 @@ private extension LoginViewController {
             isLoading: output.isLoading
         )
 
-//        if output.isLoading {
-//            rootView.loadingView.startLoading()
-//        } else {
-//            rootView.loadingView.stopLoading()
-//        }
         
         rootView.formView.updateGeneralError(output.generalErrorMessage)
         
@@ -107,7 +102,7 @@ private extension LoginViewController {
     private func showErrorAlert(_ message: String) {
         let alert = UIAlertController(
             title: nil,
-            message: "아이디 또는 비밀번호가 틀렸습니다.",
+            message: message,
             preferredStyle: .alert
         )
         alert.addAction(UIAlertAction(title: "확인", style: .default))

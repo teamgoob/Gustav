@@ -210,16 +210,19 @@ private extension LoginViewModel {
     
     func mapDomainErrorToMessage(_ error: DomainError) -> String {
         switch error {
+        case .cancelled:
+            return "취소하였습니다."
+
+        case .temporarilyUnavailable:
+            return "잠시 후 다시 시도해주세요."
+
         case .authenticationRequired,
              .entityNotFound,
              .unknown:
-            return "Incorrect email or password."
-
-        case .temporarilyUnavailable:
-            return "Please try again later."
+            return "아이디 또는 비밀번호가 틀렸습니다."
 
         default:
-            return "Incorrect email or password."
+            return "아이디 또는 비밀번호가 틀렸습니다."
         }
     }
 }
