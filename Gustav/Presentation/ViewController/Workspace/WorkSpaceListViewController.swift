@@ -157,38 +157,12 @@ class WorkSpaceListViewController: UIViewController {
                 case false:
                     self.loadingView.stopLoading()
                 }
-            case .data:
-                self.contentView.tableView.reloadData()
                 
             case .success:
                 self.contentView.tableView.reloadData()
-            case .error(let message):
-                print("error:", message)
             
             case .profile(urlstring: let urlstring, name: let name):
                 contentView.updateProfile(imageUrl: urlstring, name: name)
-            }
-        }
-        
-        // 화면 관련
-        viewModel.onNavigation = { [weak self] route in
-            guard let self else { return }
-            
-            switch route {
-            case .pushToWorkspaceDetail(let workspace):
-                // 임시
-                print("워크스페이스 자세히 보기")
-            case .presentCreateWorkspace:
-                // 임시
-                print("새로운 워크스페이스 생성하기")
-            case .showErrorAlert(let message):
-                //임시
-                print("에러가 발생했어요")
-            case .pushToAppSetting:
-                // 임시
-                print("앱설정화면으로 이동")
-                let tempASVC = AppSettingViewController(viewModel: AppSettingViewModel(authUsecase: TestAuthUsecase(), profileUsecase: TestProfileUsecase()))
-                navigationController?.pushViewController(tempASVC, animated: true)
             }
         }
     }

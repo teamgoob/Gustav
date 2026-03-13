@@ -46,13 +46,13 @@ final class WorkSpaceListViewModel {
 //        self.authUsecase = authenticationUsecase
 //        self.profileUsecase = profileUsecase
 //    }
+    
     // MARK: - State(Output)
     enum State {
         case loading(Bool)      // 로딩 유무
-        case data([Workspace])  // 데이터
         case profile(urlstring: String, name: String)   // 프로필 데이터
         case success            // 단순 성공
-        case error(String)      // 에러메세지
+//        case error(String)      // 에러메세지
     }
     
     // MARK: - Input
@@ -78,7 +78,7 @@ final class WorkSpaceListViewModel {
     // Action
     func action(_ input: Input) {
         switch input {
-        case .viewDidLoad:
+        case .viewDidLoad:      // ViewDidLoad
             fetchWorkspaces()
             
         case .didTapAddWorkspaceButton(let name):
@@ -114,9 +114,12 @@ final class WorkSpaceListViewModel {
             guard let self else { return }  // 실행시 다시 강한 참조
 
             self.emit(.loading(true))       // 로딩 시작
-            defer { Task { self.emit(.loading(false)) } }   // 끝나면 로딩 끝
+            defer { self.emit(.loading(false) ) }    // 끝나면 로딩 끝
             
-            sleep(1)
+            #if DEBUG
+            try? await Task.sleep(for: .seconds(2))
+            #endif
+            
             let result = await self.workspaceUsecase.fetchWorkspaces()      // fetch
 
             guard !Task.isCancelled else { return }         // 전달 받은 캔슬 플래그가 있으면 중단
@@ -124,11 +127,10 @@ final class WorkSpaceListViewModel {
             switch result {
             case .success(let workspaces):
                 self.workSpaces = workspaces
-//                self.emit(.data(workspaces))
                 self.emit(.success)
 
             case .failure(let error):
-                self.emit(.error(String(describing: error)))
+                onNavigation?(.showErrorAlert(String(describing: error)))
             }
         }
     }
@@ -140,15 +142,16 @@ final class WorkSpaceListViewModel {
             guard let self else { return }
             
             self.emit(.loading(true))
-            defer { Task { self.emit(.loading(false)) } }
+            defer { self.emit(.loading(false) ) }
             
             let result = await self.workspaceUsecase.createWorkspace(name: name)
             switch result {
             case .success(let workspace):
                 self.workSpaces.append(workspace)
-                self.emit(.data(workSpaces))
+                self.emit(.success)
+                
             case .failure(let error):
-                self.emit(.error(String(describing: error)))
+                onNavigation?(.showErrorAlert(String(describing: error)))
             }
         }
     }
@@ -167,24 +170,30 @@ final class WorkSpaceListViewModel {
             guard let self else { return }
             
             self.emit(.loading(true))
-            defer { Task { self.emit(.loading(false)) } }
+            defer { self.emit(.loading(false) ) }
+            
             let keyArray = Array(editingWorkSpaces.keys)
+            
             for i in keyArray {
-                guard let name = editingWorkSpaces[i] else {
-                    self.emit(.error(workSpaces[i].name + "워크스페이스 이름 변경 실패"))
-                    continue
-                }
+                guard let name = editingWorkSpaces[i] else { continue }
                 let _ = await self.workspaceUsecase.updateWorkspaceName(id: self.workSpaces[i].id, name: name)
             }
+
             let result = await self.workspaceUsecase.fetchWorkspaces()
+            
+            #if DEBUG
+            try? await Task.sleep(for: .seconds(2))
+            #endif
+            
             switch result {
             case .success(let workspaces):
                 self.workSpaces = workspaces
-                self.emit(.data(workSpaces))
+                self.emit(.success)
                 self.editingWorkSpaces = [:]
+                
             case .failure(let error):
                 self.editingWorkSpaces = [:]
-                self.emit(.error(String(describing: error)))
+                onNavigation?(.showErrorAlert(String(describing: error)))
             }
         }
         
@@ -201,13 +210,15 @@ final class WorkSpaceListViewModel {
     
     // Reorder
     private func reorderWorkspaces() {
-        guard !editingWorkSpaces.isEmpty else { return }
+        guard !editingOrderWorkspaces.isEmpty else { return }
+        
         workspaceTask?.cancel()
         workspaceTask = Task { [weak self] in
             guard let self else { return }
             
             self.emit(.loading(true))
-            defer { Task { self.emit(.loading(false)) } }
+            print("로딩 시작")
+//            defer { self.emit(.loading(false) ) }
             var draftworkspaces: [Workspace] = []
             var uuidArray: [UUID] = []
             var index: Int = 0
@@ -226,14 +237,20 @@ final class WorkSpaceListViewModel {
             }
             
             let result = await self.workspaceUsecase.reorderWorkspaces(order: uuidArray)
+            
+            #if DEBUG
+            try? await Task.sleep(for: .seconds(2))
+            #endif
+            self.emit(.loading(false) )
             switch result {
             case .success:
                 self.workSpaces = draftworkspaces
                 self.editingOrderWorkspaces.removeAll()
-                emit(.success)
-            case .failure:
+//                emit(.success)
+                onNavigation?(.showErrorAlert("테스트 에러 알럿창"))
+            case .failure(let error):
                 self.editingOrderWorkspaces.removeAll()
-                emit(.error(""))
+//                onNavigation?(.showErrorAlert(String(describing: error)))
             }
         }
     }
