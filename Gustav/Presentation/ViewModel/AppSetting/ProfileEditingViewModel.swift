@@ -33,6 +33,7 @@ final class ProfileEditingViewModel {
     
     // MARK: - Input
     enum Input {
+        case dismiss
         case viewDidLoad
         case changeProfileImage(url: String)
         case changeUserName(name: String)
@@ -48,6 +49,7 @@ final class ProfileEditingViewModel {
     
     // MARK: - Route
     enum Route {
+        case dismiss
         case dismissAfterSave
         case showAlertToNoticeEditingFailure
     }
@@ -71,6 +73,8 @@ extension ProfileEditingViewModel {
     // Input 처리 메서드
     func action(_ input: Input) {
         switch input {
+        case .dismiss:
+            onNavigation?(.dismiss)
         case .viewDidLoad:
             Task {
                 await fetchProfile()

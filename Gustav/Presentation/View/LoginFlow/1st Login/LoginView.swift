@@ -14,8 +14,7 @@ final class LoginView: UIView {
     private let cardView = UIView()
     private let contentStack = UIStackView()
 
-    let loadingView = LoadingView()
-    
+
     // Welcome
     private let titleLabel: UILabel = {
         let lb = UILabel()
@@ -26,6 +25,13 @@ final class LoginView: UIView {
         return lb
     }()
 
+//    private let titleLabelBox: UIView = {
+//        let v = UIView()
+//        v.backgroundColor = Colors.Theme.cardBackground
+//        v.layer.masksToBounds = true
+//        return v
+//    }()
+    
     let formView = LoginFormView()
 
     // MARK: - Init
@@ -43,10 +49,10 @@ final class LoginView: UIView {
 
     // MARK: - Setup
     private func setupUI() {
-        backgroundColor = UIColor.systemGray6
+        backgroundColor = Colors.Theme.mainBackground
 
         // 카드 스타일
-        cardView.backgroundColor = .white
+        cardView.backgroundColor = Colors.Theme.cardBackground
         cardView.layer.cornerRadius = 24
         cardView.layer.masksToBounds = true
 
@@ -63,35 +69,25 @@ final class LoginView: UIView {
         cardView.addSubview(contentStack)
 
         contentStack.addArrangedSubview(titleLabel)
-//        contentStack.setCustomSpacing(42, after: titleLabel) // 스샷처럼 타이틀 아래 공간 크게
+        contentStack.setCustomSpacing(42, after: titleLabel) // 스샷처럼 타이틀 아래 공간 크게
         contentStack.addArrangedSubview(formView)
         
-        
-        addSubview(loadingView)
     }
 
     private func setupLayout() {
         // 작은 화면에서도 카드 깨짐 방지 (top>=, bottom<=, centerY)
-        cardView.snp.makeConstraints { make in
-            make.leading.trailing.equalToSuperview().inset(22)
-            make.centerY.equalToSuperview().offset(20)
-            
-            make.height.equalToSuperview().multipliedBy(0.85)
-            
-            make.top.greaterThanOrEqualTo(safeAreaLayoutGuide).inset(18)
-            make.bottom.lessThanOrEqualTo(safeAreaLayoutGuide).inset(18)
+        cardView.snp.makeConstraints {
+            $0.top.equalToSuperview().inset(80)
+            $0.bottom.equalTo(self.safeAreaLayoutGuide).inset(10)
+            $0.horizontalEdges.equalToSuperview().inset(22)
         }
-
+        
         // 스택은 카드 margin 기준으로 꽉 채움
         contentStack.snp.makeConstraints { make in
             make.edges.equalTo(cardView.layoutMarginsGuide)
-            make.centerY.equalTo(cardView)
         }
         
         
-//        loadingView.snp.makeConstraints {
-//            $0.edges.equalToSuperview()
-//        }
     }
 }
 

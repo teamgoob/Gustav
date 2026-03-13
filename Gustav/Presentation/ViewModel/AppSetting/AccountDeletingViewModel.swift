@@ -46,6 +46,7 @@ final class AccountDeletingViewModel {
     
     // MARK: - Input
     enum Input {
+        case dismiss
         case viewDidLoad
         case emailEntered(email: String)
         case agreeButtonTapped
@@ -62,7 +63,7 @@ final class AccountDeletingViewModel {
     
     // MARK: - Navigation Route (화면 이동 경로)
     enum Route {
-        case dismissAfterDeleteAccount
+        case dismiss
         case showAlertToNoticeDeleteAccountFailure
     }
     
@@ -78,6 +79,8 @@ extension AccountDeletingViewModel {
     // Input 처리 메서드
     func action(_ input: Input) {
         switch input {
+        case .dismiss:
+            onNavigation?(.dismiss)
         case .viewDidLoad:
             Task {
                 await fetchUserEmail()
@@ -155,29 +158,23 @@ private extension AccountDeletingViewModel {
     
     // 회원 탈퇴 버튼 선택 이벤트 처리 메서드
     func handleDeleteButtonTapped() async {
-        // 회원 탈퇴 성공 여부 저장
-        var successFlag: Bool = true
-        
         // 로딩 중 처리
         isLoading = .loading(for: "Deleting Account...")
         notifyOutput()
         
         // 회원 탈퇴 시도
         let result = await authUsecase.withdraw()
-        // 결과 확인
+        // 결과에 따라 화면 이동 처리
         switch result {
         case .success:
-            break
+            // 로딩 완료 처리
+            isLoading = .notLoading
+            // NotificationCenter를 통해 AppCoordinator에 회원 탈퇴 완료 전달
+            NotificationCenter.default.post(name: .deleteAccount, object: nil)
         case .failure:
-            successFlag = false
-        }
-        
-        // 로딩 완료 처리
-        isLoading = .notLoading
-        // 결과에 따라 화면 이동 처리
-        if successFlag {
-            onNavigation?(.dismissAfterDeleteAccount)
-        } else {
+            // 로딩 완료 처리
+            isLoading = .notLoading
+            // Coordinator에 회원 탈퇴 실패 전달
             onNavigation?(.showAlertToNoticeDeleteAccountFailure)
         }
     }

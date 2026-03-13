@@ -7,7 +7,7 @@
 import Foundation
 import Supabase
 
-final class SupabaseViewPresetRemoteDataSource: ViewPresetDataSourceProtocol {
+final class ViewPresetSupabase: ViewPresetDataSourceProtocol {
     // 클라이언트
     private let client: SupabaseClient
     private let table = "view_presets"

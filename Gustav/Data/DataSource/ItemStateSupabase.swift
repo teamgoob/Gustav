@@ -7,7 +7,7 @@
 import Foundation
 import Supabase
 
-final class SupabaseItemStateRemoteDataSource: ItemStateDataSourceProtocol {
+final class ItemStateSupabase: ItemStateDataSourceProtocol {
     // 클라이언트
     private let client: SupabaseClient
     private let table = "states"

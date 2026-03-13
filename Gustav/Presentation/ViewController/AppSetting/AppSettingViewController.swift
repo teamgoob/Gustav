@@ -40,6 +40,15 @@ final class AppSettingViewController: UIViewController {
         customView.tableView.reloadData()
         viewModel.action(.viewDidLoad)
     }
+    
+    // ViewController Pop 이벤트 전달
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        
+        if isMovingFromParent {
+            viewModel.action(.dismiss)
+        }
+    }
 }
 
 // MARK: - Setup
@@ -67,11 +76,13 @@ private extension AppSettingViewController {
 // MARK: - Output Apply Method
 private extension AppSettingViewController {
     // Output을 UI에 반영
-    func apply(_ output: AppSettingViewModel.Output) {
+    func apply(_ output: AppSettingViewModel.Output) {        
         // 로딩 상태 반영
-        if output.isLoading {
-            customView.loadingView.startLoading()
-        } else {
+        switch output.isLoading {
+        case .loading(for: let text):
+            // 전달 받은 로딩 메세지를 반영하여 로딩 뷰 표시
+            customView.loadingView.startLoading(with: text)
+        case .notLoading:
             customView.loadingView.stopLoading()
         }
         
