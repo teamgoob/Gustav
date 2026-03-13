@@ -76,10 +76,25 @@ final class TestWorkSpaceUsecase: WorkspaceUsecaseProtocol {
             )
             database[workspace.indexKey] = changedWorkspace
         }
+        print("TestUsecase updateWorkspaceName 종료")
         return .success(())
     }
     
     func reorderWorkspaces(order: [UUID]) async -> DomainResult<Void> {
-        .success(())
+        var newDatabase: [Workspace] = []
+        var index: Int = 0
+        for uuid in order {
+            guard let  draftworkspace = database.first(where: { $0.id == uuid }) else { return .failure(DomainError.unknown)}
+            newDatabase.append(Workspace(
+                id: draftworkspace.id,
+                userId: draftworkspace.userId,
+                indexKey: index,
+                name: draftworkspace.name,
+                createdAt: draftworkspace.createdAt,
+                updatedAt: draftworkspace.updatedAt))
+            index += 1
+        }
+        self.database = newDatabase
+        return .success(())
     }
 }
