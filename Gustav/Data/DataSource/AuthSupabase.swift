@@ -66,6 +66,9 @@ final class AuthSupabase: AuthDataSourceProtocol {
 
     // MARK: - Apple 로그인 (idToken + nonce -> Supabase 세션 생성)
     func authenticateWithApple(idToken: String, nonce: String) async -> RepositoryResult<AuthDTO> {
+        print("=== authenticateWithApple called ===")
+        print("idToken empty:", idToken.isEmpty)
+        print("nonce empty:", nonce.isEmpty)
         do {
             let session = try await client.auth.signInWithIdToken(
                 credentials: OpenIDConnectCredentials(
@@ -75,8 +78,15 @@ final class AuthSupabase: AuthDataSourceProtocol {
                 )
             )
 
+            print("=== Supabase Apple sign in success ===")
+            print("userId:", session.user.id)
+            print("email:", session.user.email ?? "nil")
+            print("createdAt:", session.user.createdAt)
+
             return .success(Self.mapAuthDTO(session, provider: ProviderString.apple))
         } catch {
+            print("=== Supabase Apple sign in failed ===")
+            print(error)
             return .failure(Self.mapError(error))
         }
     }
@@ -110,6 +120,16 @@ final class AuthSupabase: AuthDataSourceProtocol {
         do {
             let session = try await client.auth.signIn(email: email, password: password)
             return .success(Self.mapAuthDTO(session, provider: ProviderString.email))
+        } catch {
+            return .failure(Self.mapError(error))
+        }
+    }
+
+    // MARK: - 비밀번호 재설정 메일 발송
+    func resetPassword(email: String) async -> RepositoryResult<Void> {
+        do {
+            try await client.auth.resetPasswordForEmail(email)
+            return .success(())
         } catch {
             return .failure(Self.mapError(error))
         }
