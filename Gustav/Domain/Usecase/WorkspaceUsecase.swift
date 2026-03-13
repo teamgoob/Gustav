@@ -33,16 +33,15 @@ final class WorkspaceUsecase: WorkspaceUsecaseProtocol {
 //    private let authFlowRepository: AuthFlowRepositoryProtocol
 //    private let AuthSessionRepository: AuthSessionRepositoryProtocol
     
-    /// UserID는 UseCaseProtocol에서 들고와야합니다
-    private let authUseCase: AuthUseCaseProtocol
+    private let authFlowRepository: AuthFlowRepositoryProtocol
     private let workspaceRepository: WorkspaceRepositoryProtocol
     
 //    init(authRepository: AuthRepositoryProtocol, workspaceRepository: WorkspaceRepositoryProtocol) {
 //        self.authRepository = authRepository
 //        self.workspaceRepository = workspaceRepository
 //    }
-    init(authUseCase: AuthUseCaseProtocol, workspaceRepository: WorkspaceRepositoryProtocol) {
-        self.authUseCase = authUseCase
+    init(authFlowRepository: AuthFlowRepositoryProtocol, workspaceRepository: WorkspaceRepositoryProtocol) {
+        self.authFlowRepository = authFlowRepository
         self.workspaceRepository = workspaceRepository
     }
     
@@ -68,7 +67,7 @@ final class WorkspaceUsecase: WorkspaceUsecaseProtocol {
         
         // 1) 현재 유저 id 확보
         /// currentUserId는 리절트 반환하지 않아서 수정했습니다.
-        guard let userId = authUseCase.currentUserId() else {
+        guard let userId = authFlowRepository.currentUserId() else {
             return .failure(.authenticationRequired)
         }
         // 2) Repository 호출
@@ -95,7 +94,7 @@ final class WorkspaceUsecase: WorkspaceUsecaseProtocol {
         
         // 1) 현재 유저 id 확보
         /// currentUserId는 리절트 반환하지 않아서 수정했습니다.
-        guard let userId = authUseCase.currentUserId() else {
+        guard let userId = authFlowRepository.currentUserId() else {
             return .failure(.authenticationRequired)
         }
         // 2) Repository 호출
@@ -135,7 +134,7 @@ final class WorkspaceUsecase: WorkspaceUsecaseProtocol {
 //        }
         
         // 1) 현재 유저 ID 확보
-        guard let userId = authUseCase.currentUserId() else {
+        guard let userId = authFlowRepository.currentUserId() else {
             return .failure(.authenticationRequired)
         }
 
