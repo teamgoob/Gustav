@@ -15,8 +15,21 @@ enum AppEnvironment {
               let url = URL(string: urlString) else {
             fatalError("SUPABASE_URL not configured")
         }
+        
+        
+        print("SUPABASE_URL raw =", urlString)
+        print("SUPABASE_URL trimmed =", urlString.trimmingCharacters(in: .whitespacesAndNewlines))
+        print("SUPABASE_URL host =", URL(string: urlString)?.host as Any)
+
+        guard let url = URL(string: urlString) else {
+            fatalError("SUPABASE_URL not configured")
+        }
+        
+        
         return url
     }
+    
+    
     
     static var supabaseKey: String {
         guard let key = Bundle.main.object(

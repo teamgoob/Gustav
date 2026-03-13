@@ -16,10 +16,14 @@ protocol SupabaseClientProviding {
 // SupabaseClient 생성
 enum SupabaseClientProvider: SupabaseClientProviding {
     static func create() -> SupabaseClient {
-        // AppEnvironment에서 가져온 URL, Key 사용
         SupabaseClient(
             supabaseURL: AppEnvironment.supabaseURL,
-            supabaseKey: AppEnvironment.supabaseKey
+            supabaseKey: AppEnvironment.supabaseKey,
+            options: SupabaseClientOptions(
+                auth: SupabaseClientOptions.AuthOptions(
+                    emitLocalSessionAsInitialSession: true
+                )
+            )
         )
     }
 }

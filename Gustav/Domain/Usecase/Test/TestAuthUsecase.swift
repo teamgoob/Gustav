@@ -10,6 +10,11 @@ import Foundation
 // MARK: - TestAuthUsecase
 // UI 테스트용 AuthUsecase
 final class TestAuthUsecase: AuthUseCaseProtocol {
+    func resetPassword(email: String) async -> DomainResult<Void> {
+        return .failure(.unknown)
+
+    }
+    
     func restoreSession() async -> DomainResult<AuthSession?> {
         return .failure(.unknown)
     }

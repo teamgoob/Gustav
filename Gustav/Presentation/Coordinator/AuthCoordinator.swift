@@ -58,7 +58,16 @@ final class AuthCoordinator: AuthCoordinatorProtocol {
     }
 
     func showForgotPassword() {
-        <#code#>
+        let viewModel = ForgotPasswordViewModel(
+            authUseCase: authUseCase,
+            coordinator: self
+        )
+
+        let viewController = ForgotPasswordViewController(
+            viewModel: viewModel
+        )
+
+        navigationController.pushViewController(viewController, animated: true)
     }
 
 

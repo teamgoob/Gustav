@@ -85,12 +85,11 @@ final class LoginViewModel {
         case .tapCreateAccount:
             coordinator?.showEmailSignUp()
 
-            // 비밀번호 찾기 (아직 구현 안 됨)
+            // 비밀번호 찾기 화면 이동
         case .tapForgotPassword:
-            break
-            coordinator?.showEmailSignUp()
+            coordinator?.showForgotPassword()
 
-            // Apple 로그인 (아직 구현 안 됨)
+            // Apple 로그인은 ViewController에서 async 처리
         case .tapAppleLogin:
             break
         }
