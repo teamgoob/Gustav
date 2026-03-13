@@ -88,6 +88,7 @@ final class LoginViewModel {
             // 비밀번호 찾기 (아직 구현 안 됨)
         case .tapForgotPassword:
             break
+            coordinator?.showEmailSignUp()
 
             // Apple 로그인 (아직 구현 안 됨)
         case .tapAppleLogin:

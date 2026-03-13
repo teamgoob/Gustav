@@ -14,7 +14,8 @@ protocol AuthCoordinatorProtocol: AnyObject {
     
     // 구현해야 하는 함수
     // showAppleSignIn()       // 애플 로그인
-    // func showForgotPassword()    // 비밀번호 찾기
+
+     func showForgotPassword()    // 비밀번호 찾기
     // func showMainApp()   // 메인화면으로 이동 (상위에 알림)
 }
 
@@ -55,6 +56,11 @@ final class AuthCoordinator: AuthCoordinatorProtocol {
 
         navigationController.pushViewController(viewController, animated: true)
     }
+
+    func showForgotPassword() {
+        <#code#>
+    }
+
 
     // 뒤로가기
     func pop() {
