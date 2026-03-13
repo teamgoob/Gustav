@@ -22,6 +22,9 @@ protocol AuthDataSourceProtocol {
     
     func signUpWithEmail(email: String, password: String) async -> RepositoryResult<EmailSignUpOutcomeDTO>
 
+    // 비밀번호 재설정 메일 발송
+    func resetPassword(email: String) async -> RepositoryResult<Void>
+
     func signOut() async -> RepositoryResult<Void>
     func withdrawCurrentUser() async -> RepositoryResult<Void>
 

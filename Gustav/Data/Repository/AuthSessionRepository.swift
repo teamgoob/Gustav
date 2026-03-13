@@ -188,6 +188,21 @@ final class AuthSessionRepository: AuthSessionRepositoryProtocol {
         }
     }
 
+    // MARK: - 비밀번호 재설정 메일 발송
+    /// 이메일 주소로 비밀번호 재설정 메일을 발송합니다.
+    /// - 주의: 이 동작은 세션을 생성하거나 인증 상태를 변경하지 않습니다.
+    func resetPassword(email: String) async -> DomainResult<Void> {
+        let result = await authDataSource.resetPassword(email: email)
+
+        switch result {
+        case .success:
+            return .success(())
+
+        case .failure(let e):
+            return .failure(e.mapToDomainError())
+        }
+    }
+
     // MARK: - 회원탈퇴
     /// Edge Function 등으로 “현재 로그인한 유저”를 서버에서 삭제합니다.
     func withdraw() async -> DomainResult<Void> {

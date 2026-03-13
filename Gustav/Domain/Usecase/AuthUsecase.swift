@@ -38,6 +38,9 @@ protocol AuthUseCaseProtocol {
 
     // Email 로그인
     func signInWithEmail(email: String, password: String) async -> DomainResult<AuthOutcome>
+    
+    // 비밀번호 재설정 메일 발송
+    func resetPassword(email: String) async -> DomainResult<Void>
 
     // 로그아웃
     func signOut() async -> DomainResult<Void>
@@ -157,6 +160,21 @@ final class AuthUseCase: AuthUseCaseProtocol {
             }
 
             return .success(outcome)
+
+        case .failure(let error):
+            return .failure(error)
+        }
+    }
+    
+    // MARK: - 비밀번호 재설정 메일 발송
+    /// - 이메일 주소로 비밀번호 재설정 메일을 보낸다.
+    /// - 인증 상태는 변경하지 않는다.
+    func resetPassword(email: String) async -> DomainResult<Void> {
+        let result = await sessionRepository.resetPassword(email: email)
+
+        switch result {
+        case .success:
+            return .success(())
 
         case .failure(let error):
             return .failure(error)
