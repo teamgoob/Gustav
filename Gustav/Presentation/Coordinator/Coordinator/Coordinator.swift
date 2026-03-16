@@ -3,8 +3,17 @@
 //  Gustav
 //
 //  Created by 최명수 on 2026/3/12.
-//
+//  수정 Song
 
+/*
+ 상속
+ Coordinator protocol
+         ↓
+ BaseCoordinator
+         ↓
+ AppCoordinator
+ 
+ */
 import UIKit
 
 // MARK: - Coordinator Protocol

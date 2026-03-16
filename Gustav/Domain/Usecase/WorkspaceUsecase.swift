@@ -30,16 +30,9 @@ protocol WorkspaceUsecaseProtocol {
 final class WorkspaceUsecase: WorkspaceUsecaseProtocol {
     
     //userID 들고오려고
-//    private let authFlowRepository: AuthFlowRepositoryProtocol
-//    private let AuthSessionRepository: AuthSessionRepositoryProtocol
-    
     private let authFlowRepository: AuthFlowRepositoryProtocol
     private let workspaceRepository: WorkspaceRepositoryProtocol
     
-//    init(authRepository: AuthRepositoryProtocol, workspaceRepository: WorkspaceRepositoryProtocol) {
-//        self.authRepository = authRepository
-//        self.workspaceRepository = workspaceRepository
-//    }
     init(authFlowRepository: AuthFlowRepositoryProtocol, workspaceRepository: WorkspaceRepositoryProtocol) {
         self.authFlowRepository = authFlowRepository
         self.workspaceRepository = workspaceRepository
