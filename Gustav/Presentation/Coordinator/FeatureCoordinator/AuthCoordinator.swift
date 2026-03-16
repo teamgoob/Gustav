@@ -6,7 +6,7 @@
 //
 
 // MARK: - AuthCoordinating
-protocol AuthCoordinating: Coordinator {
+protocol AuthCoordinatorProtocol: Coordinator {
     // 로그인 플로우 시작
     func start()
     // 로그인 화면 표시
@@ -22,7 +22,7 @@ protocol AuthCoordinating: Coordinator {
 
 import UIKit
 
-final class AuthCoordinator: BaseCoordinator, AuthCoordinating {
+final class AuthCoordinator: BaseCoordinator, AuthCoordinatorProtocol {
     private let container: AuthDIContainer
     
     var onFinish: ((AuthFlowResult) -> Void)?

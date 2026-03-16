@@ -11,7 +11,8 @@ import AuthenticationServices
 
 // MARK: - AppDIContainer
 // 앱 전역에 공유되는 의존성 관리
-final class AppDIContainer {
+final class AppDIContainer: AppDIContainerProtocol  {
+    
     // MARK: - Core
     // Presentation Anchor Provider
     private let presentationAnchorProvider: () -> ASPresentationAnchor
@@ -29,6 +30,31 @@ final class AppDIContainer {
      */
     init(presentationAnchorProvider: @escaping () -> ASPresentationAnchor) {
         self.presentationAnchorProvider = presentationAnchorProvider
+    }
+    
+    
+    
+    // MARK: - App Flow Factory
+    // MARK: - ⭐️ 화면용 ViewModel factory 구현 필요
+    
+    func makeAuthUseCase() -> AuthUseCaseProtocol {
+        authUsecase
+    }
+    
+    func makeAuthDIContainer() -> AuthDIContainer {
+        AuthDIContainer(authUseCase: authUsecase)
+    }
+    
+    func makeWorkspaceListDIContainer() -> WorkspaceListDIContainer {
+        WorkspaceListDIContainer(appContainer: self)
+    }
+
+    func makeWorkspaceDIContainer(workspaceID: UUID) -> WorkspaceDIContainer {
+        WorkspaceDIContainer(appContainer: self, workspaceID: workspaceID)
+    }
+
+    func makeAppSettingDIContainer() -> AppSettingDIContainer {
+        AppSettingDIContainer(appDIContainer: self)
     }
     
     // MARK: - Remote Data Source
@@ -131,8 +157,15 @@ final class AppDIContainer {
         ProfileUseCase(repository: profileRepository)
     }()
     // Workspace Usecase
+//    lazy var workspaceUsecase: WorkspaceUsecaseProtocol = {
+//        WorkspaceUsecase(authUseCase: authUsecase, workspaceRepository: workspaceRepository)
+//    }()
+    // Workspace Usecase
     lazy var workspaceUsecase: WorkspaceUsecaseProtocol = {
-        WorkspaceUsecase(authUseCase: authUsecase, workspaceRepository: workspaceRepository)
+        WorkspaceUsecase(
+            authFlowRepository: authFlowRepository,
+            workspaceRepository: workspaceRepository
+        )
     }()
     // Workspace Context Usecase
     lazy var workspaceContextUsecase: WorkspaceContextUsecaseProtocol = {
