@@ -13,9 +13,9 @@ protocol ProfileImageDataSourceProtocol {
     // 프로필 이미지 불러오기
     func fetchProfileImage(urlString: String?) async -> RepositoryResult<ProfileImageDTO>
     // 프로필 이미지 업로드
-    func uploadProfileImage(userId: String, data: Data) async -> RepositoryResult<ProfileImageDTO>
+    func uploadProfileImage(userId: UUID, data: Data) async -> RepositoryResult<ProfileImageDTO>
     // 프로필 이미지 URL 업데이트
-    func updateProfileImageUrl(userId: String, url: String?) async -> RepositoryResult<Void>
+    func updateProfileImageUrl(userId: UUID, url: String?) async -> RepositoryResult<Void>
     // 프로필 이미지 및 URL 삭제
-    func deleteProfileImage(userId: String) async -> RepositoryResult<Void>
+    func deleteProfileImage(userId: UUID) async -> RepositoryResult<Void>
 }

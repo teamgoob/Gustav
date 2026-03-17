@@ -12,9 +12,9 @@ protocol ProfileImageRepositoryProtocol {
     // 프로필 이미지 불러오기
     func fetchProfileImage(urlString: String?) async -> DomainResult<ProfileImage>
     // 프로필 이미지 업로드
-    func uploadProfileImage(userId: String, data: Data) async -> DomainResult<ProfileImage>
+    func uploadProfileImage(userId: UUID, data: Data) async -> DomainResult<ProfileImage>
     // 프로필 이미지 URL 업데이트
-    func updateProfileImageUrl(userId: String, url: String?) async -> DomainResult<Void>
+    func updateProfileImageUrl(userId: UUID, url: String?) async -> DomainResult<Void>
     // 프로필 이미지 및 URL 삭제
-    func deleteProfileImage(userId: String) async -> DomainResult<Void>
+    func deleteProfileImage(userId: UUID) async -> DomainResult<Void>
 }

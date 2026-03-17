@@ -41,12 +41,12 @@ final class ProfileImageSupabase: ProfileImageDataSourceProtocol {
     }
     
     // 프로필 이미지 업로드
-    func uploadProfileImage(userId: String, data: Data) async -> RepositoryResult<ProfileImageDTO> {
+    func uploadProfileImage(userId: UUID, data: Data) async -> RepositoryResult<ProfileImageDTO> {
         // 이미지 압축 + 리사이징
         guard let processedData = ImageProcessor.compress(data: data) else { return .failure(.unknown) }
         
         // 이미지 저장 경로 설정
-        let path = "\(userId)/profile.jpg"
+        let path = "\(userId.uuidString)/profile.jpg"
         
         do {
             // 설정한 경로에 이미지 덮어쓰기
@@ -79,7 +79,7 @@ final class ProfileImageSupabase: ProfileImageDataSourceProtocol {
     }
     
     // 프로필 이미지 URL 업데이트
-    func updateProfileImageUrl(userId: String, url: String?) async -> RepositoryResult<Void> {
+    func updateProfileImageUrl(userId: UUID, url: String?) async -> RepositoryResult<Void> {
         do {
             // 사용자의 프로필 정보에서 프로필 이미지 URL 업데이트
             try await client
@@ -102,9 +102,9 @@ final class ProfileImageSupabase: ProfileImageDataSourceProtocol {
     }
     
     // 프로필 이미지 및 URL 삭제
-    func deleteProfileImage(userId: String) async -> RepositoryResult<Void> {
+    func deleteProfileImage(userId: UUID) async -> RepositoryResult<Void> {
         // 이미지 저장 경로
-        let path = "\(userId)/profile.jpg"
+        let path = "\(userId.uuidString)/profile.jpg"
         
         do {
             // 이미지가 저장된 경로 삭제
