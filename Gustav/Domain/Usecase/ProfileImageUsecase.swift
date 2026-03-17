@@ -1,0 +1,44 @@
+//
+//  ProfileImageUsecase.swift
+//  Gustav
+//
+//  Created by 최명수 on 2026/3/17.
+//
+
+import Foundation
+
+// MARK: - 프로필 이미지 Usecase
+protocol ProfileImageUsecaseProtocol {
+    // 프로필 이미지 불러오기
+    func fetchProfileImage(urlString: String?) async -> DomainResult<ProfileImage>
+    // 프로필 이미지 업로드
+    func uploadProfileImage(userId: String, data: Data) async -> DomainResult<ProfileImage>
+    // 프로필 이미지 URL 업데이트
+    func updateProfileImageUrl(userId: String, url: String?) async -> DomainResult<Void>
+    // 프로필 이미지 및 URL 삭제
+    func deleteProfileImage(userId: String) async -> DomainResult<Void>
+}
+
+final class ProfileImageUsecase: ProfileImageUsecaseProtocol {
+    private let repository: ProfileImageRepositoryProtocol
+    
+    init(repository: ProfileImageRepositoryProtocol) {
+        self.repository = repository
+    }
+    
+    func fetchProfileImage(urlString: String?) async -> DomainResult<ProfileImage> {
+        await repository.fetchProfileImage(urlString: urlString)
+    }
+    
+    func uploadProfileImage(userId: String, data: Data) async -> DomainResult<ProfileImage> {
+        await repository.uploadProfileImage(userId: userId, data: data)
+    }
+    
+    func updateProfileImageUrl(userId: String, url: String?) async -> DomainResult<Void> {
+        await repository.updateProfileImageUrl(userId: userId, url: url)
+    }
+    
+    func deleteProfileImage(userId: String) async -> DomainResult<Void> {
+        await repository.deleteProfileImage(userId: userId)
+    }
+}

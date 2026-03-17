@@ -137,7 +137,6 @@ extension AuthDTO: DomainConvertible {
     }
 }
 
-
 extension ProfileDTO: DomainConvertible {
     typealias DomainType = Profile
 
@@ -150,6 +149,17 @@ extension ProfileDTO: DomainConvertible {
             createdAt: createdAt,
             updatedAt: updatedAt,
             profileImageUrl: profileImageUrl
+        )
+    }
+}
+
+extension ProfileImageDTO: DomainConvertible {
+    typealias DomainType = ProfileImage
+    
+    func toDomain() -> ProfileImage {
+        ProfileImage(
+            data: data,
+            url: url
         )
     }
 }
