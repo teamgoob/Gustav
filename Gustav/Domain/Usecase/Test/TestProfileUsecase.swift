@@ -11,7 +11,7 @@ import Foundation
 // UI 테스트용 ProfileUsecase
 final class TestProfileUsecase: ProfileUseCaseProtocol {
     func fetchProfile(userId: UUID) async -> DomainResult<Profile> {
-        .success(Profile(id: userId, displayName: "Gustav", email: "gustav@example.com", isPrivateEmail: false, createdAt: Date(), updatedAt: Date()))
+        .success(Profile(id: userId, displayName: "Gustav", email: "gustav@example.com", isPrivateEmail: false, createdAt: Date(), updatedAt: Date(), profileImageUrl: nil))
     }
     
     func updateUserName(userId: UUID, name: String) async -> DomainResult<Void> {

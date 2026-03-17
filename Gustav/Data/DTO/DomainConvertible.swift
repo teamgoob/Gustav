@@ -148,7 +148,8 @@ extension ProfileDTO: DomainConvertible {
             email: email,
             isPrivateEmail: isPrivateEmail,
             createdAt: createdAt,
-            updatedAt: updatedAt
+            updatedAt: updatedAt,
+            profileImageUrl: profileImageUrl
         )
     }
 }
