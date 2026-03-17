@@ -97,6 +97,7 @@ private extension ProfileEditingViewController {
             target: self,
             action: #selector(didTapProfileImageView)
         )
+        customView.profileImageView.isUserInteractionEnabled = true
         customView.profileImageView.addGestureRecognizer(profileTapGesture)
     }
     
