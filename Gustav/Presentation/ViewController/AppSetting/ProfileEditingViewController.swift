@@ -82,20 +82,34 @@ private extension ProfileEditingViewController {
         customView.nameTextField.delegate = self
     }
     
-    // 빈 화면 탭 제스처 설정
+    // 제스처 설정
     func setupGesture() {
-        let tapGesture = UITapGestureRecognizer(
+        // 빈 화면 탭 제스처 설정
+        let emptyTapGesture = UITapGestureRecognizer(
             target: self,
             action: #selector(dismissKeyboard)
         )
-        tapGesture.cancelsTouchesInView = false
-        view.addGestureRecognizer(tapGesture)
+        emptyTapGesture.cancelsTouchesInView = false
+        view.addGestureRecognizer(emptyTapGesture)
+        
+        // 프로필 이미지 탭 제스처 설정
+        let profileTapGesture = UITapGestureRecognizer(
+            target: self,
+            action: #selector(didTapProfileImageView)
+        )
+        customView.profileImageView.addGestureRecognizer(profileTapGesture)
     }
     
     // ViewModel Output 바인딩
     func bindViewModel() {
         viewModel.onDisplay = { [weak self] output in
             self?.apply(output)
+        }
+        viewModel.onSaveButtonChanged = { [weak self] in
+            self?.updateSaveButtonState()
+        }
+        viewModel.onProfileImageChanged = { [weak self] image in
+            self?.showProfileImage(with: image)
         }
     }
 }
@@ -104,19 +118,14 @@ private extension ProfileEditingViewController {
 private extension ProfileEditingViewController {
     // 저장 버튼 상태 업데이트
     func updateSaveButtonState() {
-        saveButton.isEnabled = viewModel.isSaveButtonEnabled
+        DispatchQueue.main.async {
+            self.saveButton.isEnabled = self.viewModel.isSaveButtonEnabled
+        }
     }
     
     // 저장 버튼 선택 시 호출
     @objc func didTapSaveButton() {
         viewModel.action(.save)
-    }
-    
-    // 수정할 프로필 이미지 선택
-    func didSelectImage(url: String) {
-        viewModel.action(.changeProfileImage(url: url))
-        // 저장 버튼 상태 업데이트
-        updateSaveButtonState()
     }
     
     // 이름 텍스트필드 내용 수정
@@ -128,14 +137,23 @@ private extension ProfileEditingViewController {
         
         // ViewModel에 Input 전달
         viewModel.action(.changeUserName(name: customView.nameTextField.text ?? ""))
-        
-        // 저장 버튼 상태 업데이트
-        updateSaveButtonState()
     }
     
     // 키보드 내리기
     @objc func dismissKeyboard() {
         view.endEditing(true)
+    }
+    
+    // 프로필 이미지 탭 이벤트 처리
+    @objc func didTapProfileImageView() {
+        viewModel.action(.didTapProfileImage)
+    }
+    
+    // 새로 선택한 프로필 이미지 화면에 표시
+    func showProfileImage(with data: Data) {
+        DispatchQueue.main.async {
+            self.customView.profileImageView.image = UIImage(data: data)
+        }
     }
     
     // Output을 UI에 반영

@@ -157,8 +157,7 @@ private extension AppSettingViewModel {
         let result = await profileUsecase.fetchProfile(userId: currentUserId)
         switch result {
             case .success(let profile):
-            // MARK: - 프로필 이미지 관련 메서드 작업 후 수정
-//            self.profileImageUrl = profile.profileImageUrl
+            self.profileImageUrl = profile.profileImageUrl
             self.userName = profile.displayName
             self.userEmail = profile.email
         case .failure:

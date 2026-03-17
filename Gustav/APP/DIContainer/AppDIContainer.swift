@@ -66,6 +66,10 @@ final class AppDIContainer: AppDIContainerProtocol  {
     private lazy var profileSupabase: ProfileDataSourceProtocol = {
         ProfileSupabase(client: supabaseClient)
     }()
+    // Profile Image Supabase
+    private lazy var profileImageSupabase: ProfileImageDataSourceProtocol = {
+        ProfileImageSupabase(client: supabaseClient)
+    }()
     // Workspace Supabase
     private lazy var workspaceSupabase: WorkspaceDataSourceProtocol = {
         WorkspaceSupabase(client: supabaseClient)
@@ -122,6 +126,10 @@ final class AppDIContainer: AppDIContainerProtocol  {
     private lazy var profileRepository: ProfileRepositoryProtocol = {
         ProfileRepository(dataSource: profileSupabase)
     }()
+    // Profile Image Repository
+    private lazy var profileImageRepository: ProfileImageRepositoryProtocol = {
+        ProfileImageRepository(remote: profileImageSupabase)
+    }()
     // Workspace Repository
     private lazy var workspaceRepository: WorkspaceRepositoryProtocol = {
         WorkspaceRepository(remote: workspaceSupabase, cache: workspaceCache)
@@ -156,16 +164,13 @@ final class AppDIContainer: AppDIContainerProtocol  {
     lazy var profileUsecase: ProfileUseCaseProtocol = {
         ProfileUseCase(repository: profileRepository)
     }()
-    // Workspace Usecase
-//    lazy var workspaceUsecase: WorkspaceUsecaseProtocol = {
-//        WorkspaceUsecase(authUseCase: authUsecase, workspaceRepository: workspaceRepository)
-//    }()
+    // Profile Image Usecase
+    lazy var profileImageUsecase: ProfileImageUsecaseProtocol = {
+        ProfileImageUsecase(repository: profileImageRepository)
+    }()
     // Workspace Usecase
     lazy var workspaceUsecase: WorkspaceUsecaseProtocol = {
-        WorkspaceUsecase(
-            authFlowRepository: authFlowRepository,
-            workspaceRepository: workspaceRepository
-        )
+        WorkspaceUsecase(authFlowRepository: authFlowRepository, workspaceRepository: workspaceRepository)
     }()
     // Workspace Context Usecase
     lazy var workspaceContextUsecase: WorkspaceContextUsecaseProtocol = {

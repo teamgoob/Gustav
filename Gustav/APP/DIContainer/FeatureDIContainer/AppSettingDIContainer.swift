@@ -25,7 +25,7 @@ final class AppSettingDIContainer {
     }
     // ProfileEditingViewModel
     func makeProfileEditingViewModel() -> ProfileEditingViewModel {
-        ProfileEditingViewModel(authUsecase: appDIContainer.authUsecase, profileUsecase: appDIContainer.profileUsecase)
+        ProfileEditingViewModel(authUsecase: appDIContainer.authUsecase, profileUsecase: appDIContainer.profileUsecase, profileImageUsecase: appDIContainer.profileImageUsecase)
     }
     // AccountDeletingViewModel
     func makeAccountDeletingViewModel() -> AccountDeletingViewModel {

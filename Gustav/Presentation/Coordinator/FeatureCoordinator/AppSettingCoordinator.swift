@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import PhotosUI
 
 // MARK: - AppSettingCoordinator
 // 앱 설정 코디네이터, Root View: AppSettingView
@@ -21,6 +22,8 @@ final class AppSettingCoordinator: Coordinator {
     private lazy var appSettingViewModel: AppSettingViewModel = {
         container.makeAppSettingViewModel()
     }()
+    // 새로운 프로필 이미지 선택 시, PHPicker 델리게이트 메서드에서 ViewModel action 메서드 호출을 위해 참조
+    private weak var profileEditingViewModel: ProfileEditingViewModel?
     
     // MARK: - Closures
     // 부모 Coordinator에게 Flow 종료 알림
@@ -89,16 +92,23 @@ private extension AppSettingCoordinator {
         // VM, VC 선언
         let viewModel = container.makeProfileEditingViewModel()
         let viewController = ProfileEditingViewController(viewModel: viewModel)
+        profileEditingViewModel = viewModel
         // VM 클로저 전달
         viewModel.onNavigation = { [weak self] destination in
             switch destination {
             case .dismiss:
-                break
+                self?.profileEditingViewModel = nil
             case .dismissAfterSave:
                 // 프로필 수정 화면 Pop
                 self?.popCurrentViewController()
                 // 설정 목록 화면 프로필 다시 불러오기
                 self?.appSettingViewModel.action(.profileEdited)
+            case .showActionSheetForImage:
+                // 프로필 이미지 액션 시트 표시
+                self?.showActionSheetForProfileImage()
+            case .showPhotoLibraryPicker:
+                // 사진을 선택할 수 있도록 PHPicker 표시
+                self?.showImagePicker()
             case .showAlertToNoticeEditingFailure:
                 // 프로필 수정 화면 Pop
                 self?.popCurrentViewController()
@@ -176,6 +186,41 @@ private extension AppSettingCoordinator {
         // 화면 전환
         navigationController.pushViewController(viewController, animated: true)
     }
+    // 프로필 이미지 메뉴 액션 시트 표시
+    func showActionSheetForProfileImage() {
+        let alert = UIAlertController(title: "Profile Image Settings", message: nil, preferredStyle: .actionSheet)
+        
+        // 프로필 이미지 변경 버튼 생성
+        let changeImageAction = UIAlertAction(
+            title: "Change profile image",
+            style: .default
+        ) { [weak self] _ in
+            self?.profileEditingViewModel?.action(.didSelectImageChange)
+        }
+        alert.addAction(changeImageAction)
+        
+        // 프로필 이미지 삭제 버튼 표시 여부 확인
+        if profileEditingViewModel?.isDeleteButtonVisible == true {
+            // 프로필 이미지 삭제 버튼 생성
+            let deleteImageAction = UIAlertAction(
+                title: "Delete profile image",
+                style: .default
+            ) { [weak self] _ in
+                self?.profileEditingViewModel?.action(.didSelectImageDelete)
+            }
+            alert.addAction(deleteImageAction)
+        }
+        
+        // 취소 버튼 생성
+        let cancelAction = UIAlertAction(
+            title: "Cancel",
+            style: .cancel,
+            handler: nil
+        )
+        alert.addAction(cancelAction)
+        // 화면 전환
+        navigationController.visibleViewController?.present(alert, animated: true)
+    }
     // 실패 얼럿 창 표시
     func showFailureAlert(for message: String) {
         // 얼럿 창 생성
@@ -199,4 +244,34 @@ private extension AppSettingCoordinator {
     func popCurrentViewController() {
         navigationController.popViewController(animated: true)
     }
+}
+
+// MARK: - PHPickerViewControllerDelegate
+// 이미지 선택 화면 구현을 위한 델리게이트 메서드 정의
+extension AppSettingCoordinator: PHPickerViewControllerDelegate {
+    // Image Picker 표시 메서드
+    func showImagePicker() {
+        // Picker 초기화
+        var configuration = PHPickerConfiguration()
+        configuration.selectionLimit = 1
+        configuration.filter = .images
+        
+        let picker = PHPickerViewController(configuration: configuration)
+        picker.delegate = self
+        // Picker 표시
+        navigationController.visibleViewController?.present(picker, animated: true)
+    }
+    
+    // 이미지 선택 시 호출되는 델리게이트 메서드
+    func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+        navigationController.visibleViewController?.dismiss(animated: true)
+        
+        guard let item = results.first else { return }
+        item.itemProvider.loadDataRepresentation(forTypeIdentifier: UTType.image.identifier) { [weak self] data, error in
+            guard let data else { return }
+            self?.profileEditingViewModel?.action(.changeProfileImage(data: data))
+        }
+    }
+    
+    
 }
