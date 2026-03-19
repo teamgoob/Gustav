@@ -22,16 +22,16 @@
  •    특정 워크스페이스 진입 플로우 시작
  •    로그아웃 / 회원탈퇴 / 워크스페이스 종료 시 루트 흐름 재구성
  */
-
+// Root Coordinator
+// 앱 전체 Flow를 관리하는 Coordinator
 
 import UIKit
-import Combine
 
 // MARK: - AppCoordinator
 final class AppCoordinator: BaseCoordinator {
+    
     // MARK: - Properties
     private let container: AppDIContainer
-    private let authStateStore = AuthStateStore.shared
     
     // MARK: - Initializer
     init(
@@ -40,27 +40,89 @@ final class AppCoordinator: BaseCoordinator {
     ) {
         self.container = container
         super.init(navigationController: navigationController)
+        observeAuthEvents()
     }
     
     // MARK: - Start
     override func start() {
         routeInitialFlow()
     }
+    
 }
 
 // MARK: - Private Logic
 private extension AppCoordinator {
-    // 앱 시작 시 초기 진입 플로우 결정
+    
+    // 앱 시작 시 인증 상태를 확인하여 초기 Flow를 결정
     func routeInitialFlow() {
-        switch AuthStateStore.shared.subject.value {
-        case .signedIn:
-            showWorkspaceListFlow()
-        case .signedOut, .unknown:
-            showAuthFlow()
+        Task { @MainActor in
+            let result = await container.authUsecase.restoreSession()
+
+            switch result {
+            case .success(let session):
+                if session != nil {
+                    showWorkspaceListFlow()
+                } else {
+                    showAuthFlow()
+                }
+
+            case .failure:
+                showAuthFlow()
+            }
         }
     }
     
-    // 로그인 플로우 시작
+    // 인증 관련 Notification 구독
+    func observeAuthEvents() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleLogin),
+            name: .login,
+            object: nil
+        )
+        
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleLogout),
+            name: .logout,
+            object: nil
+        )
+        
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleDeleteAccount),
+            name: .deleteAccount,
+            object: nil
+        )
+    }
+    
+    // 로그인 이벤트 처리
+    @objc
+    func handleLogin() {
+        removeAllChildren()
+        navigationController.setViewControllers([], animated: false)
+        showWorkspaceListFlow()
+    }
+    
+    // 로그아웃 이벤트 처리
+    @objc
+    func handleLogout() {
+        removeAllChildren()
+        navigationController.setViewControllers([], animated: false)
+        showAuthFlow()
+    }
+    
+    // 회원 탈퇴 이벤트 처리
+    @objc
+    func handleDeleteAccount() {
+        removeAllChildren()
+        navigationController.setViewControllers([], animated: false)
+        showAuthFlow()
+    }
+    
+    // Auth Flow 시작
+    // 기존 ChildCoordinator와 Navigation Stack을 정리한 후
+    // AuthCoordinator를 루트로 설정
     func showAuthFlow() {
         removeAllChildren()
         navigationController.setViewControllers([], animated: false)
@@ -70,49 +132,36 @@ private extension AppCoordinator {
             container: container.makeAuthDIContainer()
         )
         
-        coordinator.onFinish = { [weak self, weak coordinator] result in
-            guard let self, let coordinator else { return }
-            
-            self.removeChild(coordinator)
-            
-            switch result {
-            case .signedIn:
-                self.showWorkspaceListFlow()
-                
-            case .cancelled:
-                break
-            }
+        coordinator.onFinish = { [weak self] child in
+            self?.removeChild(child)
         }
+
         
         addChild(coordinator)
         coordinator.start()
     }
     
-    // 워크스페이스 목록 플로우 시작
+    // WorkspaceList Flow 시작
+    // 로그인 성공 또는 Workspace Flow 종료 후 호출
     func showWorkspaceListFlow() {
+        // 기존 루트 플로우 정리
         removeAllChildren()
         navigationController.setViewControllers([], animated: false)
         
+        // 새 child coordinator 생성 + 등록
         let coordinator = WorkspaceListCoordinator(
             navigationController: navigationController,
             container: container.makeWorkspaceListDIContainer()
         )
         
-        coordinator.onFinish = { [weak self, weak coordinator] result in
-            guard let self, let coordinator else { return }
-            
-            self.removeChild(coordinator)
-            
-            switch result {
-            case .signOut:
-                self.showAuthFlow()
-                
-            case .withdrawal:
-                self.showAuthFlow()
-                
-            case .selectWorkspace(let workspaceID):
-                self.showWorkspaceFlow(workspaceID: workspaceID)
-            }
+        // 자식 코디네이터 종료 처리 (전역 이벤트)
+        coordinator.onFinish = { [weak self] child in
+            self?.removeChild(child)
+        }
+        
+        // 세부 워크스페이스로 이동 (로컬 이벤트)
+        coordinator.onSelectWorkspace = { [weak self] workspaceID in
+            self?.showWorkspaceFlow(workspaceID: workspaceID)
         }
         
         addChild(coordinator)
@@ -127,21 +176,16 @@ private extension AppCoordinator {
             workspaceID: workspaceID
         )
         
-        coordinator.onFinish = { [weak self, weak coordinator] result in
-            guard let self, let coordinator else { return }
-            
-            self.removeChild(coordinator)
-            
-            switch result {
-            case .backToWorkspaceList:
-                self.navigationController.popToRootViewController(animated: true)
-                
-            case .signOut:
-                self.showAuthFlow()
-                
-            case .workspaceDeleted:
-                self.navigationController.popToRootViewController(animated: true)
-            }
+        coordinator.onFinish = { [weak self] child in
+            self?.removeChild(child)
+        }
+        
+        coordinator.onBackToWorkspaceList = { [weak self] in
+            self?.navigationController.popToRootViewController(animated: true)
+        }
+        
+        coordinator.onWorkspaceDeleted = { [weak self] in
+            self?.navigationController.popToRootViewController(animated: true)
         }
         
         addChild(coordinator)

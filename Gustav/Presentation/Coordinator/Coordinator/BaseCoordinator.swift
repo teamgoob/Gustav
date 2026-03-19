@@ -45,4 +45,8 @@ class BaseCoordinator: Coordinator {
     func removeAllChildren() {
         childCoordinators.removeAll()
     }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
 }
