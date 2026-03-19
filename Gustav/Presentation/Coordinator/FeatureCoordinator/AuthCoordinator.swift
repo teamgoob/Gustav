@@ -41,35 +41,40 @@ final class AuthCoordinator: BaseCoordinator, AuthCoordinatorProtocol {
     
     // MARK: - Auth Flow
     func showLogin() {
-        // TODO: AuthDIContainer에 makeLoginViewModel() 구현 후 연결
-        // 예시:
-        // let viewModel = container.makeLoginViewModel()
-        // let viewController = LoginViewController(viewModel: viewModel)
-        // viewModel.onNavigation = { [weak self] destination in
-        //     switch destination {
-        //     case .showEmailSignUp:
-        //         self?.showEmailSignUp()
-        //     case .showForgotPassword:
-        //         self?.showForgotPassword()
-        //     }
-        // }
-        // navigationController.setViewControllers([viewController], animated: false)
+        print("AuthCoordinator.showLogin called")
+
+        let viewModel = container.makeLoginViewModel()
+        let viewController = LoginViewController(viewModel: viewModel)
+
+        print("LoginViewController created")
+
+        navigationController.setViewControllers([viewController], animated: false)
+        
+        viewModel.onNavigation = { [weak self] route in
+            switch route {
+            case .showEmailSignUp:
+                self?.showEmailSignUp()
+
+            case .showForgotPassword:
+                self?.showForgotPassword()
+            }
+        }
+        print("LoginViewController set")
     }
     
     func showEmailSignUp() {
-        // TODO: AuthDIContainer에 makeEmailSignUpViewModel() 구현 후 연결
-        // 예시:
-        // let viewModel = container.makeEmailSignUpViewModel()
-        // let viewController = EmailSignUpViewController(viewModel: viewModel)
-        // navigationController.pushViewController(viewController, animated: true)
+        let viewModel = container.makeEmailSignUpViewModel()
+        let viewController = EmailSignUpViewController(viewModel: viewModel)
+
+        navigationController.pushViewController(viewController, animated: true)
     }
     
     func showForgotPassword() {
-        // TODO: AuthDIContainer에 makeForgotPasswordViewModel() 구현 후 연결
-        // 예시:
-        // let viewModel = container.makeForgotPasswordViewModel()
-        // let viewController = ForgotPasswordViewController(viewModel: viewModel)
-        // navigationController.pushViewController(viewController, animated: true)
+        let viewModel = container.makeForgotPasswordViewModel()
+        let viewController = ForgotPasswordViewController(viewModel: viewModel)
+        
+        navigationController.pushViewController(viewController, animated: true)
+
     }
     
     func pop() {
