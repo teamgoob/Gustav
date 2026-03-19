@@ -28,8 +28,7 @@ protocol AuthDataSourceProtocol {
     func signOut() async -> RepositoryResult<Void>
     func withdrawCurrentUser() async -> RepositoryResult<Void>
 
-//AuthSessionRepository(또는 SessionStore) 에서 해결
-//    func currentUserId() async -> RepositoryResult<UUID>
+    func currentUserId() -> UUID?
 
 }
 
