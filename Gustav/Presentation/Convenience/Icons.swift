@@ -31,5 +31,20 @@ struct Icons {
     // Password Icon
     static let password: UIImage? = UIImage(systemName: "lock.fill")
     
+    // Category Icon
+    static let category: UIImage? = UIImage(systemName: "tag")
+    
+    // Location Icon
+    static let location: UIImage? = UIImage(systemName: "location")
+    
+    // Item State Icon
+    static let itemState: UIImage? = UIImage(systemName: "arrow.triangle.2.circlepath")
+    
+    // View Preset icon
+    static let viewPreset: UIImage? = UIImage(systemName: "rectangle.3.group")
+    
+    // Bulk Icon
+    static let bulk: UIImage? = UIImage(systemName: "square.3.layers.3d.down.right")
+    
     private init() {}
 }

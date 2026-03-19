@@ -28,5 +28,8 @@ struct Fonts {
     // Caption
     static let caption: UIFont = .systemFont(ofSize: 12, weight: .regular)
     
+    // Additional
+    static let additional: UIFont = .systemFont(ofSize: 12, weight: .semibold)
+    
     private init() {}
 }

@@ -84,6 +84,8 @@ private extension AppSettingCoordinator {
                 self?.showFailureAlert(for: "Failed to sign out.")
             }
         }
+        // 네비게이션 타이틀 크기 설정
+        navigationController.navigationBar.prefersLargeTitles = false
         // 화면 전환
         navigationController.pushViewController(viewController, animated: true)
     }
