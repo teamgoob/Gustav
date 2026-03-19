@@ -26,7 +26,6 @@ final class AppSettingView: UIView {
         imageView.image = UIImage(systemName: "person.crop.circle")
         imageView.tintColor = .gray
         imageView.layer.cornerRadius = 100
-        imageView.clipsToBounds = true
         imageView.contentMode = .scaleAspectFill
         return imageView
     }()
