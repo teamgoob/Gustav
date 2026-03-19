@@ -36,7 +36,7 @@ class ForgotPasswordView: UIView {
         let lb = UILabel()
         lb.text = "E-mail Verification"
         lb.font = Fonts.largeTitle
-        lb.textAlignment = .center
+        lb.textAlignment = .left
         lb.textColor = .label
         lb.numberOfLines = 0
         return lb
@@ -49,7 +49,7 @@ class ForgotPasswordView: UIView {
         Please enter your registered email address.
         We’ll send a verification mail to the address.
         """
-        lb.font = Fonts.largeTextField
+        lb.font = Fonts.body
         lb.textAlignment = .left
         lb.textColor = .label
         lb.numberOfLines = 0
@@ -84,13 +84,13 @@ private extension ForgotPasswordView {
         cardView.layer.masksToBounds = true
 
         // 카드 내부 패딩
-        cardView.layoutMargins = UIEdgeInsets(top: 16, left: 16, bottom: 16, right: 16)
+        cardView.layoutMargins = UIEdgeInsets(top: 100, left: 16, bottom: 16, right: 16)
 
         // StackView 설정
         contentStack.axis = .vertical
         contentStack.alignment = .fill
         contentStack.distribution = .fill
-        contentStack.spacing = 40
+        contentStack.spacing = 16
 
         addSubview(cardView)
         addSubview(contentStack)
@@ -100,7 +100,7 @@ private extension ForgotPasswordView {
         contentStack.addArrangedSubview(DescriptionLabel)
         
         // 아래 간격 추가
-        contentStack.setCustomSpacing(120, after: DescriptionLabel)
+        contentStack.setCustomSpacing(300, after: DescriptionLabel)
         
         contentStack.addArrangedSubview(emailInputView)
         contentStack.addArrangedSubview(SendEmailButton)

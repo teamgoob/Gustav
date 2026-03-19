@@ -49,6 +49,7 @@ final class EmailSignUpViewController: UIViewController {
         bindInput()       // 텍스트 입력 이벤트 연결
         bindPolicy()      // 약관 체크 이벤트 연결
         bindDelegate()    // textField delegate 설정
+        setupGesture()
         render()          // 초기 UI 렌더링
     }
 }
@@ -177,6 +178,20 @@ private extension EmailSignUpViewController {
         rootView.formView.editView.emailTextField.delegate = self
         rootView.formView.editView.passwordTextField.delegate = self
         rootView.formView.editView.repeatPasswordTextField.delegate = self
+    }
+    
+    // 키보드 내리기
+    func setupGesture() {
+        let tapGesture = UITapGestureRecognizer(
+            target: self,
+            action: #selector(dismissKeyboard)
+        )
+        view.addGestureRecognizer(tapGesture)
+    }
+
+    @objc
+    private func dismissKeyboard() {
+        view.endEditing(true)
     }
 
     // ViewModel의 상태(Output)를 UI에 반영

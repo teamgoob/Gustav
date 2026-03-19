@@ -30,6 +30,7 @@ final class LoginViewController: UIViewController {
         bindActions()
         bindInput()
         bindDelegate()
+        setupGesture()
         render()
     }
 }
@@ -97,6 +98,20 @@ private extension LoginViewController {
         if let message = output.generalErrorMessage {
             showErrorAlert(message)
         }
+    }
+    
+    // 키보드 내리기
+    func setupGesture() {
+        let tapGesture = UITapGestureRecognizer(
+            target: self,
+            action: #selector(dismissKeyboard)
+        )
+        view.addGestureRecognizer(tapGesture)
+    }
+
+    @objc
+    private func dismissKeyboard() {
+        view.endEditing(true)
     }
     
     private func showErrorAlert(_ message: String) {

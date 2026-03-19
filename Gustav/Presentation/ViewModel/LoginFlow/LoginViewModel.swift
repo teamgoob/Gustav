@@ -130,7 +130,7 @@ final class LoginViewModel {
             generalErrorMessage = nil
 
             switch outcome {
-            case .authenticated(let session, _):
+            case .authenticated(_, _):
                 NotificationCenter.default.post(name: .login, object: nil)
 
             case .emailVerificationRequired:
@@ -157,7 +157,7 @@ final class LoginViewModel {
             generalErrorMessage = nil
 
             switch outcome {
-            case .authenticated(let session, _):
+            case .authenticated(_, _):
                 NotificationCenter.default.post(name: .login, object: nil)
 
             case .emailVerificationRequired:

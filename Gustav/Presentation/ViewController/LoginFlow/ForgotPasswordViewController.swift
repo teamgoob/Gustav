@@ -43,6 +43,7 @@ final class ForgotPasswordViewController: UIViewController {
         bindEvent()
         bindActions()
         bindInput()
+        setupGesture()
         render()
     }
 }
@@ -114,6 +115,20 @@ private extension ForgotPasswordViewController {
         Task {
             await viewModel.action(input: .tapSendVerificationMail)
         }
+    }
+    
+    // 키보드 내리기
+    func setupGesture() {
+        let tapGesture = UITapGestureRecognizer(
+            target: self,
+            action: #selector(dismissKeyboard)
+        )
+        view.addGestureRecognizer(tapGesture)
+    }
+
+    @objc
+    private func dismissKeyboard() {
+        view.endEditing(true)
     }
 
     // MARK: - Alert
