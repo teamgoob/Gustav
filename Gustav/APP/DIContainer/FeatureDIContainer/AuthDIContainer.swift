@@ -10,40 +10,40 @@ import Foundation
 
 // MARK: - AuthDIContainerProtocol
 protocol AuthDIContainerProtocol {
-    func makeLoginViewModel(coordinator: any AuthCoordinatorProtocol) -> LoginViewModel
-    func makeEmailSignUpViewModel(coordinator: any AuthCoordinatorProtocol) -> EmailSignUpViewModel
-    func makeForgotPasswordViewModel(coordinator: any AuthCoordinatorProtocol) -> ForgotPasswordViewModel
+    func makeLoginViewModel() -> LoginViewModel
+    func makeEmailSignUpViewModel() -> EmailSignUpViewModel
+    func makeForgotPasswordViewModel() -> ForgotPasswordViewModel
 }
 
 // MARK: - AuthDIContainer
 final class AuthDIContainer: AuthDIContainerProtocol {
-    // MARK: - Properties
-    private let authUseCase: AuthUseCaseProtocol
+
+    
+    // MARK: - AppDIContainer
+    private let appDIContainer: AppDIContainer
+    
     
     // MARK: - Initializer
-    init(authUseCase: AuthUseCaseProtocol) {
-        self.authUseCase = authUseCase
+    init(appDIContainer: AppDIContainer) {
+        self.appDIContainer = appDIContainer
     }
     
     // MARK: - ViewModel Builder
-    func makeLoginViewModel(coordinator: any AuthCoordinatorProtocol) -> LoginViewModel {
+    func makeLoginViewModel() -> LoginViewModel {
         LoginViewModel(
-            authUseCase: authUseCase,
-            coordinator: coordinator
+            authUseCase: appDIContainer.authUsecase
+        )
+    }
+    func makeEmailSignUpViewModel() -> EmailSignUpViewModel {
+        EmailSignUpViewModel(
+            authUseCase: appDIContainer.authUsecase
         )
     }
     
-    func makeEmailSignUpViewModel(coordinator: any AuthCoordinatorProtocol) -> EmailSignUpViewModel {
-        EmailSignUpViewModel(
-            authUseCase: authUseCase,
-            coordinator: coordinator
+    func makeForgotPasswordViewModel() -> ForgotPasswordViewModel {
+        ForgotPasswordViewModel(
+            authUseCase: appDIContainer.authUsecase
         )
     }
 
-    func makeForgotPasswordViewModel(coordinator: any AuthCoordinatorProtocol) -> ForgotPasswordViewModel {
-        ForgotPasswordViewModel(
-            authUseCase: authUseCase,
-            coordinator: coordinator
-        )
-    }
 }

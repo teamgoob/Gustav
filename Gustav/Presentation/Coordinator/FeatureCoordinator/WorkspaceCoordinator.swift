@@ -21,8 +21,10 @@ final class WorkspaceCoordinator: BaseCoordinator {
     private let container: WorkspaceDIContainer
     private let workspaceID: UUID
     
-    var onFinish: ((WorkspaceFlowResult) -> Void)?
-    
+    var onFinish: ((Coordinator) -> Void)?
+    var onBackToWorkspaceList: (() -> Void)?
+    var onWorkspaceDeleted: (() -> Void)?
+
     init(
         navigationController: UINavigationController,
         container: WorkspaceDIContainer,

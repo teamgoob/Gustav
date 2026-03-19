@@ -25,7 +25,7 @@ import UIKit
 final class AuthCoordinator: BaseCoordinator, AuthCoordinatorProtocol {
     private let container: AuthDIContainer
     
-    var onFinish: ((AuthFlowResult) -> Void)?
+    var onFinish: ((Coordinator) -> Void)?
     
     init(
         navigationController: UINavigationController,
@@ -47,8 +47,6 @@ final class AuthCoordinator: BaseCoordinator, AuthCoordinatorProtocol {
         // let viewController = LoginViewController(viewModel: viewModel)
         // viewModel.onNavigation = { [weak self] destination in
         //     switch destination {
-        //     case .signedIn:
-        //         self?.finishSignedIn()
         //     case .showEmailSignUp:
         //         self?.showEmailSignUp()
         //     case .showForgotPassword:
@@ -79,11 +77,7 @@ final class AuthCoordinator: BaseCoordinator, AuthCoordinatorProtocol {
     }
     
     // MARK: - Finish
-    private func finishSignedIn() {
-        onFinish?(.signedIn)
-    }
-    
-    private func finishCancelled() {
-        onFinish?(.cancelled)
+    private func finish() {
+        onFinish?(self)
     }
 }

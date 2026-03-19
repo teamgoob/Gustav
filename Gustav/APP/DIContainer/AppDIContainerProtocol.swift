@@ -8,7 +8,6 @@
 import Foundation
 
 protocol AppDIContainerProtocol {
-    func makeAuthUseCase() -> AuthUseCaseProtocol
     func makeAuthDIContainer() -> AuthDIContainer
     func makeWorkspaceListDIContainer() -> WorkspaceListDIContainer
     func makeWorkspaceDIContainer(workspaceID: UUID) -> WorkspaceDIContainer

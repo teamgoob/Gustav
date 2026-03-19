@@ -81,10 +81,6 @@ final class EmailSignUpViewModel {
     // 실제 회원가입 비즈니스 로직 실행 객체
     private let authUseCase: AuthUseCaseProtocol
     
-    // 화면 이동 담당 객체
-    // pop, push 같은 네비게이션은 ViewModel이 직접 하지 않고 coordinator에 위임
-    private weak var coordinator: AuthCoordinatorProtocol?
-    
     // 입력값 검증 객체
     // 이메일 형식, 비밀번호 규칙, 비밀번호 재입력 일치 여부 등을 검사
     private let validator: AuthValidatorProtocol
@@ -95,20 +91,14 @@ final class EmailSignUpViewModel {
     // MARK: - Initializer
     init(
         authUseCase: AuthUseCaseProtocol,
-        coordinator: AuthCoordinatorProtocol?,
         validator: AuthValidatorProtocol
     ) {
         self.authUseCase = authUseCase
-        self.coordinator = coordinator
         self.validator = validator
     }
 
-    init(
-        authUseCase: AuthUseCaseProtocol,
-        coordinator: AuthCoordinatorProtocol?
-    ) {
+    init(authUseCase: AuthUseCaseProtocol) {
         self.authUseCase = authUseCase
-        self.coordinator = coordinator
         self.validator = DefaultAuthValidator()
     }
 

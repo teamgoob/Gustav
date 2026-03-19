@@ -9,6 +9,8 @@ import Foundation
 
 // MARK: - Notification.Name Extensions
 extension Notification.Name {
+    // 로그인 이벤트
+    static let login = Notification.Name("Gustav.Notification.Name.login")
     // 로그아웃 이벤트
     static let logout = Notification.Name("Gustav.Notification.Name.logout")
     // 회원 탈퇴 이벤트

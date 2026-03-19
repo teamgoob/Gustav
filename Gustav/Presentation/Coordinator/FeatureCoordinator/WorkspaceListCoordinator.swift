@@ -20,8 +20,9 @@ import UIKit
 final class WorkspaceListCoordinator: BaseCoordinator {
     private let container: WorkspaceListDIContainer
     
-    var onFinish: ((WorkspaceListFlowResult) -> Void)?
-    
+    var onFinish: ((Coordinator) -> Void)?
+    var onSelectWorkspace: ((UUID) -> Void)?
+
     init(
         navigationController: UINavigationController,
         container: WorkspaceListDIContainer
