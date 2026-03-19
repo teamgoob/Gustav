@@ -39,12 +39,14 @@ final class ForgotPasswordViewController: UIViewController {
         super.viewDidLoad()
 
         setupNavigation()
-        bindOutput()
-        bindEvent()
+        bindViewModel()
         bindActions()
         bindInput()
         setupGesture()
-        render()
+        
+        Task {
+            await viewModel.action(input: .updateEmail(""))
+        }
     }
 }
 
@@ -56,29 +58,14 @@ private extension ForgotPasswordViewController {
         navigationItem.largeTitleDisplayMode = .never
     }
 
-    // MARK: - Output Binding
-    func bindOutput() {
-        viewModel.onOutputChanged = { [weak self] in
-            guard let self else { return }
-            self.render()
+    // MARK: - ViewModel Binding
+    func bindViewModel() {
+        viewModel.onDisplay = { [weak self] output in
+            self?.apply(output)
         }
-    }
-
-    // MARK: - Event Binding
-    func bindEvent() {
+        
         viewModel.onEvent = { [weak self] event in
-            guard let self else { return }
-
-            switch event {
-            case .showError(let message):
-                showErrorAlert(message)
-
-            case .showSuccess(let message):
-                showSuccessAlert(message)
-
-            case .pop:
-                navigationController?.popViewController(animated: true)
-            }
+            self?.handleEvent(event)
         }
     }
 
@@ -102,11 +89,22 @@ private extension ForgotPasswordViewController {
         }
     }
 
-    // MARK: - Render
-    func render() {
-        let output = viewModel.getCurrentOutput()
+    // MARK: - Output Apply
+    func apply(_ output: ForgotPasswordViewModel.Output) {
         rootView.emailInputView.updateError(output.emailErrorMessage)
         rootView.SendEmailButton.isEnabled = output.isSendButtonEnabled
+    }
+
+    // MARK: - Event Handle
+    func handleEvent(_ event: ForgotPasswordViewModel.Event) {
+        switch event {
+        case .showError(let message):
+            showErrorAlert(message)
+        case .showSuccess(let message):
+            showSuccessAlert(message)
+        case .pop:
+            navigationController?.popViewController(animated: true)
+        }
     }
 
     // MARK: - Actions
@@ -133,6 +131,8 @@ private extension ForgotPasswordViewController {
 
     // MARK: - Alert
     func showErrorAlert(_ message: String) {
+        guard presentedViewController == nil else { return }
+        
         let alert = UIAlertController(
             title: nil,
             message: message,
@@ -145,6 +145,8 @@ private extension ForgotPasswordViewController {
     }
 
     func showSuccessAlert(_ message: String) {
+        guard presentedViewController == nil else { return }
+        
         let alert = UIAlertController(
             title: nil,
             message: message,

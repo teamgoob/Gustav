@@ -74,7 +74,7 @@ final class PresetDetailView: UIView {
     private func setupLayout() {
         scrollView.snp.makeConstraints { make in
             make.top.bottom.equalToSuperview()
-            make.leading.trailing.equalToSuperview().inset(16)
+            make.leading.trailing.equalToSuperview()
         }
         
         contentView.snp.makeConstraints { make in

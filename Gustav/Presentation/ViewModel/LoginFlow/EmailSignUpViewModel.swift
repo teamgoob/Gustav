@@ -23,9 +23,9 @@ final class EmailSignUpViewModel {
      */
     
     // MARK: - Output Binding
-    // ViewController가 바인딩해서 사용하는 출력 변경 알림 클로저
-    // state가 바뀌면 이 클로저를 호출해서 VC가 render() 하도록 만듦
-    var onOutputChanged: (() -> Void)?
+    // ViewController가 바인딩해서 사용하는 출력 전달 클로저
+    // state가 바뀌면 현재 Output을 만들어 VC에 전달함
+    var onDisplay: ((Output) -> Void)?
     
     // MARK: - Event
     // ViewModel → VC one-shot 이벤트
@@ -103,11 +103,11 @@ final class EmailSignUpViewModel {
     }
 
     // MARK: - State Update
-    // 상태를 변경하고, 변경이 끝난 뒤 화면 갱신 알림을 한 번만 보냄
-    // 여러 상태값을 한 번에 바꾸고 render도 1번만 발생시키기 위한 헬퍼
+    // 상태를 변경하고, 변경이 끝난 뒤 현재 Output을 한 번만 전달함
+    // 여러 상태값을 한 번에 바꾸고 화면 반영도 1번만 발생시키기 위한 헬퍼
     private func updateState(_ updates: () -> Void) {
         updates()
-        onOutputChanged?()
+        notifyOutput()
     }
 
     // MARK: - Input Handling
@@ -250,7 +250,8 @@ private extension EmailSignUpViewModel {
               repeatPasswordError == nil
         else {
             // 필드 에러는 getCurrentOutput()에서 계산해서 보여주므로
-            // 여기서는 generalError만 비움
+            // 현재 상태만 다시 전달해서 화면이 즉시 갱신되게 함
+            notifyOutput()
             return
         }
 
@@ -360,5 +361,12 @@ private extension EmailSignUpViewModel {
         case .emailAlreadyInUse:
             return "This email is already in use."
         }
+    }
+    
+    // MARK: - Notify Output
+    // 현재 상태를 Output으로 만들어 VC에 전달
+    private func notifyOutput() {
+        let output = getCurrentOutput()
+        onDisplay?(output)
     }
 }

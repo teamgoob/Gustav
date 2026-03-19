@@ -50,15 +50,15 @@ final class AuthCoordinator: BaseCoordinator, AuthCoordinatorProtocol {
 
         navigationController.setViewControllers([viewController], animated: false)
         
-        viewModel.onNavigation = { [weak self] route in
+        viewController.onRoute = { [weak self] route in
             switch route {
             case .showEmailSignUp:
                 self?.showEmailSignUp()
-
             case .showForgotPassword:
                 self?.showForgotPassword()
             }
         }
+        
         print("LoginViewController set")
     }
     

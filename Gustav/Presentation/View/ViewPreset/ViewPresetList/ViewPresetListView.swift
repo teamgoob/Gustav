@@ -13,11 +13,21 @@ final class ViewPresetListView: UIView {
     
     let tableView = UITableView(frame: .zero, style: .insetGrouped)
     
+    // UI Components 선언
+    let loadingView: LoadingView = {
+        let view = LoadingView()
+        // 안내 문구 설정
+        view.descriptionLabel.text = "Loading Preset List..."
+        return view
+    }()
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupUI()
         setupLayout()
         setupStyle()
+        loadingView.stopLoading()
+
     }
     
     required init?(coder: NSCoder) {
@@ -26,6 +36,7 @@ final class ViewPresetListView: UIView {
     
     private func setupUI() {
         addSubview(tableView)
+        addSubview(loadingView)
         
         tableView.sectionHeaderTopPadding = 0
         tableView.register(ViewPresetListCellView.self, forCellReuseIdentifier: ViewPresetListCellView.identifier)
@@ -35,7 +46,11 @@ final class ViewPresetListView: UIView {
     private func setupLayout() {
         tableView.snp.makeConstraints { make in
             make.top.bottom.equalToSuperview()
-            make.leading.trailing.equalToSuperview().inset(16)
+            make.leading.trailing.equalToSuperview()
+        }
+
+        loadingView.snp.makeConstraints {
+            $0.edges.equalToSuperview()
         }
     }
     
