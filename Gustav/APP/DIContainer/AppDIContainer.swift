@@ -37,12 +37,9 @@ final class AppDIContainer: AppDIContainerProtocol  {
     // MARK: - App Flow Factory
     // MARK: - ⭐️ 화면용 ViewModel factory 구현 필요
     
-    func makeAuthUseCase() -> AuthUseCaseProtocol {
-        authUsecase
-    }
     
     func makeAuthDIContainer() -> AuthDIContainer {
-        AuthDIContainer(authUseCase: authUsecase)
+        AuthDIContainer(appDIContainer: self)
     }
     
     func makeWorkspaceListDIContainer() -> WorkspaceListDIContainer {
