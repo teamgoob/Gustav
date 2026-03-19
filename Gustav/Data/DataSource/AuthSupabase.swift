@@ -2,25 +2,6 @@
 import Foundation
 import Supabase
 
-/// Supabase Auth를 "직접 호출"하는 DataSource 구현체입니다.
-///
-/// ✅ 여기서 하는 일
-/// - Supabase SDK(auth / functions)를 직접 호출합니다.
-/// - Apple idToken + nonce를 받아 Supabase 세션을 생성합니다.
-/// - Email 로그인 / 회원가입을 수행합니다.
-/// - SDK가 보관 중인 현재 세션을 조회하거나,
-///   필요 시 refresh까지 수행하여 "유효한 세션"을 가져옵니다.
-/// - Edge Function을 호출해 회원탈퇴를 수행합니다.
-/// - 모든 에러를 RepositoryError로 통일하여 반환합니다.
-///
-/// ❌ 여기서 하지 않는 일
-/// - 세션을 Keychain 등에 직접 저장/복구하지 않습니다.
-///   (세션 관리는 Supabase SDK 내부에 맡깁니다.)
-/// - 로그인 흐름(자동 로그인, 가입/로그인 분기 등)을 조립하지 않습니다.
-///   → 그 책임은 Repository / UseCase 계층에 있습니다.
-/// - Domain 모델로 변환하지 않습니다.
-///   → DTO → Domain 변환은 Repository 계층에서 수행합니다.
-
 
 final class AuthSupabase: AuthDataSourceProtocol {
 
@@ -156,6 +137,11 @@ final class AuthSupabase: AuthDataSourceProtocol {
         } catch {
             return .failure(Self.mapError(error))
         }
+    }
+    
+    // MARK: - 현재 유저 아이디
+    func currentUserId() -> UUID? {
+        client.auth.currentSession?.user.id
     }
 }
 
