@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Combine
 
 //  입력 상태 관리 + 로그인 실행 + 화면 이동 요청 + UI 상태 계산
 final class LoginViewModel {
@@ -30,6 +31,12 @@ final class LoginViewModel {
         case tapForgotPassword
         case tapAppleLogin
     }
+    // MARK: - Route
+    // ViewModel → ViewController one-shot 라우팅 전달 구조
+    enum Route {
+        case showEmailSignUp
+        case showForgotPassword
+    }
     
     // MARK: - Output
     // ViewModel → ViewController 상태 전달 구조
@@ -41,9 +48,9 @@ final class LoginViewModel {
         let isLoginButtonEnabled: Bool
         let isLoading: Bool
     }
+    var onNavigation: ((Route) -> Void)?
 
     private let authUseCase: AuthUseCaseProtocol
-    private weak var coordinator: AuthCoordinatorProtocol?
     private let validator: AuthValidatorProtocol
 
     // 현재 입력된 이메일
@@ -59,11 +66,9 @@ final class LoginViewModel {
     // MARK: - init
     init(
         authUseCase: AuthUseCaseProtocol,
-        coordinator: AuthCoordinatorProtocol?,
         validator: AuthValidatorProtocol = DefaultAuthValidator()
     ) {
         self.authUseCase = authUseCase
-        self.coordinator = coordinator
         self.validator = validator
     }
 
@@ -83,11 +88,11 @@ final class LoginViewModel {
 
             // 회원가입 버튼
         case .tapCreateAccount:
-            coordinator?.showEmailSignUp()
+            onNavigation?(.showEmailSignUp)
 
             // 비밀번호 찾기 화면 이동
         case .tapForgotPassword:
-            coordinator?.showForgotPassword()
+            onNavigation?(.showForgotPassword)
 
             // Apple 로그인은 ViewController에서 async 처리
         case .tapAppleLogin:
@@ -121,8 +126,16 @@ final class LoginViewModel {
 
         // 결과 처리
         switch result {
-        case .success:
+        case .success(let outcome):
             generalErrorMessage = nil
+
+            switch outcome {
+            case .authenticated(let session, _):
+                NotificationCenter.default.post(name: .login, object: nil)
+
+            case .emailVerificationRequired:
+                generalErrorMessage = "이메일 인증 후 로그인해주세요."
+            }
 
         case .failure(let error):
             print("login failed:", error)
@@ -140,8 +153,16 @@ final class LoginViewModel {
         isLoading = false
 
         switch result {
-        case .success:
+        case .success(let outcome):
             generalErrorMessage = nil
+
+            switch outcome {
+            case .authenticated(let session, _):
+                NotificationCenter.default.post(name: .login, object: nil)
+
+            case .emailVerificationRequired:
+                generalErrorMessage = "이메일 인증 후 로그인해주세요."
+            }
 
         case .failure(let error):
             generalErrorMessage = mapDomainErrorToMessage(error)

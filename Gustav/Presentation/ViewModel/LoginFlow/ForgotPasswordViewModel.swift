@@ -46,29 +46,15 @@ final class ForgotPasswordViewModel {
 
     // MARK: - Dependencies
     private let authUseCase: AuthUseCaseProtocol
-    private weak var coordinator: AuthCoordinatorProtocol?
     private let validator: AuthValidatorProtocol
 
     // MARK: - State
     private var state = State()
 
     // MARK: - Initializer
-    init(
-        authUseCase: AuthUseCaseProtocol,
-        coordinator: AuthCoordinatorProtocol?,
-        validator: AuthValidatorProtocol
-    ) {
-        self.authUseCase = authUseCase
-        self.coordinator = coordinator
-        self.validator = validator
-    }
 
-    init(
-        authUseCase: AuthUseCaseProtocol,
-        coordinator: AuthCoordinatorProtocol?
-    ) {
+    init(authUseCase: AuthUseCaseProtocol) {
         self.authUseCase = authUseCase
-        self.coordinator = coordinator
         self.validator = DefaultAuthValidator()
     }
 
