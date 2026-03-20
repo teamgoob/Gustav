@@ -51,7 +51,7 @@ private extension WorkspaceListCoordinator {
     // Default View
     func showWorkspaceList() {
         let useCase = TestWorkSpaceUsecase()
-        let viewModel = WorkSpaceListViewModel(workspaceUsecase: useCase) //혹은 DI 컨테이너 사용
+        let viewModel = self.viewModel
         self.viewModel = viewModel
         let viewController = WorkSpaceListViewController(viewModel: viewModel)
         
