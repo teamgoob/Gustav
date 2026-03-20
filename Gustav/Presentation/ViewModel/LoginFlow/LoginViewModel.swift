@@ -31,6 +31,14 @@ final class LoginViewModel {
         case tapForgotPassword
         case tapAppleLogin
     }
+    
+    // MARK: - Loading State
+    // 로딩 상태의 종류를 구별하기 위한 열거형
+    enum LoadingState {
+        case loading(for: String)
+        case notLoading
+    }
+    
     // MARK: - Route
     // ViewModel → ViewController one-shot 라우팅 전달 구조
     enum Route {
@@ -46,8 +54,10 @@ final class LoginViewModel {
         let passwordErrorMessage: String?
         let generalErrorMessage: String?
         let isLoginButtonEnabled: Bool
-        let isLoading: Bool
+        let isLoading: LoadingState
     }
+    
+    var onDisplay: ((Output) -> Void)?
     var onNavigation: ((Route) -> Void)?
 
     private let authUseCase: AuthUseCaseProtocol
@@ -60,9 +70,9 @@ final class LoginViewModel {
 
     // 로그인 실패 메시지
     private var generalErrorMessage: String?
+    
     // 로그인 진행 상태
-    private var isLoading: Bool = false
-
+    private var isLoading: LoadingState = .notLoading
     // MARK: - init
     init(
         authUseCase: AuthUseCaseProtocol,
@@ -80,11 +90,13 @@ final class LoginViewModel {
         case .updateEmail(let email):
             self.email = email
             generalErrorMessage = nil // 이전 로그인 실패 메시지 제거
+            notifyOutput()
 
             //비밀번호 상태 업데이트
         case .updatePassword(let password):
             self.password = password
             generalErrorMessage = nil
+            notifyOutput()
 
             // 회원가입 버튼
         case .tapCreateAccount:
@@ -110,27 +122,29 @@ final class LoginViewModel {
         // 검증 실패
         guard emailError == nil, passwordError == nil else {
             generalErrorMessage = nil
+            notifyOutput()
             return
         }
 
         // 로딩 시작
-        isLoading = true
+        isLoading = .loading(for: "Signing In...")
         generalErrorMessage = nil
+        notifyOutput()
 
         let result = await authUseCase.signInWithEmail(
             email: email,
             password: password
         )
 
-        isLoading = false
-
+        isLoading = .notLoading
+        
         // 결과 처리
         switch result {
         case .success(let outcome):
             generalErrorMessage = nil
 
             switch outcome {
-            case .authenticated(let session, _):
+            case .authenticated(_, _):
                 NotificationCenter.default.post(name: .login, object: nil)
 
             case .emailVerificationRequired:
@@ -141,23 +155,25 @@ final class LoginViewModel {
             print("login failed:", error)
             generalErrorMessage = mapDomainErrorToMessage(error)
         }
+        notifyOutput()
     }
     
     // 애플 로그인 핸들링
     func handleAppleLogin() async {
-        isLoading = true
+        isLoading = .loading(for: "Signing In with Apple...")
         generalErrorMessage = nil
+        notifyOutput()
 
         let result = await authUseCase.authenticateWithApple()
 
-        isLoading = false
-
+        isLoading = .notLoading
+        
         switch result {
         case .success(let outcome):
             generalErrorMessage = nil
 
             switch outcome {
-            case .authenticated(let session, _):
+            case .authenticated(_, _):
                 NotificationCenter.default.post(name: .login, object: nil)
 
             case .emailVerificationRequired:
@@ -167,6 +183,7 @@ final class LoginViewModel {
         case .failure(let error):
             generalErrorMessage = mapDomainErrorToMessage(error)
         }
+        notifyOutput()
     }
 
     // ViewController가 현재 UI 상태를 가져오는 함수
@@ -197,8 +214,8 @@ private extension LoginViewModel {
 
     // 로그인 버튼 활성화 조건
     func canSubmitLogin() -> Bool {
-        guard !isLoading else { return false }
-
+        guard case .notLoading = isLoading else { return false }
+        
         let emailError = validator.validateEmail(email)
         let passwordError = validator.validateSignInPassword(password)
 
@@ -244,6 +261,14 @@ private extension LoginViewModel {
 
         default:
             return "아이디 또는 비밀번호가 틀렸습니다."
+        }
+    }
+    
+    func notifyOutput() {
+        let output = getCurrentOutput()
+        
+        DispatchQueue.main.async {
+            self.onDisplay?(output)
         }
     }
 }

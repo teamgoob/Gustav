@@ -10,6 +10,8 @@ final class LoginViewController: UIViewController {
 
     private let rootView = LoginView()
     private let viewModel: LoginViewModel
+    
+    var onRoute: ((LoginViewModel.Route) -> Void)?
 
     init(viewModel: LoginViewModel) {
         self.viewModel = viewModel
@@ -27,14 +29,26 @@ final class LoginViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        setupDelegate()
+        bindViewModel()
         bindActions()
         bindInput()
-        bindDelegate()
-        render()
+        setupGesture()
+        viewModel.action(input: .updateEmail(""))
     }
 }
 
 private extension LoginViewController {
+    func bindViewModel() {
+        viewModel.onDisplay = { [weak self] output in
+            self?.apply(output)
+        }
+        
+        viewModel.onNavigation = { [weak self] route in
+            self?.onRoute?(route)
+        }
+    }
+
     func bindActions() {
         print("bindActions called")
         rootView.formView.onTapSignIn = { [weak self] in
@@ -42,7 +56,6 @@ private extension LoginViewController {
 
             Task { @MainActor in
                 await self.viewModel.submitLogin()
-                self.render()
             }
         }
 
@@ -59,7 +72,6 @@ private extension LoginViewController {
 
             Task { @MainActor in
                 await self.viewModel.handleAppleLogin()
-                self.render()
             }
         }
     }
@@ -67,30 +79,36 @@ private extension LoginViewController {
     func bindInput() {
         rootView.formView.emailPasswordView.emailInputView.onTextChanged = { [weak self] text in
             self?.viewModel.action(input: .updateEmail(text))
-            self?.render()
         }
 
         rootView.formView.emailPasswordView.passwordInputView.onTextChanged = { [weak self] text in
             self?.viewModel.action(input: .updatePassword(text))
-            self?.render()
         }
     }
 
-    func bindDelegate() {
+    func setupDelegate() {
         rootView.formView.emailPasswordView.emailTextField.delegate = self
         rootView.formView.emailPasswordView.passwordTextField.delegate = self
     }
 
-    func render() {
-        let output = viewModel.getCurrentOutput()
-
+    func apply(_ output: LoginViewModel.Output) {
         rootView.formView.updateEmailError(output.emailErrorMessage)
         rootView.formView.updatePasswordError(output.passwordErrorMessage)
+        
+        let isLoading: Bool
+        switch output.isLoading {
+        case .loading:
+            isLoading = true
+            rootView.loadingView.startLoading(with: "Signing In...")
+        case .notLoading:
+            isLoading = false
+            rootView.loadingView.stopLoading()
+        }
+        
         rootView.formView.updateLoginButton(
             isEnabled: output.isLoginButtonEnabled,
-            isLoading: output.isLoading
+            isLoading: isLoading
         )
-
         
         rootView.formView.updateGeneralError(output.generalErrorMessage)
         
@@ -99,7 +117,23 @@ private extension LoginViewController {
         }
     }
     
+    // 키보드 내리기
+    func setupGesture() {
+        let tapGesture = UITapGestureRecognizer(
+            target: self,
+            action: #selector(dismissKeyboard)
+        )
+        view.addGestureRecognizer(tapGesture)
+    }
+
+    @objc
+    private func dismissKeyboard() {
+        view.endEditing(true)
+    }
+    
     private func showErrorAlert(_ message: String) {
+        guard presentedViewController == nil else { return }
+        
         let alert = UIAlertController(
             title: nil,
             message: message,
@@ -122,7 +156,6 @@ extension LoginViewController: UITextFieldDelegate {
 
             Task { @MainActor in
                 await viewModel.submitLogin()
-                render()
             }
         }
 

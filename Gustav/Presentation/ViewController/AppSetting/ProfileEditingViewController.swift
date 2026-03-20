@@ -151,9 +151,15 @@ private extension ProfileEditingViewController {
     }
     
     // 새로 선택한 프로필 이미지 화면에 표시
-    func showProfileImage(with data: Data) {
-        DispatchQueue.main.async {
-            self.customView.profileImageView.image = UIImage(data: data)
+    func showProfileImage(with data: Data?) {
+        if let data = data {
+            DispatchQueue.main.async {
+                self.customView.profileImageView.image = UIImage(data: data)
+            }
+        } else {
+            DispatchQueue.main.async {
+                self.customView.profileImageView.image = UIImage(systemName: "person.crop.circle")
+            }
         }
     }
     

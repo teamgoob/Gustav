@@ -42,14 +42,14 @@ final class EmailSignUpViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        setupNavigation() // 네비게이션 설정
-        bindOutput()
-        bindEvent()      // ViewModel 이벤트 바인딩
-        bindActions()     // 버튼 이벤트 연결
-        bindInput()       // 텍스트 입력 이벤트 연결
-        bindPolicy()      // 약관 체크 이벤트 연결
-        bindDelegate()    // textField delegate 설정
-        render()          // 초기 UI 렌더링
+        setupNavigation()   // 네비게이션 설정
+        setupDelegate()     // textField delegate 설정
+        bindViewModel()
+        bindActions()       // 버튼 이벤트 연결
+        bindInput()         // 텍스트 입력 이벤트 연결
+        bindPolicy()        // 약관 체크 이벤트 연결
+        setupGesture()
+        apply(viewModel.getCurrentOutput())
     }
 }
 
@@ -62,35 +62,14 @@ private extension EmailSignUpViewController {
     }
 
     
-    // ViewModel output 변경 감지 → 자동 render
-    func bindOutput() {
-        viewModel.onOutputChanged = { [weak self] in
-            guard let self else { return }
-            self.render()
+    // ViewModel 바인딩
+    func bindViewModel() {
+        viewModel.onDisplay = { [weak self] output in
+            self?.apply(output)
         }
-    }
-    
-    // ViewModel event 수신 → Alert / 화면 이동 처리
-    func bindEvent() {
+        
         viewModel.onEvent = { [weak self] event in
-            guard let self else { return }
-
-            switch event {
-            case .showError(let message):
-                showErrorAlert(message)
-
-            case .showSuccess(let message):
-                showSuccessAlert(message)
-
-            case .showTerms:
-                break
-
-            case .showPrivacy:
-                break
-
-            case .pop:
-                navigationController?.popViewController(animated: true)
-            }
+            self?.handleEvent(event)
         }
     }
     
@@ -173,28 +152,52 @@ private extension EmailSignUpViewController {
     }
 
     // UITextFieldDelegate 연결
-    func bindDelegate() {
+    func setupDelegate() {
         rootView.formView.editView.emailTextField.delegate = self
         rootView.formView.editView.passwordTextField.delegate = self
         rootView.formView.editView.repeatPasswordTextField.delegate = self
     }
+    
+    // 키보드 내리기
+    func setupGesture() {
+        let tapGesture = UITapGestureRecognizer(
+            target: self,
+            action: #selector(dismissKeyboard)
+        )
+        view.addGestureRecognizer(tapGesture)
+    }
+
+    @objc
+    private func dismissKeyboard() {
+        view.endEditing(true)
+    }
 
     // ViewModel의 상태(Output)를 UI에 반영
-    func render() {
-
-        // 현재 ViewModel 상태 가져오기
-        let output = viewModel.getCurrentOutput()
-
-        // 각 입력 필드 에러 메시지 표시
+    func apply(_ output: EmailSignUpViewModel.Output) {
         rootView.updateEmailError(output.emailErrorMessage)
         rootView.updatePasswordError(output.passwordErrorMessage)
         rootView.updateRepeatPasswordError(output.repeatPasswordErrorMessage)
 
-        // 회원가입 버튼 상태 업데이트
         rootView.updateSignUpButton(
             isEnabled: output.isSignUpButtonEnabled,
             isLoading: output.isLoading
         )
+    }
+    
+    // ViewModel 이벤트 처리
+    func handleEvent(_ event: EmailSignUpViewModel.Event) {
+        switch event {
+        case .showError(let message):
+            showErrorAlert(message)
+        case .showSuccess(let message):
+            showSuccessAlert(message)
+        case .showTerms:
+            break
+        case .showPrivacy:
+            break
+        case .pop:
+            navigationController?.popViewController(animated: true)
+        }
     }
 
     // 회원가입 버튼 클릭
@@ -220,6 +223,7 @@ private extension EmailSignUpViewController {
 
     // 에러 Alert 표시
     func showErrorAlert(_ message: String) {
+        guard presentedViewController == nil else { return }
 
         let alert = UIAlertController(
             title: nil,
@@ -234,6 +238,7 @@ private extension EmailSignUpViewController {
 
     // 성공 Alert 표시
     func showSuccessAlert(_ message: String) {
+        guard presentedViewController == nil else { return }
 
         let alert = UIAlertController(
             title: nil,

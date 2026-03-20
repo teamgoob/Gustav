@@ -175,10 +175,8 @@ private extension AppSettingViewModel {
     func handleSettingListSelection(item: SettingListItem) {
         switch item {
         case .signOut:
-            print(item)
             onNavigation?(.showAlertForSignOutConfirmation)
         default:
-            print(item)
             onNavigation?(.pushTo(next: item))
         }
     }

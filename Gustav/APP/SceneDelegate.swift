@@ -10,7 +10,8 @@ import UIKit
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     var window: UIWindow?
-
+    // 테스트용 Coordinator 강한 참조
+    var coordinator: AppSettingCoordinator?
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         // Use this method to optionally configure and attach the UIWindow `window` to the provided UIWindowScene `scene`.
@@ -21,11 +22,19 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let windowScene = (scene as? UIWindowScene) else { return }
         let window = UIWindow(windowScene: windowScene)
         
-        // Root ViewController 생성
-        let rootViewController = AppSettingViewController(viewModel: AppSettingViewModel(authUsecase: TestAuthUsecase(), profileUsecase: TestProfileUsecase()))
-        
         // Navigation Controller 생성
-        let navigationController = UINavigationController(rootViewController: rootViewController)
+        let navigationController = UINavigationController()
+        
+        // AppDIContainer 생성
+        let appDIContainer = AppDIContainer(presentationAnchorProvider: { window })
+        // 테스트용 DIContainer 생성
+        let appSettingDIContainer = AppSettingDIContainer(appDIContainer: appDIContainer)
+        // 테스트용 Coordinator 생성
+        let appSettingCoordinator = AppSettingCoordinator(navigationController: navigationController, container: appSettingDIContainer)
+        // Coordinator 생명 주기 보장
+        self.coordinator = appSettingCoordinator
+        // Coordinator Flow Start
+        appSettingCoordinator.start()
         
         // 루트 설정
         window.rootViewController = navigationController

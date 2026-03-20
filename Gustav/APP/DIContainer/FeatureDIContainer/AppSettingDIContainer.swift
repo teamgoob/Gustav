@@ -22,13 +22,19 @@ final class AppSettingDIContainer {
     // AppSettingViewModel
     func makeAppSettingViewModel() -> AppSettingViewModel {
         AppSettingViewModel(authUsecase: appDIContainer.authUsecase, profileUsecase: appDIContainer.profileUsecase)
+        // 테스트용 뷰 모델
+//        AppSettingViewModel(authUsecase: TestAuthUsecase(), profileUsecase: TestProfileUsecase())
     }
     // ProfileEditingViewModel
     func makeProfileEditingViewModel() -> ProfileEditingViewModel {
         ProfileEditingViewModel(authUsecase: appDIContainer.authUsecase, profileUsecase: appDIContainer.profileUsecase, profileImageUsecase: appDIContainer.profileImageUsecase)
+        // 테스트용 뷰 모델
+//        ProfileEditingViewModel(authUsecase: TestAuthUsecase(), profileUsecase: TestProfileUsecase(), profileImageUsecase: appDIContainer.profileImageUsecase)
     }
     // AccountDeletingViewModel
     func makeAccountDeletingViewModel() -> AccountDeletingViewModel {
         AccountDeletingViewModel(authUsecase: appDIContainer.authUsecase, profileUsecase: appDIContainer.profileUsecase)
+        // 테스트용 뷰 모델
+//        AccountDeletingViewModel(authUsecase: TestAuthUsecase(), profileUsecase: TestProfileUsecase())
     }
 }

@@ -82,7 +82,7 @@ final class ProfileEditingViewModel {
     // 저장 버튼 활성화 여부 변경 시 VC에 전달하여 화면 업데이트
     var onSaveButtonChanged: (() -> Void)?
     // 새로운 프로필 이미지 선택 시 VC에 전달하여 화면 업데이트
-    var onProfileImageChanged: ((Data) -> Void)?
+    var onProfileImageChanged: ((Data?) -> Void)?
     // 화면 이동 이벤트 발생 시 Coordinator에 전달하여 화면 이동
     var onNavigation: ((Route) -> Void)?
 }
@@ -215,6 +215,7 @@ private extension ProfileEditingViewModel {
     func handleProfileImageDeleted() {
         self.newProfileImage = .removed
         onSaveButtonChanged?()
+        onProfileImageChanged?(nil)
     }
     
     // 사용자 이름 변경 이벤트 처리

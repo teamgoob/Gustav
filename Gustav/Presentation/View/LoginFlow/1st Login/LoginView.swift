@@ -34,11 +34,20 @@ final class LoginView: UIView {
     
     let formView = LoginFormView()
 
+    // MARK: - Loading View
+    let loadingView: LoadingView = {
+        let view = LoadingView()
+        view.descriptionLabel.text = "Loading Login..."
+        return view
+    }()
+
     // MARK: - Init
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupUI()
         setupLayout()
+        loadingView.stopLoading()
+
     }
 
     required init?(coder: NSCoder) {
@@ -46,6 +55,7 @@ final class LoginView: UIView {
         setupUI()
         setupLayout()
     }
+    
 
     // MARK: - Setup
     private func setupUI() {
@@ -72,6 +82,7 @@ final class LoginView: UIView {
         contentStack.setCustomSpacing(42, after: titleLabel) // 스샷처럼 타이틀 아래 공간 크게
         contentStack.addArrangedSubview(formView)
         
+        addSubview(loadingView)
     }
 
     private func setupLayout() {
@@ -87,6 +98,10 @@ final class LoginView: UIView {
             make.edges.equalTo(cardView.layoutMarginsGuide)
         }
         
+        
+        loadingView.snp.makeConstraints {
+            $0.edges.equalToSuperview()
+        }
         
     }
 }

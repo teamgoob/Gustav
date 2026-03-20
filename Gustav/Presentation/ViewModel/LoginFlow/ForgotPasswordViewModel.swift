@@ -1,4 +1,3 @@
-
 //
 //  ForgotPasswordViewModel.swift
 //  Gustav
@@ -12,7 +11,7 @@ import Foundation
 final class ForgotPasswordViewModel {
 
     // MARK: - Output Binding
-    var onOutputChanged: (() -> Void)?
+    var onDisplay: ((Output) -> Void)?
 
     // MARK: - Event
     var onEvent: ((Event) -> Void)?
@@ -61,7 +60,7 @@ final class ForgotPasswordViewModel {
     // MARK: - State Update
     private func updateState(_ updates: () -> Void) {
         updates()
-        onOutputChanged?()
+        notifyOutput()
     }
 
     // MARK: - Input Handling
@@ -92,6 +91,12 @@ final class ForgotPasswordViewModel {
             isLoading: state.isLoading
         )
     }
+
+    // MARK: - Notify Output
+    private func notifyOutput() {
+        let output = getCurrentOutput()
+        onDisplay?(output)
+    }
 }
 
 private extension ForgotPasswordViewModel {
@@ -111,7 +116,7 @@ private extension ForgotPasswordViewModel {
         let emailError = validator.validateEmail(state.email)
 
         guard emailError == nil else {
-            onOutputChanged?()
+            notifyOutput()
             return
         }
 
