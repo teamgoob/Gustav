@@ -88,8 +88,7 @@ class WorkSpaceListViewController: UIViewController {
                     image: UIImage(systemName: "plus")
                 ) { _ in
                     print("Add WorkSpace")
-                    self.presentAddWorkspaceAlert()
-                    
+                    self.viewModel.action(.didTapAddWorkspaceButton)
                 },
                 UIAction(
                     title: "Change Order",
@@ -203,39 +202,6 @@ class WorkSpaceListViewController: UIViewController {
             changeCellMode(mode: .normal)
         }
     }
-    
-    
-    private func presentAddWorkspaceAlert() {
-        let alert = UIAlertController(
-            title: "Add WorkSpace",
-            message: "새로운 워크스페이스 이름을 입력해주세요",
-            preferredStyle: .alert)
-
-        alert.addTextField { tf in
-            tf.placeholder = "예: 개인 / 회사 / 프로젝트"
-            tf.clearButtonMode = .whileEditing
-            tf.autocapitalizationType = .none
-            tf.returnKeyType = .done
-        }
-
-        let cancel = UIAlertAction(title: "취소", style: .cancel)
-
-        let add = UIAlertAction(title: "추가", style: .default) { [weak self, weak alert] _ in
-            guard let self else { return }
-            let name = alert?.textFields?.first?.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-            guard !name.isEmpty else {
-                self.viewModel.action(.didTapAddWorkspaceButton(name: "새 워크스페이스"))
-                return
-            }
-
-            self.viewModel.action(.didTapAddWorkspaceButton(name: name))
-        }
-
-        alert.addAction(cancel)
-        alert.addAction(add)
-
-        present(alert, animated: true)
-    }
 }
 
 // MARK: - UITableViewDataSource
@@ -322,9 +288,7 @@ extension WorkSpaceListViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
 
         tableView.deselectRow(at: indexPath, animated: true)
-
-        let workspace = viewModel.workSpaces[indexPath.row]
-        guard self.cellMode == .normal else { return } // 편집모드면 이동 X
+        guard self.cellMode == .normal else { return } // 편집모드면 이동
         viewModel.action(.didSelectTapWorkspace(index: indexPath.row))
     }
     

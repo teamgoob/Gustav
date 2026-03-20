@@ -52,13 +52,13 @@ final class WorkSpaceListViewModel {
         case loading(Bool)      // 로딩 유무
         case profile(urlstring: String, name: String)   // 프로필 데이터
         case success            // 단순 성공
-//        case error(String)      // 에러메세지
     }
     
     // MARK: - Input
     enum Input {
         case viewDidLoad                                        // viewDidLoad
-        case didTapAddWorkspaceButton(name: String)             // Add Workspace
+        case didTapAddWorkspaceButton                           // Add Workspace
+        case didTapCreateWorkspace(name: String)
         case didTapreorderWorkspacesButton                      // reorder 확정 버튼
         case didReOrderWorkspaces(at: Int, to: Int)             // 순서 변경 중
         case didTapupdateWorkspacesNameButton                   // Update
@@ -81,7 +81,9 @@ final class WorkSpaceListViewModel {
         case .viewDidLoad:      // ViewDidLoad
             fetchWorkspaces()
             
-        case .didTapAddWorkspaceButton(let name):
+        case .didTapAddWorkspaceButton:
+            onNavigation?(Route.presentCreateWorkspace)
+        case .didTapCreateWorkspace(name: let name):
             createWorkspace(name: name)
             
         case .didTapreorderWorkspacesButton:

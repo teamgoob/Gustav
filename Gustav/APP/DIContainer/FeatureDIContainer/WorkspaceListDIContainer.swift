@@ -13,4 +13,22 @@ final class WorkspaceListDIContainer {
     init(appContainer: AppDIContainer) {
         self.appContainer = appContainer
     }
+    
+    // MARK: - ViewModel Builder
+    func makeWorkspaceListViewModel() -> WorkSpaceListViewModel {
+        WorkSpaceListViewModel(workspaceUsecase: appContainer.workspaceUsecase)
+    }
+    
+    // MARK: - DIContainer Builder
+    func makeAppSettingDIContainer() -> AppSettingDIContainer {
+        appContainer.makeAppSettingDIContainer()
+    }
+    
+    func makeWorkspaceDIContainer(workspaceID: UUID) -> WorkspaceDIContainer {
+        appContainer.makeWorkspaceDIContainer(workspaceID: workspaceID)
+    }
+    
+    
+    
+        
 }
