@@ -57,6 +57,7 @@ final class WorkSpaceListViewModel {
     // MARK: - Input
     enum Input {
         case viewDidLoad                                        // viewDidLoad
+        case reFetchData                                        // 다시 불러오기
         case didTapAddWorkspaceButton                           // Add Workspace
         case didTapCreateWorkspace(name: String)
         case didTapreorderWorkspacesButton                      // reorder 확정 버튼
@@ -80,7 +81,8 @@ final class WorkSpaceListViewModel {
         switch input {
         case .viewDidLoad:      // ViewDidLoad
             fetchWorkspaces()
-            
+        case .reFetchData:
+            fetchWorkspaces()
         case .didTapAddWorkspaceButton:
             onNavigation?(Route.presentCreateWorkspace)
         case .didTapCreateWorkspace(name: let name):
