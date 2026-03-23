@@ -13,7 +13,7 @@ protocol CategoryRepositoryProtocol {
     func fetchCategories(workspaceId: UUID) async -> DomainResult<[Category]>
     
     // 워크스페이스 내 단일 카테고리 조회
-    func fetchCategory(id: UUID) async -> DomainResult<Category>
+    func fetchCategory(id: UUID, workspaceId: UUID)  async -> DomainResult<Category>
 
     // 카테고리 생성
     func createCategory(category: Category) async -> DomainResult<Category>
@@ -22,7 +22,7 @@ protocol CategoryRepositoryProtocol {
     func updateCategory(id: UUID, category: Category) async -> DomainResult<Void>
 
     // 카테고리 삭제
-    func deleteCategory(id: UUID) async -> DomainResult<Void>
+    func deleteCategory(id: UUID, workspaceId: UUID) async -> DomainResult<Void>
 
     // 카테고리 순서 변경 (index_key)
     func reorderCategories(workspaceId: UUID, order: [UUID]) async -> DomainResult<Void>

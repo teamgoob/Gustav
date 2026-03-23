@@ -11,46 +11,55 @@ import Foundation
 // CategoryRepository에서 사용할 캐시
 // Thread-Safe를 위해 actor로 선언
 actor CategoryCache {
-    // 캐시 저장소
-    private var storage: [UUID: Category] = [:]
-    
-    // 카테고리 목록 저장
-    func save(_ workspaces: [Category]) {
-        storage = Dictionary(uniqueKeysWithValues: workspaces.map { ($0.id, $0) })
+    private var storage: [UUID: [Category]] = [:]
+
+    // 저장
+    func save(categories: [Category], for workspaceId: UUID) {
+        storage[workspaceId] = categories
     }
-    
-    // 카테고리 목록 전체 불러오기
-    func getAll() -> [Category] {
-        storage.values.sorted { $0.indexKey < $1.indexKey }
+
+    // 전체 조회
+    func getAll(for workspaceId: UUID) -> [Category] {
+        storage[workspaceId] ?? []
     }
-    
-    // 단일 카테고리 불러오기
-    func get(id: UUID) -> Category? {
-        storage[id]
+
+    // 단일 조회
+    func get(id: UUID, workspaceId: UUID) -> Category? {
+        storage[workspaceId]?.first { $0.id == id }
     }
-    
-    // 카테고리 추가
+
+    // 추가
     func insert(_ category: Category) {
-        storage[category.id] = category
+        var list = storage[category.workspaceId] ?? []
+        list.append(category)
+        storage[category.workspaceId] = list
     }
-    
-    // 카테고리 삭제
-    func remove(id: UUID) {
-        storage.removeValue(forKey: id)
+
+    // 삭제
+    func remove(id: UUID, workspaceId: UUID) {
+        var list = storage[workspaceId] ?? []
+        list.removeAll { $0.id == id }
+        storage[workspaceId] = list
     }
-    
-    // 카테고리 변경
-    func updateCategory(category: Category) {
-        guard let _ = storage[category.id] else { return }
-        storage[category.id] = category
+
+    // 업데이트
+    func update(_ category: Category) {
+        var list = storage[category.workspaceId] ?? []
+        if let index = list.firstIndex(where: { $0.id == category.id }) {
+            list[index] = category
+            storage[category.workspaceId] = list
+        }
     }
-    
-    // 카테고리 순서 변경
-    func updateOrder(order: [UUID]) {
+
+    // 순서 변경
+    func updateOrder(workspaceId: UUID, order: [UUID]) {
+        guard var list = storage[workspaceId] else { return }
+
+        var newList: [Category] = []
         for (index, id) in order.enumerated() {
-            guard let category = storage[id] else { continue }
-            
-            let newCategory = Category(
+            guard let category = list.first(where: { $0.id == id }) else { continue }
+
+            let updated = Category(
                 id: category.id,
                 workspaceId: category.workspaceId,
                 parentId: category.parentId,
@@ -58,13 +67,19 @@ actor CategoryCache {
                 name: category.name,
                 color: category.color
             )
-            
-            storage[id] = newCategory
+            newList.append(updated)
         }
+
+        storage[workspaceId] = newList
     }
-    
-    // 캐시 비우기
-    func clear() {
+
+    // 특정 workspace 캐시 삭제
+    func clear(workspaceId: UUID) {
+        storage.removeValue(forKey: workspaceId)
+    }
+
+    // 전체 삭제
+    func clearAll() {
         storage.removeAll()
     }
 }

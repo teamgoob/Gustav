@@ -7,6 +7,7 @@
 import Foundation
 
 final class TestCategoryUsecase: CategoryUsecaseProtocol {
+    
     var database: [Category] =  [
         
         // MARK: - 최상위 카테고리
@@ -142,7 +143,7 @@ final class TestCategoryUsecase: CategoryUsecaseProtocol {
         return .failure(.unknown)
     }
     
-    func deleteCategory(id: UUID) async -> DomainResult<Void> {
+    func deleteCategory(id: UUID, workspaceId: UUID) async -> DomainResult<Void> {
         let index = database.firstIndex { $0.id == id }
         if let index {
             database.remove(at: index)
