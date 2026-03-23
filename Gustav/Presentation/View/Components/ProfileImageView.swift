@@ -27,7 +27,7 @@ final class ProfileImageView: UIView {
     private let cameraIcon: UIImageView = {
         let icon = UIImageView()
         icon.image = UIImage(systemName: "camera.circle.fill")
-        icon.tintColor = UIColor.black.withAlphaComponent(0.8)
+        icon.tintColor = Colors.Text.main.withAlphaComponent(0.9)
         icon.backgroundColor = Colors.Theme.mainBackground
         icon.layer.cornerRadius = 24
         icon.clipsToBounds = true

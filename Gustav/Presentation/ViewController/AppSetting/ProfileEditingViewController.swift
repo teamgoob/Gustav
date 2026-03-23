@@ -73,13 +73,13 @@ private extension ProfileEditingViewController {
     // TextField 설정
     func setupTextField() {
         // 이름 수정 시 호출될 타겟 메서드 등록
-        customView.nameTextField.addTarget(
+        customView.nameTextField.textField.addTarget(
             self,
             action: #selector(didChangeNameTextField),
             for: .editingChanged
         )
         // 델리게이트 설정
-        customView.nameTextField.delegate = self
+        customView.nameTextField.textField.delegate = self
     }
     
     // 제스처 설정
@@ -132,12 +132,12 @@ private extension ProfileEditingViewController {
     // 이름 텍스트필드 내용 수정
     @objc func didChangeNameTextField() {
         // 공백 문자 제거
-        let rawText = customView.nameTextField.text ?? ""
+        let rawText = customView.nameTextField.textField.text ?? ""
         let trimmedText = rawText.trimmingCharacters(in: .whitespacesAndNewlines)
-        customView.nameTextField.text = trimmedText
+        customView.nameTextField.textField.text = trimmedText
         
         // ViewModel에 Input 전달
-        viewModel.action(.changeUserName(name: customView.nameTextField.text ?? ""))
+        viewModel.action(.changeUserName(name: customView.nameTextField.textField.text ?? ""))
     }
     
     // 키보드 내리기
@@ -176,7 +176,7 @@ private extension ProfileEditingViewController {
         
         // UI 업데이트
         customView.profileImageView.imageView.kf.setImage(with: URL(string: output.profileImageUrl ?? ""), placeholder: UIImage(systemName: "person.crop.circle"))
-        customView.nameTextField.text = output.userName
+        customView.nameTextField.textField.text = output.userName
     }
 }
 
