@@ -7,7 +7,7 @@
 import Foundation
 
 final class WorkSpaceListViewModel {
-
+    
     // VC가 구독(바인딩)할 콜백
     var onStateChange: ((State) -> Void)?
     
@@ -16,13 +16,16 @@ final class WorkSpaceListViewModel {
     
     // MARK: - Usecase
     private let workspaceUsecase: WorkspaceUsecaseProtocol
-//    private let authUsecase: AuthUseCaseProtocol
-//    private let profileUsecase: ProfileUseCaseProtocol
+    private let authUsecase: AuthUseCaseProtocol
+    private let profileUsecase: ProfileUseCaseProtocol
     
+    // MARK: - Profile Data
+    private var profileImageUrl: String?
+    private var userName: String?
     
     // Task Remote
     private var workspaceTask: Task<Void, Never>?
-
+    
     // 기본 데이터
     private(set) var workSpaces: [Workspace] = []
     
@@ -33,24 +36,21 @@ final class WorkSpaceListViewModel {
     private(set) var editingOrderWorkspaces: [Workspace] = []
     
     // MARK: - init
-    init(workspaceUsecase: WorkspaceUsecaseProtocol) {
-        self.workspaceUsecase = workspaceUsecase
-    }
     // 프로필 속성 수정 후 생성 및 프로필 반영 메서드 구현 필요
-//    init(
-//        workspaceUsecase: WorkspaceUsecaseProtocol,
-//        authenticationUsecase: AuthUseCaseProtocol,
-//        profileUsecase: ProfileUseCaseProtocol
-//    ) {
-//        self.workspaceUsecase = workspaceUsecase
-//        self.authUsecase = authenticationUsecase
-//        self.profileUsecase = profileUsecase
-//    }
+    init(
+        workspaceUsecase: WorkspaceUsecaseProtocol,
+        authenticationUsecase: AuthUseCaseProtocol,
+        profileUsecase: ProfileUseCaseProtocol
+    ) {
+        self.workspaceUsecase = workspaceUsecase
+        self.authUsecase = authenticationUsecase
+        self.profileUsecase = profileUsecase
+    }
     
     // MARK: - State(Output)
     enum State {
         case loading(Bool)      // 로딩 유무
-        case profile(urlstring: String, name: String)   // 프로필 데이터
+        case profile(urlstring: String?, name: String?)   // 프로필 데이터
         case success            // 단순 성공
     }
     
@@ -58,6 +58,7 @@ final class WorkSpaceListViewModel {
     enum Input {
         case viewDidLoad                                        // viewDidLoad
         case reFetchData                                        // 다시 불러오기
+        case reFetchProfile                                     // 프로필 가져오기
         case didTapAddWorkspaceButton                           // Add Workspace
         case didTapCreateWorkspace(name: String)
         case didTapreorderWorkspacesButton                      // reorder 확정 버튼
@@ -75,16 +76,30 @@ final class WorkSpaceListViewModel {
         case showErrorAlert(String)             // 에러 알럿창
     }
     
-    
     // Action
     func action(_ input: Input) {
         switch input {
-        case .viewDidLoad:      // ViewDidLoad
-            fetchWorkspaces()
+        case .viewDidLoad:                  // ViewDidLoad
+            Task {          // 새로운 Task 생성 및 Task 저장(메모리 주소 저장)
+                await fetchWorkspaces()     // 워크스페이스 불러오기
+                await fetchProfileDataAndUpdateView()   // 프로필 불러오기
+            }
+            
+        case .reFetchProfile:
+            workspaceTask?.cancel()
+            workspaceTask = Task {
+                await fetchProfileDataAndUpdateView()
+            }
+            
         case .reFetchData:
-            fetchWorkspaces()
+            workspaceTask?.cancel()
+            workspaceTask = Task {
+                await fetchWorkspaces()
+            }
+            
         case .didTapAddWorkspaceButton:
             onNavigation?(Route.presentCreateWorkspace)
+            
         case .didTapCreateWorkspace(name: let name):
             createWorkspace(name: name)
             
@@ -93,6 +108,7 @@ final class WorkSpaceListViewModel {
             
         case .didReOrderWorkspaces(at: let from, to: let to):
             updateOrder(moveRowAt: from, to: to)
+            
         case .didTapupdateWorkspacesNameButton:
             updateWorkspace()
             
@@ -105,40 +121,29 @@ final class WorkSpaceListViewModel {
         }
     }
     
-    // 프로필 불러오기
-    func fetchProfileData() async {
-        
-    }
-    
     // Fetch
-    private func fetchWorkspaces() {
-        workspaceTask?.cancel()     // 저장된 비동기 작업이 존재하는 경우 캔슬
-
-        workspaceTask = Task { [weak self] in   // 새로운 Task 생성 및 Task 저장(메모리 주소 저장)
-            guard let self else { return }  // 실행시 다시 강한 참조
-
-            self.emit(.loading(true))       // 로딩 시작
-            defer { self.emit(.loading(false) ) }    // 끝나면 로딩 끝
+    private func fetchWorkspaces() async {
+        self.emit(.loading(true))       // 로딩 시작
+        defer { self.emit(.loading(false) ) }    // 끝나면 로딩 끝
+        
+#if DEBUG
+        try? await Task.sleep(for: .seconds(2))
+#endif
+        
+        let result = await self.workspaceUsecase.fetchWorkspaces()      // fetch
+        
+        guard !Task.isCancelled else { return }         // 전달 받은 캔슬 플래그가 있으면 중단
+        
+        switch result {
+        case .success(let workspaces):
+            self.workSpaces = workspaces
+            self.emit(.success)
             
-            #if DEBUG
-            try? await Task.sleep(for: .seconds(2))
-            #endif
-            
-            let result = await self.workspaceUsecase.fetchWorkspaces()      // fetch
-
-            guard !Task.isCancelled else { return }         // 전달 받은 캔슬 플래그가 있으면 중단
-
-            switch result {
-            case .success(let workspaces):
-                self.workSpaces = workspaces
-                self.emit(.success)
-
-            case .failure(let error):
-                onNavigation?(.showErrorAlert(String(describing: error)))
-            }
+        case .failure(let error):
+            onNavigation?(.showErrorAlert(String(describing: error)))
         }
     }
-
+    
     // Create
     private func createWorkspace(name: String) {
         workspaceTask?.cancel()     // 저장된 비동기 작업이 존재하는 경우 캔슬
@@ -182,12 +187,12 @@ final class WorkSpaceListViewModel {
                 guard name != "" else { continue }
                 let _ = await self.workspaceUsecase.updateWorkspaceName(id: self.workSpaces[i].id, name: name)
             }
-
+            
             let result = await self.workspaceUsecase.fetchWorkspaces()
             
-            #if DEBUG
+#if DEBUG
             try? await Task.sleep(for: .seconds(2))
-            #endif
+#endif
             
             switch result {
             case .success(let workspaces):
@@ -241,9 +246,9 @@ final class WorkSpaceListViewModel {
             
             let result = await self.workspaceUsecase.reorderWorkspaces(order: uuidArray)
             
-            #if DEBUG
+#if DEBUG
             try? await Task.sleep(for: .seconds(2))
-            #endif
+#endif
             
             switch result {
             case .success:
@@ -258,17 +263,29 @@ final class WorkSpaceListViewModel {
         }
     }
     
+    private func fetchProfileDataAndUpdateView() async {
+        // 프로필 정보 불러오기
+        guard let currentUserId = authUsecase.currentUserId() else { return }
+        let result = await profileUsecase.fetchProfile(userId: currentUserId)
+        switch result {
+        case .success(let profile):
+            emit(.profile(urlstring: profile.profileImageUrl, name: profile.displayName))
+        case .failure:
+            emit(.profile(urlstring: nil, name: nil))
+        }
+    }
+    
     private func cancel() {
         workspaceTask?.cancel()     // Task 객체에게 취소 플래그 전달
         workspaceTask = nil         // Task 객체는 누가 참조하지 않아도 존재 가능하며, 뷰모델에서는 참조 해제
     }
-
+    
     // 갱신은 메인스레드에서
     @MainActor
     private func emit(_ state: State) {
         onStateChange?(state)
     }
-
+    
     deinit {
         workspaceTask?.cancel()
     }

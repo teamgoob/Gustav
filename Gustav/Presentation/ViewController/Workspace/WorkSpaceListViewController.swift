@@ -26,11 +26,18 @@ class WorkSpaceListViewController: UIViewController {
         super.init(nibName: nil, bundle: nil)
     }
     
+    // MARK: - ViewDidLoad
     override func viewDidLoad() {
         super.viewDidLoad()
         setUI()
         set()
         setNavigationButton()
+    }
+    
+    // MARK: - ViewWillAppear
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        self.viewModel.action(.reFetchProfile)
     }
     
     required init?(coder: NSCoder) { fatalError() }

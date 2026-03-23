@@ -16,7 +16,7 @@ final class WorkspaceListDIContainer {
     
     // MARK: - ViewModel Builder
     func makeWorkspaceListViewModel() -> WorkSpaceListViewModel {
-        WorkSpaceListViewModel(workspaceUsecase: appContainer.workspaceUsecase)
+        WorkSpaceListViewModel(workspaceUsecase: appContainer.workspaceUsecase, authenticationUsecase: appContainer.authUsecase, profileUsecase: appContainer.profileUsecase)
     }
     
     // MARK: - DIContainer Builder

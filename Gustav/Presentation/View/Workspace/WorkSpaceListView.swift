@@ -18,7 +18,7 @@ class WorkSpaceListView: UIView {
         let header = UIView()
         header.backgroundColor = Colors.Theme.mainBackground
 
-        profileImage.image = UIImage(systemName: "person.crop.circle")
+//        profileImage.image = UIImage(systemName: "person.crop.circle")
         profileImage.backgroundColor = Colors.Theme.mainBackground
         profileImage.tintColor = Colors.Theme.inactive
         profileImage.contentMode = .scaleAspectFill
@@ -83,15 +83,15 @@ class WorkSpaceListView: UIView {
     }
     
 
-    func updateProfile(imageUrl: String?, name: String) {
-        nameLabel.text = name
+    func updateProfile(imageUrl: String?, name: String?) {
+        nameLabel.text = (name ?? "Gustav")
         guard let urlString = imageUrl,
               let url = URL(string: urlString) else {
 
             profileImage.image = UIImage(systemName: "person.crop.circle.fill")
             return
         }
-
+        
         profileImage.kf.setImage(
             with: url,
             placeholder: UIImage(systemName: "person.crop.circle.fill")
