@@ -21,31 +21,16 @@ final class ProfileEditingView: UIView {
     
     // MARK: - Profile Editor
     // Profile Image
-    let profileImageView: UIImageView = {
-        let imageView = UIImageView()
-        imageView.image = UIImage(systemName: "person.crop.circle")
-        imageView.tintColor = .gray
-        imageView.layer.cornerRadius = 100
-        imageView.clipsToBounds = true
-        imageView.contentMode = .scaleAspectFill
+    let profileImageView: ProfileImageView = {
+        let imageView = ProfileImageView()
+        imageView.imageView.image = UIImage(systemName: "person.crop.circle")
         return imageView
     }()
     
     // User Name TextField
-    let nameTextField: UITextField = {
-        let textField = UITextField()
-        textField.placeholder = "Enter your name"
-        textField.clearButtonMode = .whileEditing
-        textField.backgroundColor = .clear
-        textField.font = Fonts.largeTextField
-        textField.textColor = Colors.Text.main
-        textField.textAlignment = .center
-        textField.returnKeyType = .done
-        // 자동 대문자 방지
-        textField.autocapitalizationType = .none
-        // 맞춤법 수정 비활성화
-        textField.autocorrectionType = .no
-        textField.spellCheckingType = .no
+    let nameTextField: UserNameTextFieldView = {
+        let textField = UserNameTextFieldView()
+        textField.textField.placeholder = "Enter your name"
         return textField
     }()
     
@@ -97,7 +82,7 @@ final class ProfileEditingView: UIView {
         
         nameTextField.snp.makeConstraints {
             $0.top.equalTo(profileImageView.snp.bottom).offset(24)
-            $0.leading.trailing.equalToSuperview().inset(32)
+            $0.leading.trailing.equalToSuperview().inset(60)
         }
     }
 }

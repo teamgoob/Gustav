@@ -144,7 +144,13 @@ extension ProfileEditingViewModel {
         case .unchanged:
             isImageChanged = false
         case .removed:
-            isImageChanged = true
+            // 기존 프로필 이미지가 존재하는 경우
+            if self.profileImageUrl != nil {
+                isImageChanged = true
+            } else {
+                // 기존 프로필 이미지가 존재하지 않는 경우
+                isImageChanged = false
+            }
         }
         
         // 프로필 변경 여부 확인
