@@ -154,11 +154,11 @@ private extension ProfileEditingViewController {
     func showProfileImage(with data: Data?) {
         if let data = data {
             DispatchQueue.main.async {
-                self.customView.profileImageView.image = UIImage(data: data)
+                self.customView.profileImageView.imageView.image = UIImage(data: data)
             }
         } else {
             DispatchQueue.main.async {
-                self.customView.profileImageView.image = UIImage(systemName: "person.crop.circle")
+                self.customView.profileImageView.imageView.image = UIImage(systemName: "person.crop.circle")
             }
         }
     }
@@ -175,7 +175,7 @@ private extension ProfileEditingViewController {
         }
         
         // UI 업데이트
-        customView.profileImageView.kf.setImage(with: URL(string: output.profileImageUrl ?? ""), placeholder: UIImage(systemName: "person.crop.circle"))
+        customView.profileImageView.imageView.kf.setImage(with: URL(string: output.profileImageUrl ?? ""), placeholder: UIImage(systemName: "person.crop.circle"))
         customView.nameTextField.text = output.userName
     }
 }

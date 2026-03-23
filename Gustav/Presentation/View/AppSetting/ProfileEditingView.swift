@@ -21,13 +21,9 @@ final class ProfileEditingView: UIView {
     
     // MARK: - Profile Editor
     // Profile Image
-    let profileImageView: UIImageView = {
-        let imageView = UIImageView()
-        imageView.image = UIImage(systemName: "person.crop.circle")
-        imageView.tintColor = .gray
-        imageView.layer.cornerRadius = 100
-        imageView.clipsToBounds = true
-        imageView.contentMode = .scaleAspectFill
+    let profileImageView: ProfileImageView = {
+        let imageView = ProfileImageView()
+        imageView.imageView.image = UIImage(systemName: "person.crop.circle")
         return imageView
     }()
     
