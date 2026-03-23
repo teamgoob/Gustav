@@ -126,6 +126,7 @@ class WorkspaceNameEditingCell: UITableViewCell {
     // didTapClearButton
     @objc private func didTapClearButton() {
         nameTextField.text = ""
+        onTextChanged?("")
     }
     
     override func prepareForReuse() {

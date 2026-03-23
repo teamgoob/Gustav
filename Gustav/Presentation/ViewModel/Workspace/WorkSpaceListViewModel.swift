@@ -163,7 +163,6 @@ final class WorkSpaceListViewModel {
     // 워크스페이스 이름 변경 내용 임시 저장
     func updateText(index: Int, text: String) {
         self.editingWorkSpaces[index] = text
-        print("워크스페이스 이름 변경 내용 임시 저장 - 인덱스 값\(index), 텍스트 값\(text)")
     }
     
     // Update
@@ -180,6 +179,7 @@ final class WorkSpaceListViewModel {
             
             for i in keyArray {
                 guard let name = editingWorkSpaces[i] else { continue }
+                guard name != "" else { continue }
                 let _ = await self.workspaceUsecase.updateWorkspaceName(id: self.workSpaces[i].id, name: name)
             }
 
@@ -221,8 +221,7 @@ final class WorkSpaceListViewModel {
             guard let self else { return }
             
             self.emit(.loading(true))
-            print("로딩 시작")
-//            defer { self.emit(.loading(false) ) }
+            
             var draftworkspaces: [Workspace] = []
             var uuidArray: [UUID] = []
             var index: Int = 0
@@ -245,17 +244,17 @@ final class WorkSpaceListViewModel {
             #if DEBUG
             try? await Task.sleep(for: .seconds(2))
             #endif
-            self.emit(.loading(false) )
+            
             switch result {
             case .success:
                 self.workSpaces = draftworkspaces
                 self.editingOrderWorkspaces.removeAll()
-//                emit(.success)
-                onNavigation?(.showErrorAlert("테스트 에러 알럿창"))
+                emit(.success)
             case .failure(let error):
                 self.editingOrderWorkspaces.removeAll()
-//                onNavigation?(.showErrorAlert(String(describing: error)))
+                onNavigation?(.showErrorAlert(String(describing: error)))
             }
+            self.emit(.loading(false) )
         }
     }
     
