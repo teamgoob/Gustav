@@ -23,7 +23,7 @@ final class ProfileEditingView: UIView {
     // Profile Image
     let profileImageView: ProfileImageView = {
         let imageView = ProfileImageView()
-        imageView.imageView.image = UIImage(systemName: "person.crop.circle")
+        imageView.imageView.image = UIImage(systemName: "person.crop.circle.fill")
         return imageView
     }()
     

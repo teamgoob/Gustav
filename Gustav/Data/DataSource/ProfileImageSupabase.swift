@@ -46,7 +46,7 @@ final class ProfileImageSupabase: ProfileImageDataSourceProtocol {
         guard let processedData = ImageProcessor.compress(data: data) else { return .failure(.unknown) }
         
         // 이미지 저장 경로 설정
-        let path = "\(userId.uuidString)/profile.jpg"
+        let path = "\(userId.uuidString.lowercased())/profile.jpg"
         
         do {
             // 설정한 경로에 이미지 덮어쓰기
@@ -104,7 +104,7 @@ final class ProfileImageSupabase: ProfileImageDataSourceProtocol {
     // 프로필 이미지 및 URL 삭제
     func deleteProfileImage(userId: UUID) async -> RepositoryResult<Void> {
         // 이미지 저장 경로
-        let path = "\(userId.uuidString)/profile.jpg"
+        let path = "\(userId.uuidString.lowercased())/profile.jpg"
         
         do {
             // 이미지가 저장된 경로 삭제

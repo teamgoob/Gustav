@@ -15,8 +15,8 @@ final class ProfileImageView: UIView {
     // Profile Image
     let imageView: UIImageView = {
         let imageView = UIImageView()
-        imageView.image = UIImage(systemName: "person.crop.circle")
-        imageView.tintColor = Colors.Theme.primary.withAlphaComponent(0.8)
+        imageView.image = UIImage(systemName: "person.crop.circle.fill")
+        imageView.tintColor = Colors.Theme.inactive
         imageView.layer.cornerRadius = 100
         imageView.clipsToBounds = true
         imageView.contentMode = .scaleAspectFill

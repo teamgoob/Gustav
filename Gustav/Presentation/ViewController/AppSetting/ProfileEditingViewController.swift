@@ -175,7 +175,7 @@ private extension ProfileEditingViewController {
         }
         
         // UI 업데이트
-        customView.profileImageView.imageView.kf.setImage(with: URL(string: output.profileImageUrl ?? ""), placeholder: UIImage(systemName: "person.crop.circle"))
+        customView.profileImageView.imageView.kf.setImage(with: URL(string: output.profileImageUrl ?? ""), placeholder: UIImage(systemName: "person.crop.circle.fill"))
         customView.nameTextField.textField.text = output.userName
     }
 }
