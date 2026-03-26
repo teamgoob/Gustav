@@ -16,21 +16,21 @@ final class ItemStateRepository: ItemStateRepositoryProtocol {
     }
     
     func fetchItemStates(workspaceId: UUID) async -> DomainResult<[ItemState]> {
-        let result = await self.cache.getAll()
+        let result = await self.cache.getAll(for: workspaceId)
         if !result.isEmpty {
             return .success(result)
         }
         switch await dataSource.fetchItemStates(workspaceId: workspaceId).toDomainResult() {
         case .success(let itemState):
-            await self.cache.save(itemState)
+            await self.cache.save(itemStates: itemState, for: workspaceId)
             return .success(itemState)
         case .failure(let error):
             return .failure(error)
         }
     }
     
-    func fetchItemState(id: UUID) async -> DomainResult<ItemState> {
-        if let cache = await self.cache.get(id: id) {
+    func fetchItemState(id: UUID, workspaceId: UUID) async -> DomainResult<ItemState> {
+        if let cache = await self.cache.get(id: id, workspaceId: workspaceId) {
             return .success(cache)
         }
         switch await dataSource.fetchItemState(id: id).toDomainResult() {
@@ -55,15 +55,15 @@ final class ItemStateRepository: ItemStateRepositoryProtocol {
     func updateItemState(id: UUID, itemState: ItemState) async -> DomainResult<Void> {
         let reuslt = await dataSource.updateItemState(id: id, itemState: itemState).toDomainResult()
         if case .success = reuslt {
-            await self.cache.updateItemState(itemState: itemState)
+            await self.cache.update(itemState)
         }
         return reuslt
     }
     
-    func deleteItemState(id: UUID) async -> DomainResult<Void> {
+    func deleteItemState(id: UUID, workspaceId: UUID) async -> DomainResult<Void> {
         let result = await dataSource.deleteItemState(id: id).toDomainResult()
         if case .success = result {
-            await self.cache.remove(id: id)
+            await self.cache.remove(id: id, workspaceId: workspaceId)
         }
         return result
     }
@@ -71,7 +71,7 @@ final class ItemStateRepository: ItemStateRepositoryProtocol {
     func reorderItemStates(workspaceId: UUID, order: [UUID]) async -> DomainResult<Void> {
         let result = await dataSource.reorderItemStates(workspaceId: workspaceId, order: order).toDomainResult()
         if case .success = result {
-            await self.cache.updateOrder(order: order)
+            await self.cache.updateOrder(workspaceId: workspaceId, order: order)
         }
         return result 
     }

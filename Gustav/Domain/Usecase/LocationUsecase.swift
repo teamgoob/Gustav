@@ -19,7 +19,7 @@ protocol LocationUsecaseProtocol {
     func updateLocation(id: UUID, location: Location) async -> DomainResult<Void>
 
     // 장소 삭제
-    func deleteLocation(id: UUID) async -> DomainResult<Void>
+    func deleteLocation(id: UUID, workspaceId: UUID) async -> DomainResult<Void>
 
     // 장소 순서 변경
     func reorderLocations(workspaceId: UUID, order: [UUID]) async -> DomainResult<Void>
@@ -44,8 +44,8 @@ final class LocationUsecase: LocationUsecaseProtocol {
         await repository.updateLocation(id: id, location: location)
     }
     
-    func deleteLocation(id: UUID) async -> DomainResult<Void> {
-        await repository.deleteLocation(id: id)
+    func deleteLocation(id: UUID, workspaceId: UUID) async -> DomainResult<Void> {
+        await repository.deleteLocation(id: id, workspaceId: workspaceId)
     }
     
     func reorderLocations(workspaceId: UUID, order: [UUID]) async -> DomainResult<Void> {
