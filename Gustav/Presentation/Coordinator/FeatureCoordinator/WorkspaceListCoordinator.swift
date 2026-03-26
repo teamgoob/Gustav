@@ -75,13 +75,15 @@ private extension WorkspaceListCoordinator {
     // WorkspaceDetail
     private func startWorkspaceFlow(workspace: Workspace) {
         let diContainer = self.container.makeWorkspaceDIContainer()
-        let coordinator = WorkspaceCoordinator(navigationController: self.navigationController, container: diContainer, workspaceID: workspace.id)
+        let coordinator = WorkspaceCoordinator(navigationController: self.navigationController, container: diContainer, workspace: workspace)
         coordinator.onFinish = { [weak self] coordinator in
             self?.removeChild(coordinator)
         }
+        coordinator.onDeleteWorkspace = { [weak self] in
+            self?.viewModel.action(.reFetchData)
+        }
         self.childCoordinators.append(coordinator)
         coordinator.start()
-        
     }
     
     // AppSetting
