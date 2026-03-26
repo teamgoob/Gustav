@@ -36,22 +36,12 @@ final class AppDIContainer: AppDIContainerProtocol  {
     
     // MARK: - App Flow Factory
     // MARK: - ⭐️ 화면용 ViewModel factory 구현 필요
-    
-    
     func makeAuthDIContainer() -> AuthDIContainer {
         AuthDIContainer(appDIContainer: self)
     }
     
     func makeWorkspaceListDIContainer() -> WorkspaceListDIContainer {
         WorkspaceListDIContainer(appContainer: self)
-    }
-
-    func makeWorkspaceDIContainer(workspaceID: UUID) -> WorkspaceDIContainer {
-        WorkspaceDIContainer(appContainer: self, workspaceID: workspaceID)
-    }
-
-    func makeAppSettingDIContainer() -> AppSettingDIContainer {
-        AppSettingDIContainer(appDIContainer: self)
     }
     
     // MARK: - Remote Data Source
