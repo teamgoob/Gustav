@@ -9,7 +9,7 @@ import Foundation
 // MARK: - WorkspaceViewModel
 final class WorkspaceViewModel {
     // MARK: - Usecase
-    private let workspaceId: UUID
+    private let workspace: Workspace
     private let itemQueryUsecase: ItemQueryUsecaseProtocol
     private let itemReferenceUsecase: ItemReferenceUsecaseProtocol
     
@@ -17,8 +17,8 @@ final class WorkspaceViewModel {
     private var query: ItemQuery
     
     // MARK: - Initializer
-    init(workspaceId: UUID, itemQueryUsecase: ItemQueryUsecaseProtocol, itemReferenceUsecase: ItemReferenceUsecaseProtocol) {
-        self.workspaceId = workspaceId
+    init(workspace: Workspace, itemQueryUsecase: ItemQueryUsecaseProtocol, itemReferenceUsecase: ItemReferenceUsecaseProtocol) {
+        self.workspace = workspace
         self.itemQueryUsecase = itemQueryUsecase
         self.itemReferenceUsecase = itemReferenceUsecase
         self.query = ItemQuery(sortOption: .indexKey(order: .ascending), filters: [], searchText: nil)
@@ -52,6 +52,7 @@ final class WorkspaceViewModel {
     
     // MARK: - Output
     struct Output {
+        let workspaceName: String
         let action: TableViewAction
         let isLoading: LoadingState
     }
@@ -131,7 +132,7 @@ private extension WorkspaceViewModel {
     // 현재 쿼리 및 페이지 정보를 이용하여 아이템 불러오기
     func queryItems() async {
         let pagination = Pagination(offset: self.offset, limit: self.limit)
-        let result = await itemQueryUsecase.queryItems(workspaceId: self.workspaceId, query: self.query, pagination: pagination)
+        let result = await itemQueryUsecase.queryItems(workspaceId: self.workspace.id, query: self.query, pagination: pagination)
         switch result {
         case .success(let items):
             if items.count < limit {
@@ -200,6 +201,7 @@ private extension WorkspaceViewModel {
     // 현재 상태를 VC에 전달하는 메서드
     func notifyOutput() {
         let output = Output(
+            workspaceName: workspace.name,
             action: tableViewAction,
             isLoading: isLoading
         )
@@ -215,7 +217,7 @@ private extension WorkspaceViewModel {
 private extension WorkspaceViewModel {
     // 쿼리를 실행하여 불러온 아이템 정보로 ItemReference 배열 생성
     func createItemReferences(of items: [Item]) async {
-        let result = await itemReferenceUsecase.createItemReferences(workspaceId: self.workspaceId, items: items)
+        let result = await itemReferenceUsecase.createItemReferences(workspaceId: self.workspace.id, items: items)
         switch result {
         // 성공 시 기존 Item Reference 배열에 추가
         case .success(let references):
