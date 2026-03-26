@@ -42,9 +42,65 @@ struct Colors {
         static let green: UIColor = UIColor.green
         // Error Color
         static let error: UIColor = UIColor(named: "ErrorColor")!
+        // Highlighted Item Property Color (Gold)
+        static let highlighted: UIColor = UIColor(named: "HighlightedPropertyColor")!
         
         private init() {}
     }
     
     private init() {}
+}
+
+// MARK: - TagColor Extensions
+extension TagColor {
+    // 태그 컬러에 해당하는 UIColor 배경 색상 반환
+    func toUIColor() -> UIColor {
+        switch self {
+        case .darkGray:
+            return UIColor.darkGray.withAlphaComponent(0.7)
+        case .lightGray:
+            return UIColor.lightGray.withAlphaComponent(0.7)
+        case .brown:
+            return UIColor.brown.withAlphaComponent(0.7)
+        case .red:
+            return UIColor.red.withAlphaComponent(0.7)
+        case .orange:
+            return UIColor.orange.withAlphaComponent(0.7)
+        case .yellow:
+            return UIColor.yellow.withAlphaComponent(0.7)
+        case .green:
+            return UIColor.green.withAlphaComponent(0.7)
+        case .blue:
+            return UIColor.blue.withAlphaComponent(0.7)
+        case .pink:
+            return UIColor.systemPink.withAlphaComponent(0.7)
+        case .purple:
+            return UIColor.purple.withAlphaComponent(0.7)
+        }
+    }
+    // 배경에 따른 텍스트 색상 반환
+    func getTextColor() -> UIColor {
+        switch self {
+        case .darkGray:
+            return UIColor.darkGray
+        case .lightGray:
+            return UIColor.lightGray
+        case .brown:
+            return UIColor.brown
+        case .red:
+            return UIColor.red
+        case .orange:
+            return UIColor.orange
+        case .yellow:
+            return UIColor.yellow
+        case .green:
+            return UIColor.green
+        case .blue:
+            return UIColor.blue
+        case .pink:
+            return UIColor.systemPink
+        case .purple:
+            return UIColor.purple
+        }
+    }
 }
