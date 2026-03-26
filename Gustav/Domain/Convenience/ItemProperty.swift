@@ -42,4 +42,24 @@ enum ItemProperty {
         default: return false
         }
     }
+    // SortingOption -> ItemProperty 변환 메서드
+    static func from(sortingOption: SortingOption) -> ItemProperty? {
+        switch sortingOption {
+        case .nameDetail: return .nameDetail
+        case .purchaseDate: return .purchaseDate
+        case .purchasePlace: return .purchasePlace
+        case .expireDate: return .warrantyExpireAt
+        case .price: return .price
+        case .quantity: return .quantity
+        default: return nil
+        }
+    }
+    // FilterOption -> ItemProperty 변환 메서드
+    static func from(filterOption: FilterOption) -> ItemProperty {
+        switch filterOption {
+        case .category: return .category
+        case .location: return .location
+        case .itemState: return .state
+        }
+    }
 }
