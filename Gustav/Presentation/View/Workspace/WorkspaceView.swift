@@ -30,6 +30,7 @@ final class WorkspaceView: UIView {
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 120
         tableView.register(WorkspaceItemCell.self, forCellReuseIdentifier: WorkspaceItemCell.identifier)
+        tableView.register(EmptyStateCell.self, forCellReuseIdentifier: EmptyStateCell.identifier)
         return tableView
     }()
     
@@ -38,18 +39,6 @@ final class WorkspaceView: UIView {
         let view = LoadingView()
         view.descriptionLabel.text = "Loading Items..."
         return view
-    }()
-    
-    // MARK: - No Item Label
-    let noItemLabel: UILabel = {
-        let label = UILabel()
-        label.text = "There's no items."
-        label.font = Fonts.headline
-        label.textColor = Colors.Text.main
-        label.textAlignment = .center
-        label.numberOfLines = 0
-        label.isHidden = true
-        return label
     }()
     
     // MARK: - Initializer
@@ -72,7 +61,6 @@ final class WorkspaceView: UIView {
         addSubview(contentView)
         addSubview(loadingView)
         contentView.addSubview(tableView)
-        contentView.addSubview(noItemLabel)
     }
     
     // 오토레이아웃 설정
@@ -89,10 +77,6 @@ final class WorkspaceView: UIView {
             $0.top.equalToSuperview()
             $0.leading.trailing.equalToSuperview()
             $0.bottom.equalTo(safeAreaLayoutGuide.snp.bottom)
-        }
-        noItemLabel.snp.makeConstraints {
-            $0.top.equalToSuperview().offset(100)
-            $0.leading.trailing.equalToSuperview()
         }
     }
 }

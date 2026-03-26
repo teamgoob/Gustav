@@ -111,12 +111,6 @@ private extension WorkspaceViewController {
         navigationItem.attributedSubtitle = subtitle
         
         // 테이블 뷰 업데이트
-        // 조건에 맞는 아이템이 없는 경우
-        if viewModel.tableViewCellDatas.isEmpty {
-            customView.noItemLabel.isHidden = false
-        } else {
-            customView.noItemLabel.isHidden = true
-        }
         // Output Action에 따라 테이블 뷰 갱신
         switch output.action {
         // 테이블 전체 다시 불러오기
@@ -149,11 +143,23 @@ private extension WorkspaceViewController {
 extension WorkspaceViewController: UITableViewDataSource {
     // 테이블 뷰 아이템 수
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        viewModel.tableViewCellDatas.count
+        // 테이블 뷰에 아이템이 없는 경우
+        if viewModel.tableViewCellDatas.isEmpty {
+            return 1
+        }
+        
+        return viewModel.tableViewCellDatas.count
     }
     // 특정 셀의 정보
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         // 셀 불러오기
+        // 테이블 뷰에 아이템이 없는 경우
+        if viewModel.tableViewCellDatas.isEmpty {
+            guard let cell = customView.tableView.dequeueReusableCell(withIdentifier: EmptyStateCell.identifier, for: indexPath) as? EmptyStateCell else {
+                return UITableViewCell()
+            }
+            return cell
+        }
         guard let cell = customView.tableView.dequeueReusableCell(withIdentifier: WorkspaceItemCell.identifier, for: indexPath) as? WorkspaceItemCell else {
             return UITableViewCell()
         }
@@ -171,6 +177,15 @@ extension WorkspaceViewController: UITableViewDataSource {
         }
         
         return cell
+    }
+    // 셀의 높이
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        // 테이블 뷰에 아이템이 없는 경우
+        if viewModel.tableViewCellDatas.isEmpty {
+            return customView.tableView.bounds.height / 2
+        }
+        
+        return UITableView.automaticDimension
     }
 }
 
