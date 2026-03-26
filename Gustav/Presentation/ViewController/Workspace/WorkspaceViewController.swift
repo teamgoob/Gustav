@@ -70,6 +70,8 @@ private extension WorkspaceViewController {
         // 네비게이션 타이틀 설정
         navigationItem.title = "Workspace"
         navigationItem.largeTitleDisplayMode = .always
+        // 네비게이션 바 우측 워크스페이스 설정 버튼 설정
+        navigationItem.rightBarButtonItem = workspaceSettingButton
     }
     
     // Delegate 설정
