@@ -87,7 +87,7 @@ private extension AppSettingViewController {
         }
         
         // UI 업데이트
-        customView.profileImageView.kf.setImage(with: URL(string: output.profileImageUrl ?? ""), placeholder: UIImage(systemName: "person.crop.circle"))
+        customView.profileImageView.kf.setImage(with: URL(string: output.profileImageUrl ?? ""), placeholder: UIImage(systemName: "person.crop.circle.fill"))
         if let name = output.userName, !name.isEmpty {
             customView.nameLabel.text = name
         } else {

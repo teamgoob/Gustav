@@ -23,9 +23,10 @@ final class AppSettingView: UIView {
     // Profile Image
     let profileImageView: UIImageView = {
         let imageView = UIImageView()
-        imageView.image = UIImage(systemName: "person.crop.circle")
-        imageView.tintColor = .gray
-        imageView.layer.cornerRadius = 100
+        imageView.image = UIImage(systemName: "person.crop.circle,fill")
+        imageView.tintColor = Colors.Theme.inactive
+        imageView.layer.cornerRadius = 50
+        imageView.clipsToBounds = true
         imageView.contentMode = .scaleAspectFill
         return imageView
     }()
