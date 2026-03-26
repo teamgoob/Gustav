@@ -62,7 +62,7 @@ private extension WorkspaceListCoordinator {
             case .pushToAppSetting:
                 self?.showAppSettingView()
             case .pushToWorkspaceDetail(let workspace):
-                print(workspace.name + "선택됨이 코디네이터에서 실행")
+                self?.startWorkspaceFlow(workspace: workspace)
             case .showErrorAlert(let string):
                 self?.presentErrorAlert(string: string)
                 
@@ -73,8 +73,8 @@ private extension WorkspaceListCoordinator {
     }
     
     // WorkspaceDetail
-    private func showWorkspaceDetailView(workspace: Workspace) {
-        let diContainer = self.container.makeWorkspaceDIContainer(workspaceID: workspace.id)
+    private func startWorkspaceFlow(workspace: Workspace) {
+        let diContainer = self.container.makeWorkspaceDIContainer()
         let coordinator = WorkspaceCoordinator(navigationController: self.navigationController, container: diContainer, workspaceID: workspace.id)
         coordinator.onFinish = { [weak self] coordinator in
             self?.removeChild(coordinator)
