@@ -21,11 +21,11 @@ final class WorkspaceListDIContainer {
     
     // MARK: - DIContainer Builder
     func makeAppSettingDIContainer() -> AppSettingDIContainer {
-        appContainer.makeAppSettingDIContainer()
+        AppSettingDIContainer(appDIContainer: appContainer)
     }
     
-    func makeWorkspaceDIContainer(workspaceID: UUID) -> WorkspaceDIContainer {
-        appContainer.makeWorkspaceDIContainer(workspaceID: workspaceID)
+    func makeWorkspaceDIContainer() -> WorkspaceDIContainer {
+        WorkspaceDIContainer(appDIContainer: appContainer)
     }
     
     

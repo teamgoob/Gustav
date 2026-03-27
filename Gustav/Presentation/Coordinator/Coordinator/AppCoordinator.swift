@@ -159,35 +159,6 @@ private extension AppCoordinator {
             self?.removeChild(child)
         }
         
-        // 세부 워크스페이스로 이동 (로컬 이벤트)
-        coordinator.onSelectWorkspace = { [weak self] workspaceID in
-            self?.showWorkspaceFlow(workspaceID: workspaceID)
-        }
-        
-        addChild(coordinator)
-        coordinator.start()
-    }
-    
-    // 선택한 워크스페이스 플로우 시작
-    func showWorkspaceFlow(workspaceID: UUID) {
-        let coordinator = WorkspaceCoordinator(
-            navigationController: navigationController,
-            container: container.makeWorkspaceDIContainer(workspaceID: workspaceID),
-            workspaceID: workspaceID
-        )
-        
-        coordinator.onFinish = { [weak self] child in
-            self?.removeChild(child)
-        }
-        
-        coordinator.onBackToWorkspaceList = { [weak self] in
-            self?.navigationController.popToRootViewController(animated: true)
-        }
-        
-        coordinator.onWorkspaceDeleted = { [weak self] in
-            self?.navigationController.popToRootViewController(animated: true)
-        }
-        
         addChild(coordinator)
         coordinator.start()
     }
