@@ -54,6 +54,18 @@ final class AppDIContainer: AppDIContainerProtocol  {
         AppSettingDIContainer(appDIContainer: self)
     }
     
+    func makeCategoryListDIContainer() -> CategoryListDIContainer {
+        CategoryListDIContainer(appContainer: self)
+    }
+    
+    func makeLocationListDIContainer() -> LocationListDIContainer {
+        LocationListDIContainer(appContainer: self)
+    }
+    
+    func makeItemStateListDIContainer() -> ItemStateListDIContainer {
+        ItemStateListDIContainer(appContainer: self)
+    }
+    
     // MARK: - Remote Data Source
     // Auth Supabase
     private lazy var authSupabase: AuthDataSourceProtocol = {
