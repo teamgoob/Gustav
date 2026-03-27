@@ -25,7 +25,7 @@ final class CategoryListViewModel {
     // 기본 데이터
     private(set) var category: [Category] = [] {
         didSet {
-            self.emit(.subTitle(CategoryCounting()))
+            self.emit(.subTitle(categoryCounting()))
         }
     }
     
@@ -114,7 +114,6 @@ final class CategoryListViewModel {
         }
     }
     
-    // reFetch
     private func reFetchCategories() {
         categoryTask?.cancel()     // 저장된 비동기 작업이 존재하는 경우 캔슬
 
@@ -213,7 +212,7 @@ final class CategoryListViewModel {
         }
     }
     
-    private func CategoryCounting() -> String {
+    private func categoryCounting() -> String {
         return "\(category.count) Categories"
     }
     
