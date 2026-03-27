@@ -50,10 +50,7 @@ final class WorkspaceListCoordinator: BaseCoordinator {
 private extension WorkspaceListCoordinator {
     // Default View
     func showWorkspaceList() {
-        let useCase = TestWorkSpaceUsecase()
-        let viewModel = self.viewModel
-        self.viewModel = viewModel
-        let viewController = WorkSpaceListViewController(viewModel: viewModel)
+        let viewController = WorkSpaceListViewController(viewModel: self.viewModel)
         
         self.viewModel.onNavigation = { [weak self] route in
             switch route {
