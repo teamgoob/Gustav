@@ -108,7 +108,15 @@ private extension WorkspaceSettingCoordinator {
     }
     
     // 카테고리 설정 화면 표시
-    func showCategorySettings() {}
+    func showCategorySettings() {
+        
+        let coordinator = CategoryListCoordinator(navigationController: navigationController, container: self.container.makeCategorySettingsDIContainer(), selectedWorkspaceId: self.workspace.id)
+        coordinator.onFinish = { [weak self] coordinator in
+            self?.removeChild(coordinator)
+        }
+        self.childCoordinators.append(coordinator)
+        coordinator.start()
+    }
     // 카테고리 일괄 설정 화면 표시
     func showCategoryBulkSetting() {}
     // 장소 설정 화면 표시

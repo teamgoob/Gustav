@@ -30,4 +30,7 @@ final class WorkspaceSettingDIContainer {
     //    func makeCategorySettingsDIContainer() -> CategorySettingsDIContaier {
     //        CategorySettingsDIContainer(appDIContainer: appDIContainer)
     //    }
+    func makeCategorySettingsDIContainer() -> CategoryListDIContainer {
+        CategoryListDIContainer(appContainer: self.appDIContainer)
+    }
 }
