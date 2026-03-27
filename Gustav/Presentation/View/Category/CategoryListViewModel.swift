@@ -58,7 +58,7 @@ final class CategoryListViewModel {
     // MARK: - Navigation Route (화면 이동 경로)
     enum Route {
         case pushToCategoryDetail(Category)   // 워크스페이스 디테일한 화면 이동
-        case presentCreateCategory             // 추후 생성 알럿을 코디네이터 역할로 변경시 사용
+        case presentCreateCategory(Category)  // 추후 생성 알럿을 코디네이터 역할로 변경시 사용
         case showErrorAlert(String)             // 에러 알럿창
     }
     
@@ -153,7 +153,7 @@ final class CategoryListViewModel {
             case .success(let category):
                 self.category.append(category)
                 self.emit(.success)
-                
+                self.onNavigation?(.presentCreateCategory(category))
             case .failure(let error):
                 onNavigation?(.showErrorAlert(String(describing: error)))
             }

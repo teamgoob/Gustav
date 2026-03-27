@@ -56,8 +56,8 @@ private extension CategoryListCoordinator {
         
         self.viewModel.onNavigation = { [weak self] route in
             switch route {
-            case .presentCreateCategory:
-                print("카테고리 추가 버튼 클릭됨이 코디네이터에서 실행")
+            case .presentCreateCategory(let category):
+                self?.showCategoryDetailView(category: category)
             case .pushToCategoryDetail(let category):
                 self?.showCategoryDetailView(category: category)
             case .showErrorAlert(let string):
