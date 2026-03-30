@@ -33,4 +33,13 @@ final class WorkspaceSettingDIContainer {
     func makeCategorySettingsDIContainer() -> CategoryListDIContainer {
         CategoryListDIContainer(appContainer: self.appDIContainer)
     }
+    
+    func makeLocationSettingsDIContainer() -> LocationListDIContainer {
+        LocationListDIContainer(appContainer: self.appDIContainer)
+    }
+    
+    func makeItemStateSettingsDIContainer() -> ItemStateListDIContainer {
+        ItemStateListDIContainer(appContainer: self.appDIContainer)
+    }
+    
 }

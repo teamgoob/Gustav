@@ -120,11 +120,25 @@ private extension WorkspaceSettingCoordinator {
     // 카테고리 일괄 설정 화면 표시
     func showCategoryBulkSetting() {}
     // 장소 설정 화면 표시
-    func showLocationSettings() {}
+    func showLocationSettings() {
+        let coordinator = LocationListCoordinator(navigationController: navigationController, container: self.container.makeLocationSettingsDIContainer(), selectedWorkspaceId: self.workspace.id)
+        coordinator.onFinish = { [weak self] coordinator in
+            self?.removeChild(coordinator)
+        }
+        self.childCoordinators.append(coordinator)
+        coordinator.start()
+    }
     // 장소 일괄 설정 화면 표시
     func showLocationBulkSetting() {}
     // 아이템 상태 설정 화면 표시
-    func showItemStateSettings() {}
+    func showItemStateSettings() {
+        let coordinator = ItemStateListCoordinator(navigationController: navigationController, container: self.container.makeItemStateSettingsDIContainer(), selectedWorkspaceId: self.workspace.id)
+        coordinator.onFinish = { [weak self] coordinator in
+            self?.removeChild(coordinator)
+        }
+        self.childCoordinators.append(coordinator)
+        coordinator.start()
+    }
     // 아이템 상태 일괄 설정 화면 표시
     func showItemStateBulkSetting() {}
     // 뷰 프리셋 설정 화면 표시

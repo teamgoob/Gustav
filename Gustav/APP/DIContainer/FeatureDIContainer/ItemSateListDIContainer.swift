@@ -18,7 +18,7 @@ final class ItemStateListDIContainer {
         ItemStateListViewModel(itemStateUsecase: appContainer.itemStateUsecase, selectedWorkspaceId: selectedWorkspaceId)
     }
     
-    func makeCategoryDetailViewModel(itemState: ItemState) -> ItemStateDetailViewModel {
+    func makeItemStateDetailViewModel(itemState: ItemState) -> ItemStateDetailViewModel {
         ItemStateDetailViewModel(
             itemState: itemState,
             itemStateUsecase: appContainer.itemStateUsecase,

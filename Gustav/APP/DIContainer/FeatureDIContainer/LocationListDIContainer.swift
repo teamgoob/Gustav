@@ -18,7 +18,7 @@ final class LocationListDIContainer {
         LocationListViewModel(locationUsecase: appContainer.locationUsecase, selectedWorkspaceId: selectedWorkspaceId)
     }
     
-    func makeCategoryDetailViewModel(location: Location) -> LocationDetailViewModel {
+    func makeLocationDetailViewModel(location: Location) -> LocationDetailViewModel {
         LocationDetailViewModel(
             location: location,
             locationUsecase: appContainer.locationUsecase,
