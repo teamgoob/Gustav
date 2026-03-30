@@ -8,16 +8,19 @@
 import UIKit
 import SnapKit
 
-class OptionRowView: UIControl {
+class OptionRowView: UIButton {
     
     // MARK: - UI
     
-    private let titleLabel = UILabel()
+    private let titleTextLabel = UILabel()
     private let valueLabel = UILabel()
     private let chevronImageView = UIImageView()
     
     private let rightStack = UIStackView()
     private let containerStack = UIStackView()
+    
+    // MARK: - Callback
+    var onTap: (() -> Void)?
     
     // MARK: - Init
     
@@ -36,8 +39,8 @@ class OptionRowView: UIControl {
     
     private func setupUI() {
         // title
-        titleLabel.font = Fonts.body
-        titleLabel.textColor = Colors.Text.main
+        titleTextLabel.font = Fonts.body
+        titleTextLabel.textColor = Colors.Text.main
         
         // value
         valueLabel.font = Fonts.accent
@@ -58,11 +61,14 @@ class OptionRowView: UIControl {
         // container stack (항목명 + 버튼)
         containerStack.axis = .horizontal
         containerStack.alignment = .center
-        containerStack.addArrangedSubview(titleLabel)
+        containerStack.addArrangedSubview(titleTextLabel)
         containerStack.addArrangedSubview(UIView()) // spacer
         containerStack.addArrangedSubview(rightStack)
         
+        containerStack.isUserInteractionEnabled = false
+
         addSubview(containerStack)
+        addTarget(self, action: #selector(didTapRow), for: .touchUpInside)
     }
     
     private func setupLayout() {
@@ -87,18 +93,14 @@ class OptionRowView: UIControl {
         clipsToBounds = true
     }
     
-    // MARK: - Highlight
-    
-    override var isHighlighted: Bool {
-        didSet {
-            backgroundColor = isHighlighted ? Colors.Theme.primary : Colors.Theme.cardBackground
-        }
-    }
-    
     // MARK: - Configure
     
     func configure(title: String, value: String) {
-        titleLabel.text = title
+        titleTextLabel.text = title
         valueLabel.text = value
+    }
+    
+    @objc private func didTapRow() {
+        onTap?()
     }
 }
