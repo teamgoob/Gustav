@@ -165,7 +165,7 @@ class WorkSpaceListViewController: UIViewController {
                 }
                 
             case .success:
-                self.contentView.tableView.reloadData()
+                self.tableViewReload()
             
             case .profile(urlstring: let urlstring, name: let name):
                 contentView.updateProfile(imageUrl: urlstring, name: name)
@@ -207,6 +207,16 @@ class WorkSpaceListViewController: UIViewController {
         case .changeOrder:
             self.viewModel.action(.didTapreorderWorkspacesButton)
             changeCellMode(mode: .normal)
+        }
+    }
+    
+    private func tableViewReload() {
+        UIView.transition(
+            with: contentView.tableView,
+            duration: 0.20,
+            options: [.transitionCrossDissolve, .allowUserInteraction]
+        ) {
+            self.contentView.tableView.reloadData()
         }
     }
 }

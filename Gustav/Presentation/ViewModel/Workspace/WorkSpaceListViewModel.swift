@@ -81,8 +81,10 @@ final class WorkSpaceListViewModel {
         switch input {
         case .viewDidLoad:                  // ViewDidLoad
             Task {          // 새로운 Task 생성 및 Task 저장(메모리 주소 저장)
+                self.emit(.loading(true))
                 await fetchWorkspaces()     // 워크스페이스 불러오기
                 await fetchProfileDataAndUpdateView()   // 프로필 불러오기
+                self.emit(.loading(false))
             }
             
         case .reFetchProfile:
@@ -92,8 +94,7 @@ final class WorkSpaceListViewModel {
             }
             
         case .reFetchData:
-            workspaceTask?.cancel()
-            workspaceTask = Task {
+            Task {
                 await fetchWorkspaces()
             }
             
@@ -123,8 +124,8 @@ final class WorkSpaceListViewModel {
     
     // Fetch
     private func fetchWorkspaces() async {
-        self.emit(.loading(true))       // 로딩 시작
-        defer { self.emit(.loading(false) ) }    // 끝나면 로딩 끝
+//        self.emit(.loading(true))       // 로딩 시작
+//        defer { self.emit(.loading(false) ) }    // 끝나면 로딩 끝
         
 #if DEBUG
         try? await Task.sleep(for: .seconds(2))
