@@ -40,7 +40,7 @@ class LocationListViewController: UIViewController {
         view.addSubview(loadingView)
         
         navigationController?.navigationBar.prefersLargeTitles = true
-        navigationItem.title = "Category"
+        navigationItem.title = "Location"
         navigationItem.largeTitleDisplayMode = .always
         
         loadingView.snp.makeConstraints {

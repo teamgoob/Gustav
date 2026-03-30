@@ -58,7 +58,7 @@ final class LocationListViewModel {
     // MARK: - Navigation Route (화면 이동 경로)
     enum Route {
         case pushToLocationDetail(Location)   // 워크스페이스 디테일한 화면 이동
-        case presentCreateLocation             // 추후 생성 알럿을 코디네이터 역할로 변경시 사용
+        case presentCreateLocation(Location)             // 추후 생성 알럿을 코디네이터 역할로 변경시 사용
         case showErrorAlert(String)             // 에러 알럿창
     }
     
@@ -126,7 +126,7 @@ final class LocationListViewModel {
             guard !Task.isCancelled else { return }         // 전달 받은 캔슬 플래그가 있으면 중단
 
             switch result {
-            case .success(let category):
+            case .success(let location):
                 self.location = location
                 self.emit(.success)
 
@@ -138,6 +138,7 @@ final class LocationListViewModel {
 
     // Create
     private func createLocation(name: String) {
+        print("Start createLocation task in LocationListViewModel")
         locationTask?.cancel()     // 저장된 비동기 작업이 존재하는 경우 캔슬
         locationTask = Task { [weak self] in
             guard let self else { return }
@@ -154,7 +155,7 @@ final class LocationListViewModel {
             case .success(let location):
                 self.location.append(location)
                 self.emit(.success)
-                
+                self.onNavigation?(.pushToLocationDetail(location))
             case .failure(let error):
                 onNavigation?(.showErrorAlert(String(describing: error)))
             }

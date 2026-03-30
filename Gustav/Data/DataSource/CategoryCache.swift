@@ -53,7 +53,7 @@ actor CategoryCache {
 
     // 순서 변경
     func updateOrder(workspaceId: UUID, order: [UUID]) {
-        guard var list = storage[workspaceId] else { return }
+        guard let list = storage[workspaceId] else { return }
 
         var newList: [Category] = []
         for (index, id) in order.enumerated() {
