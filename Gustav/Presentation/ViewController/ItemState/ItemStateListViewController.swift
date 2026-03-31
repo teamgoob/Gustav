@@ -33,6 +33,11 @@ class ItemStateListViewController: UIViewController {
         setNavigationButton()
     }
     
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        self.viewModel.action(.dismiss)
+    }
+
     required init?(coder: NSCoder) { fatalError() }
     
     private func setUI() {

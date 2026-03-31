@@ -46,7 +46,11 @@ final class CategoryListCoordinator: BaseCoordinator {
         super.removeChild(finishedCoordinator)
         childCoordinators.removeAll { $0 === finishedCoordinator }
     }
-
+    
+    // MARK: - Test
+    deinit {
+        print("CategoryListCoordinator deinit")
+    }
 }
 
 private extension CategoryListCoordinator {
@@ -56,6 +60,8 @@ private extension CategoryListCoordinator {
         
         self.viewModel.onNavigation = { [weak self] route in
             switch route {
+            case .dismiss:
+                self?.finish()
             case .presentCreateCategory(let category):
                 self?.showCategoryDetailView(category: category)
             case .pushToCategoryDetail(let category):

@@ -33,10 +33,10 @@ class CategoryListViewController: UIViewController {
         setNavigationButton()
     }
     
-//    override func viewWillAppear(_ animated: Bool) {
-//        super.viewWillAppear(animated)
-//        self.viewModel.action(.reFetchCategories)
-//    }
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        self.viewModel.action(.dismiss)
+    }
     
     required init?(coder: NSCoder) { fatalError() }
     

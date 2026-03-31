@@ -46,7 +46,11 @@ final class ItemStateListCoordinator: BaseCoordinator {
         super.removeChild(finishedCoordinator)
         childCoordinators.removeAll { $0 === finishedCoordinator }
     }
-
+    
+    // MARK: - Test
+    deinit {
+        print("CategoryListCoordinator deinit")
+    }
 }
 
 private extension ItemStateListCoordinator {
@@ -56,6 +60,8 @@ private extension ItemStateListCoordinator {
         
         self.viewModel.onNavigation = { [weak self] route in
             switch route {
+            case .dismiss:
+                self?.finish()
             case .presentCreateLocation(let itemState):
                 self?.showItemStateDetailView(itemState: itemState)
             case .pushToItemStateDetail(let itemState):

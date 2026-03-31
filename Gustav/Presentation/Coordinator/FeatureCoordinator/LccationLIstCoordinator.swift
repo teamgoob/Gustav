@@ -47,6 +47,10 @@ final class LocationListCoordinator: BaseCoordinator {
         childCoordinators.removeAll { $0 === finishedCoordinator }
     }
 
+    // MARK: - Test
+    deinit {
+        print("CategoryListCoordinator deinit")
+    }
 }
 
 private extension LocationListCoordinator {
@@ -56,6 +60,8 @@ private extension LocationListCoordinator {
         
         self.viewModel.onNavigation = { [weak self] route in
             switch route {
+            case .dismiss:
+                self?.finish()
             case .presentCreateLocation(let location):
                 self?.showLocationDetailView(location: location)
             case .pushToLocationDetail(let location):

@@ -47,6 +47,7 @@ final class CategoryListViewModel {
     
     // MARK: - Input
     enum Input {
+        case dismiss
         case viewDidLoad                                        // viewDidLoad
         case reFetchData                                        // 카테고리 데이터 다시 불러오기
         case didTapAddButton                                    // Add
@@ -57,6 +58,7 @@ final class CategoryListViewModel {
     
     // MARK: - Navigation Route (화면 이동 경로)
     enum Route {
+        case dismiss                           
         case pushToCategoryDetail(Category)   // 워크스페이스 디테일한 화면 이동
         case presentCreateCategory(Category)  // 추후 생성 알럿을 코디네이터 역할로 변경시 사용
         case showErrorAlert(String)             // 에러 알럿창
@@ -66,6 +68,8 @@ final class CategoryListViewModel {
     // Action
     func action(_ input: Input) {
         switch input {
+        case .dismiss:
+            self.onNavigation?(.dismiss)
         case .viewDidLoad:      // ViewDidLoad
             fetchCategories()
         case .reFetchData:
