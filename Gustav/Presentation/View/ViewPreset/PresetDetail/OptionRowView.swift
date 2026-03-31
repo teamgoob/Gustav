@@ -43,7 +43,7 @@ class OptionRowView: UIButton {
         titleTextLabel.textColor = Colors.Text.main
         
         // value
-        valueLabel.font = Fonts.accent
+        valueLabel.font = Fonts.body
         valueLabel.textColor = .systemBlue
         
         // chevron

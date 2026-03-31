@@ -5,15 +5,6 @@
 //  Created by kaeun on 3/20/26.
 //
 
-import Foundation
-
-//
-//  PresetDetailViewController.swift
-//  Gustav
-//
-//  Created by kaeun on 3/20/26.
-//
-
 import UIKit
 
 // MARK: - PresetDetailViewController
