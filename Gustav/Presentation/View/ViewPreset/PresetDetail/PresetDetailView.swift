@@ -47,9 +47,9 @@ final class PresetDetailView: UIView {
         mainStackView.axis = .vertical
         mainStackView.spacing = 24
         
-        setupSectionLabel(viewSectionLabel, text: "보기")
-        setupSectionLabel(sortSectionLabel, text: "정렬")
-        setupSectionLabel(filterSectionLabel, text: "필터")
+        setupSectionLabel(viewSectionLabel, text: "View")
+        setupSectionLabel(sortSectionLabel, text: "Sort")
+        setupSectionLabel(filterSectionLabel, text: "Filter")
         
         let viewSectionStack = makeSectionStack(
             titleLabel: viewSectionLabel,
@@ -106,12 +106,12 @@ final class PresetDetailView: UIView {
         location: String?,
         itemStatus: String?
     ) {
-        viewTypeRow.configure(title: "보기 타입", value: viewType)
-        sortByRow.configure(title: "정렬 기준", value: sortingOption ?? "없음")
-        sortOrderRow.configure(title: "정렬 순서", value: sortingOrder ?? "없음")
-        categoryRow.configure(title: "카테고리", value: category ?? "없음")
-        locationRow.configure(title: "장소", value: location ?? "없음")
-        itemStatusRow.configure(title: "아이템 상태", value: itemStatus ?? "없음")
+        viewTypeRow.configure(title: "Display Style", value: viewType)
+        sortByRow.configure(title: "Sort By", value: sortingOption ?? "None")
+        sortOrderRow.configure(title: "Sort Order", value: sortingOrder ?? "None")
+        categoryRow.configure(title: "Category", value: category ?? "None")
+        locationRow.configure(title: "Location", value: location ?? "None")
+        itemStatusRow.configure(title: "Status", value: itemStatus ?? "None")
     }
     
     // MARK: - Helpers
@@ -133,29 +133,3 @@ final class PresetDetailView: UIView {
     }
 }
 
-#if DEBUG
-import SwiftUI
-
-@available(iOS 17.0, *)
-#Preview {
-    PresetDetailPreview()
-}
-
-@available(iOS 17.0, *)
-private struct PresetDetailPreview: UIViewRepresentable {
-    func makeUIView(context: Context) -> UIView {
-        let view = PresetDetailView()
-        view.configure(
-            viewType: "기본",
-            sortingOption: "없음",
-            sortingOrder: "오름차순",
-            category: nil,
-            location: nil,
-            itemStatus: nil
-        )
-        return view
-    }
-    
-    func updateUIView(_ uiView: UIView, context: Context) {}
-}
-#endif
