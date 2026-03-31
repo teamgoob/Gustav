@@ -193,7 +193,7 @@ private extension LocationDetailViewModel {
             workspaceId: location.workspaceId,
             indexKey: location.indexKey,
             name: location.name,
-            color: location.color
+            color: tagColor
         )
         
         let result = await locationUseCase.updateLocation(id: location.id, location: updatedLocation )
