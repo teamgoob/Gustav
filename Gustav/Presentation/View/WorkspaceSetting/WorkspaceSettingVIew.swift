@@ -70,9 +70,7 @@ final class WorkspaceSettingView: UIView {
             $0.edges.equalToSuperview()
         }
         tableView.snp.makeConstraints {
-            $0.top.equalToSuperview()
-            $0.leading.trailing.equalToSuperview()
-            $0.bottom.equalTo(safeAreaLayoutGuide.snp.bottom)
+            $0.edges.equalToSuperview()
         }
     }
 }
