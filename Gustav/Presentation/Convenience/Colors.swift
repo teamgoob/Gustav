@@ -57,25 +57,25 @@ extension TagColor {
     func toUIColor() -> UIColor {
         switch self {
         case .darkGray:
-            return UIColor.darkGray.withAlphaComponent(0.5)
+            return UIColor.darkGray.withAlphaComponent(0.3)
         case .lightGray:
-            return UIColor.lightGray.withAlphaComponent(0.5)
+            return UIColor.lightGray.withAlphaComponent(0.3)
         case .brown:
-            return UIColor.brown.withAlphaComponent(0.5)
+            return UIColor.brown.withAlphaComponent(0.3)
         case .red:
-            return UIColor.red.withAlphaComponent(0.5)
+            return UIColor.red.withAlphaComponent(0.3)
         case .orange:
-            return UIColor.orange.withAlphaComponent(0.5)
+            return UIColor.orange.withAlphaComponent(0.3)
         case .yellow:
-            return UIColor.yellow.withAlphaComponent(0.5)
+            return UIColor.yellow.withAlphaComponent(0.3)
         case .green:
-            return UIColor.green.withAlphaComponent(0.5)
+            return UIColor.green.withAlphaComponent(0.3)
         case .blue:
-            return UIColor.blue.withAlphaComponent(0.5)
+            return UIColor.blue.withAlphaComponent(0.3)
         case .pink:
-            return UIColor.systemPink.withAlphaComponent(0.5)
+            return UIColor.systemPink.withAlphaComponent(0.3)
         case .purple:
-            return UIColor.purple.withAlphaComponent(0.5)
+            return UIColor.purple.withAlphaComponent(0.3)
         }
     }
     // 배경에 따른 텍스트 색상 반환

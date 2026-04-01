@@ -92,6 +92,7 @@ final class WorkspaceItemCell: UITableViewCell {
         return label
     }()
     // MARK: - Container
+    // 컨텐츠를 담는 스택 뷰
     private lazy var containerStackView: UIStackView = {
         let stackView = UIStackView()
         stackView.axis = .vertical
@@ -101,6 +102,14 @@ final class WorkspaceItemCell: UITableViewCell {
         stackView.addArrangedSubview(expandedPropertyStackView)
         stackView.addArrangedSubview(updatedAtLabel)
         return stackView
+    }()
+    // 스택 뷰를 담는 셀 영역
+    private let containerView: UIView = {
+        let view = UIView()
+        view.backgroundColor = Colors.Theme.cardBackground
+        view.layer.cornerRadius = 12
+        view.layer.masksToBounds = true
+        return view
     }()
     
     // MARK: - Closures
@@ -114,7 +123,7 @@ final class WorkspaceItemCell: UITableViewCell {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         
         selectionStyle = .none
-        backgroundColor = Colors.Theme.cardBackground
+        backgroundColor = .clear
         
         setupViews()
         setupActions()
@@ -128,7 +137,8 @@ final class WorkspaceItemCell: UITableViewCell {
     // MARK: - Setup
     // 하위 뷰 추가
     private func setupViews() {
-        contentView.addSubview(containerStackView)
+        contentView.addSubview(containerView)
+        containerView.addSubview(containerStackView)
     }
     // 버튼 타겟 메서드 설정
     private func setupActions() {
@@ -147,6 +157,10 @@ final class WorkspaceItemCell: UITableViewCell {
     }
     // 오토레이아웃 설정
     private func setupConstraints() {
+        containerView.snp.makeConstraints {
+            $0.top.bottom.equalToSuperview().inset(1)
+            $0.leading.trailing.equalToSuperview().inset(16)
+        }
         containerStackView.snp.makeConstraints {
             $0.edges.equalToSuperview().inset(16)
         }

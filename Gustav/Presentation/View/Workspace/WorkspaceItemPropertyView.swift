@@ -115,7 +115,8 @@ final class WorkspaceItemPropertyView: UIView {
             tagLabel.textColor = propertyData.color?.getTextColor()
             valueContainer.addSubview(tagLabel)
             tagLabel.snp.makeConstraints {
-                $0.leading.top.bottom.equalToSuperview()
+                $0.top.bottom.trailing.equalToSuperview()
+                $0.leading.greaterThanOrEqualToSuperview()
             }
         } else {
             // 일반 속성인 경우

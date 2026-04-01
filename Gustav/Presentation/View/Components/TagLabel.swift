@@ -35,7 +35,7 @@ final class TagLabel: UILabel {
     // 코너 곡률 설정
     override func layoutSubviews() {
         super.layoutSubviews()
-        layer.cornerRadius = bounds.height / 2
+        layer.cornerRadius = bounds.height / 3
         clipsToBounds = true
     }
 }
