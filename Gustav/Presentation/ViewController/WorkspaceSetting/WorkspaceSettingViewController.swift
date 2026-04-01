@@ -48,6 +48,13 @@ final class WorkspaceSettingViewController: UIViewController {
             viewModel.action(.dismiss)
         }
     }
+    
+    // 화면이 표시된 후 호출
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        // navigationBar 전체 높이 재계산, 스크롤 위치가 꼬이지 않도록 함
+        navigationController?.navigationBar.sizeToFit()
+    }
 }
 
 // MARK: - Setup
@@ -56,7 +63,18 @@ private extension WorkspaceSettingViewController {
     func setupNavigationItem() {
         // 네비게이션 타이틀 설정
         navigationItem.title = "Workspace Settings"
+        // Large Title 설정
         navigationItem.largeTitleDisplayMode = .always
+        
+        // Subtitle 공간 계산을 위해 임시 값으로 공간 확보
+        var subtitle = AttributedString("Workspace Name")
+        // Large Title 하단에 표시되는 Large Subtitle 텍스트 설정
+        subtitle.font = Fonts.accent
+        subtitle.foregroundColor = Colors.Text.additionalInfo
+        navigationItem.largeAttributedSubtitle = subtitle
+        // 스크롤 시 상단 Title 하단에 표시되는 Subtitle 텍스트 설정
+        subtitle.font = Fonts.additional
+        navigationItem.attributedSubtitle = subtitle
     }
     
     // Delegate 설정
