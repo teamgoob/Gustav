@@ -28,6 +28,7 @@ final class CategoryListViewModel {
             self.emit(.subTitle(categoryCounting()))
         }
     }
+    private var childCategoriesTitle: [UUID: String] = [:]
     
     // 워크스페이스 순서 업데이트시 사용하는 프로퍼티
     private(set) var editingOrderCategory: [Category] = []
@@ -111,6 +112,7 @@ final class CategoryListViewModel {
             switch result {
             case .success(let category):
                 self.category = category
+                makeChildCategoriesTitle(categories: category)
                 self.emit(.success)
 
             case .failure(let error):
@@ -132,6 +134,7 @@ final class CategoryListViewModel {
             switch result {
             case .success(let category):
                 self.category = category
+                makeChildCategoriesTitle(categories: category)
                 self.emit(.success)
 
             case .failure(let error):
@@ -217,6 +220,18 @@ final class CategoryListViewModel {
         }
     }
     
+    // cell에 사용할 하위 카테고리 리스트 문자열
+    private func makeChildCategoriesTitle(categories: [Category]) {
+        
+        for parentCategory in categories {
+            var titleArray: [String] = []
+            for childCategory in categories where childCategory.parentId == parentCategory.id {
+                titleArray.append(childCategory.name)
+            }
+            childCategoriesTitle[parentCategory.id] = titleArray.joined(separator: "/")
+        }
+    }
+    
     private func categoryCounting() -> String {
         return "\(category.count) Categories"
     }
@@ -226,6 +241,10 @@ final class CategoryListViewModel {
     }
     func cellForRowAt(index: Int) -> Category {
         category[index]
+    }
+    
+    func getChildCategoriesTitle(categoryId: UUID) -> String? {
+        childCategoriesTitle[categoryId] ?? nil
     }
     
     private func cancel() {

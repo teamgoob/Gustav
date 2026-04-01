@@ -64,7 +64,7 @@ class CategoryListViewController: UIViewController {
         // 1) table 설정
         contentView.tableView.dataSource = self
         contentView.tableView.delegate = self
-        contentView.tableView.register(ItemAttributeBasicCell.self, forCellReuseIdentifier: ItemAttributeBasicCell.reuseID)
+        contentView.tableView.register(CategoryListTableViewBasicCell.self, forCellReuseIdentifier: CategoryListTableViewBasicCell.reuseID)
         contentView.tableView.register(ItemAttributeReorderingCell.self, forCellReuseIdentifier: ItemAttributeReorderingCell.reuseID)
         
         
@@ -209,18 +209,23 @@ extension CategoryListViewController: UITableViewDataSource {
         switch self.cellMode {
         case .normal, .addWorkSpace:
             let cell = tableView.dequeueReusableCell(
-                withIdentifier: ItemAttributeBasicCell.reuseID,
+                withIdentifier: CategoryListTableViewBasicCell.reuseID,
                 for: indexPath
-            ) as! ItemAttributeBasicCell
+            ) as! CategoryListTableViewBasicCell
             
-            cell.configure(title: category.name, tagColor: category.color)
+            guard let childCategoriesTitle = self.viewModel.getChildCategoriesTitle(categoryId: category.id) else {
+                cell.configure(title: category.name, tagColor: category.color, childCategories: nil)
+                return cell
+            }
+            
+            cell.configure(title: category.name, tagColor: category.color, childCategories: childCategoriesTitle)
             return cell
             
         case .changeOrder:
             let cell = tableView.dequeueReusableCell(
-                withIdentifier: ItemAttributeReorderingCell.reuseID,
+                withIdentifier: CategoryListTableViewBasicCell.reuseID,
                 for: indexPath
-            ) as! ItemAttributeReorderingCell
+            ) as! CategoryListTableViewBasicCell
             
             cell.configure(title: category.name, tagColor: category.color)
             
@@ -252,6 +257,6 @@ extension CategoryListViewController: UITableViewDelegate {
         _ tableView: UITableView,
         editingStyleForRowAt indexPath: IndexPath
     ) -> UITableViewCell.EditingStyle {
-        return .insert
+        return .none
     }
 }
