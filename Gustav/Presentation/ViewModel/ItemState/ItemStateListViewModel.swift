@@ -91,6 +91,7 @@ final class ItemStateListViewModel {
     
     // Fetch
     private func fetchItemStates() {
+        emit(.subTitle(itemStateCounting()))
         itemStateTask?.cancel()     // 저장된 비동기 작업이 존재하는 경우 캔슬
 
         itemStateTask = Task { [weak self] in   // 새로운 Task 생성 및 Task 저장(메모리 주소 저장)
