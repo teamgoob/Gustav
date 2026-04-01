@@ -35,7 +35,9 @@ class LocationListViewController: UIViewController {
     
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
-        self.viewModel.action(.dismiss)
+        if isMovingFromParent {
+            self.viewModel.action(.dismiss)
+        }
     }
     
     required init?(coder: NSCoder) { fatalError() }
@@ -93,7 +95,8 @@ class LocationListViewController: UIViewController {
                 UIAction(
                     title: "Change Order",
                     image: UIImage(systemName: "arrow.up.arrow.down")
-                ) { _ in
+                ) { [weak self] _ in
+                    guard let self else { return }
                     print("Change Order")
                     self.changeCellMode(mode: .changeOrder)
                 }

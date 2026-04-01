@@ -93,21 +93,24 @@ class WorkSpaceListViewController: UIViewController {
                 UIAction(
                     title: "Add WorkSpace",
                     image: UIImage(systemName: "plus")
-                ) { _ in
+                ) { [weak self] _ in
+                    guard let self else { return }
                     print("Add WorkSpace")
                     self.viewModel.action(.didTapAddWorkspaceButton)
                 },
                 UIAction(
                     title: "Change Order",
                     image: UIImage(systemName: "arrow.up.arrow.down")
-                ) { _ in
+                ) { [weak self] _ in
+                    guard let self else { return }
                     print("Change Order")
                     self.changeCellMode(mode: .changeOrder)
                 },
                 UIAction(
                     title: "Change Name",
                     image: UIImage(systemName: "square.and.pencil")
-                ) { _ in
+                ) { [weak self] _ in
+                    guard let self else { return }
                     print("Change Name")
                     self.changeCellMode(mode: .changeName)
                 }

@@ -109,9 +109,9 @@ private extension WorkspaceListCoordinator {
             tf.returnKeyType = .done
         }
         
-        let cancel = UIAlertAction(title: "취소", style: .cancel)
+        let cancel = UIAlertAction(title: "Cancel", style: .cancel)
 
-        let add = UIAlertAction(title: "추가", style: .default) { [weak self, weak alert] _ in
+        let add = UIAlertAction(title: "Add", style: .default) { [weak self, weak alert] _ in
             guard let self else { return }
             let name = alert?.textFields?.first?.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
 

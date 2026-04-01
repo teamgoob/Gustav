@@ -54,15 +54,18 @@ class CategoryDetailViewController: UIViewController {
             UIAction(
                 title: "Change Name",
                 image: UIImage(systemName: "square.and.pencil")
-            ) { _ in
+            ) { [weak self] _ in
+                guard let self else { return }
                 print("Change Order")
                 self.viewModel.action(.startChangeName)
             },
+
             UIAction(
                 title: "Delete",
                 image: UIImage(systemName: "trash"),
                 attributes: .destructive
-            ) { _ in
+            ) { [weak self] _ in
+                guard let self else { return }
                 print("Delete")
                 self.didTapDeleteButton()
             }
