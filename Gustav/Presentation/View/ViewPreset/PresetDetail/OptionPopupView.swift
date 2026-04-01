@@ -7,6 +7,7 @@
 
 import UIKit
 import SnapKit
+import SwiftUI
 
 // MARK: - Model
 // OptionPopupView에서 사용하는 데이터 모델
@@ -31,6 +32,41 @@ struct OptionPopupItem: Hashable {
     }
 }
 
+// MARK: - Preview
+#if DEBUG
+private struct OptionPopupViewPreview: UIViewRepresentable {
+    func makeUIView(context: Context) -> UIView {
+        let containerView = UIView()
+        containerView.backgroundColor = UIColor.systemGroupedBackground
+
+        let popupView = OptionPopupView(
+            items: [
+                OptionPopupItem(id: "category", title: "Category"),
+                OptionPopupItem(id: "itemState", title: "Item State"),
+                OptionPopupItem(id: "location", title: "Location")
+            ],
+            selectedItemID: "itemState"
+        )
+
+        containerView.addSubview(popupView)
+
+        popupView.snp.makeConstraints { make in
+            make.center.equalToSuperview()
+            make.leading.trailing.equalToSuperview().inset(24)
+        }
+
+        return containerView
+    }
+
+    func updateUIView(_ uiView: UIView, context: Context) {}
+}
+
+@available(iOS 17.0, *)
+#Preview("Option Popup View") {
+    OptionPopupViewPreview()
+}
+#endif
+
 // 선택 가능한 리스트를 카드 형태로 보여주는 커스텀 팝업 뷰
 // - UIView 기반으로 구성
 // - 외부(ViewController)에서 show/hide 및 위치 제어
@@ -40,6 +76,10 @@ final class OptionPopupView: UIView {
     // 선택된 항목을 외부로 전달하는 콜백
     // MARK: - Callback
     var onSelectItem: ((OptionPopupItem) -> Void)?
+    var onItemSelected: ((OptionPopupItem) -> Void)? {
+        get { onSelectItem }
+        set { onSelectItem = newValue }
+    }
 
     // containerView: 카드 UI (둥근 모서리 + shadow)
     // stackView: 옵션 리스트를 세로로 나열
@@ -60,6 +100,11 @@ final class OptionPopupView: UIView {
         setupUI()
         setupLayout()
     }
+    
+    convenience init(items: [OptionPopupItem], selectedItemID: String? = nil) {
+        self.init(frame: .zero)
+        configure(items: items, selectedItemID: selectedItemID)
+    }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
@@ -78,6 +123,11 @@ final class OptionPopupView: UIView {
         // 단순 String 배열을 OptionPopupItem으로 변환하는 편의 메서드
         let popupItems = titles.map { OptionPopupItem(title: $0) }
         configure(items: popupItems, selectedItemID: selectedTitle)
+    }
+    
+    func setSelectedItem(_ item: OptionPopupItem) {
+        selectedItemID = item.id
+        reloadOptions()
     }
 
     // UI 요소 생성 및 스타일 설정

@@ -7,6 +7,7 @@
 
 import UIKit
 import SnapKit
+import SwiftUI
 
 class OptionRowView: UIButton {
     
@@ -104,3 +105,33 @@ class OptionRowView: UIButton {
         onTap?()
     }
 }
+
+// MARK: - Preview
+#if DEBUG
+private struct OptionRowViewPreview: UIViewRepresentable {
+    func makeUIView(context: Context) -> UIView {
+        let container = UIView()
+        container.backgroundColor = UIColor.systemGroupedBackground
+
+        let row = OptionRowView()
+        row.configure(title: "Category", value: "Electronics")
+
+        container.addSubview(row)
+
+        row.snp.makeConstraints { make in
+            make.center.equalToSuperview()
+            make.leading.trailing.equalToSuperview().inset(24)
+            make.height.equalTo(56)
+        }
+
+        return container
+    }
+
+    func updateUIView(_ uiView: UIView, context: Context) {}
+}
+
+@available(iOS 17.0, *)
+#Preview("OptionRowView") {
+    OptionRowViewPreview()
+}
+#endif

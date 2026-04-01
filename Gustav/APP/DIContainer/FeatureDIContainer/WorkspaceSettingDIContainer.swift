@@ -42,4 +42,8 @@ final class WorkspaceSettingDIContainer {
         ItemStateListDIContainer(appContainer: self.appDIContainer)
     }
     
+//    func makeViewPresetSettingsDIContainer() -> ViewPresetListDIContainer {
+//        ViewPresetListDIContainer(appDIContainer: self.appDIContainer)
+//    }
+    
 }
