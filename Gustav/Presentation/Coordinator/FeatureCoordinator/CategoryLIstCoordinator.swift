@@ -47,7 +47,7 @@ final class CategoryListCoordinator: BaseCoordinator {
         childCoordinators.removeAll { $0 === finishedCoordinator }
     }
     
-    // MARK: - Test
+    // MARK: - Deinit
     deinit {
         print("CategoryListCoordinator deinit")
     }

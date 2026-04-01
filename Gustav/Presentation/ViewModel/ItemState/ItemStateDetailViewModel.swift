@@ -133,8 +133,9 @@ final class ItemStateDetailViewModel {
         self.selectedColor
     }
     
+    // MARK: - Deinit
     deinit {
-        print("❌ LocationDetailViewModel deinit")
+        print("ItemStateDetailViewModel deinit")
     }
     
 }

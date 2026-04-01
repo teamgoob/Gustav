@@ -21,10 +21,14 @@ class ItemStateListViewController: UIViewController {
         case changeOrder
     }
     
+    // MARK: - Init
     init(viewModel: ItemStateListViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
     }
+    
+    // MARK: - Deinit
+    deinit { print("ItemStateListViewController deinit") }
     
     override func viewDidLoad() {
         super.viewDidLoad()

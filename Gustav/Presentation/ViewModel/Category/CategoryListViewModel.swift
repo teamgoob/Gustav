@@ -238,7 +238,9 @@ final class CategoryListViewModel {
         onStateChange?(state)
     }
 
+    // MARK: - Deinit
     deinit {
+        print("CategoryListViewModel deinit")
         cancel()
         category.removeAll()
     }

@@ -21,6 +21,9 @@ class LocationDetailViewController: UIViewController {
         super .init(nibName: nil, bundle: nil)
     }
     
+    // MARK: - Deinit
+    deinit { print("LocationDetailViewController deinit") }
+    
     // MARK: - ViewDidLoad
     override func viewDidLoad() {
         super.viewDidLoad()

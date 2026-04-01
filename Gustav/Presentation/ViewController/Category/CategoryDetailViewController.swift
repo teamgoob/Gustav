@@ -21,6 +21,9 @@ class CategoryDetailViewController: UIViewController {
         super .init(nibName: nil, bundle: nil)
     }
     
+    // MARK: - Deinit
+    deinit { print("CategoryDetailViewController deinit") }
+    
     // MARK: - ViewDidLoad
     override func viewDidLoad() {
         super.viewDidLoad()

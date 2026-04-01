@@ -47,9 +47,9 @@ final class ItemStateListCoordinator: BaseCoordinator {
         childCoordinators.removeAll { $0 === finishedCoordinator }
     }
     
-    // MARK: - Test
+    // MARK: - Deinit
     deinit {
-        print("CategoryListCoordinator deinit")
+        print("ItemStateListCoordinator deinit")
     }
 }
 

@@ -241,7 +241,9 @@ final class ItemStateListViewModel {
         onStateChange?(state)
     }
 
+    // MARK: - Deinit
     deinit {
+        print("ItemStateListViewModel deinit")
         cancel()
         itemState.removeAll()
     }

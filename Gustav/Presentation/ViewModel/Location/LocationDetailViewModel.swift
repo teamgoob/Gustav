@@ -133,8 +133,9 @@ final class LocationDetailViewModel {
         self.selectedColor
     }
     
+    // MARK: - Deinit
     deinit {
-        print("❌ LocationDetailViewModel deinit")
+        print("LocationDetailViewModel deinit")
     }
     
 }

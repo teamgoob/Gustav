@@ -241,7 +241,9 @@ final class LocationListViewModel {
         onStateChange?(state)
     }
 
+    // MARK: - Deinit
     deinit {
+        print("LocationListViewModel deinit")
         cancel()
         location.removeAll()
     }

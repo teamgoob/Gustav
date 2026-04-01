@@ -21,10 +21,15 @@ class CategoryListViewController: UIViewController {
         case changeOrder
     }
     
+    // MARK: - Init
     init(viewModel: CategoryListViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
     }
+    
+    // MARK: - Deinit
+    deinit { print("CategoryListViewController deinit") }
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()

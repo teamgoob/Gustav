@@ -137,8 +137,9 @@ final class CategoryDetailViewModel {
         self.selectedColor
     }
     
+    // MARK: - Deinit
     deinit {
-        print("❌ CategoryDetailViewModel deinit")
+        print("CategoryDetailViewModel deinit")
     }
     
 }
