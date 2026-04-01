@@ -7,6 +7,7 @@
 
 import UIKit
 import SnapKit
+import SwiftUI
 
 final class ItemAddView: UIView {
 
@@ -237,4 +238,22 @@ final class ItemAddView: UIView {
             }
         }
     }
+
 }
+
+// MARK: - Preview
+#if DEBUG
+private struct ItemAddViewPreview: UIViewRepresentable {
+    func makeUIView(context: Context) -> UIView {
+        let view = ItemAddView()
+        return view
+    }
+
+    func updateUIView(_ uiView: UIView, context: Context) {}
+}
+
+@available(iOS 17.0, *)
+#Preview("ItemAddView") {
+    ItemAddViewPreview()
+}
+#endif
