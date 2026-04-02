@@ -153,7 +153,7 @@ final class CategoryListViewModel {
                 id: UUID(),
                 workspaceId: self.selectedWorkspaceId,
                 parentId: nil,
-                indexKey: self.category.endIndex + 1,
+                indexKey: self.category.count,
                 name: name,
                 color: TagColor.darkGray)
             let result = await self.categoryUsecase.createCategory(category: newCategory)
