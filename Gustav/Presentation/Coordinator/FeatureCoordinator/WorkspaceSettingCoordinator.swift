@@ -142,7 +142,20 @@ private extension WorkspaceSettingCoordinator {
     // 아이템 상태 일괄 설정 화면 표시
     func showItemStateBulkSetting() {}
     // 뷰 프리셋 설정 화면 표시
-    func showViewPresetSettings() {}
+    func showViewPresetSettings() {
+        let coordinator = ViewPresetListCoordinator(
+            navigationController: navigationController,
+            container: self.container.makeViewPresetSettingsDIContainer(),
+            selectedWorkspaceId: self.workspace.id
+        )
+        
+        coordinator.onFinish = { [weak self] coordinator in
+            self?.removeChild(coordinator)
+        }
+        
+        self.childCoordinators.append(coordinator)
+        coordinator.start()
+    }
     // 워크스페이스 삭제 확인 얼럿 창 표시
     func showAlertForDeletingWorkspace() {
         // 얼럿 창 생성

@@ -44,11 +44,20 @@ final class ViewPresetListViewController: UIViewController {
 // MARK: - Setup
 private extension ViewPresetListViewController {
     func setupNavigation() {
-        navigationController?.navigationBar.prefersLargeTitles = true
-        navigationItem.largeTitleDisplayMode = .always
         
-        navigationItem.title = "뷰프리셋"
-        navigationItem.subtitle = "0개의 뷰 프리셋"
+        
+        navigationItem.title = "Preset"
+        navigationItem.largeTitleDisplayMode = .always
+       
+        var subtitle = AttributedString("0 presets")
+        // Large Title 하단에 표시되는 Large Subtitle 텍스트 설정
+        subtitle.font = Fonts.accent
+        subtitle.foregroundColor = Colors.Text.additionalInfo
+        navigationItem.largeAttributedSubtitle = subtitle
+        // 스크롤 시 상단 Title 하단에 표시되는 Subtitle 텍스트 설정
+        subtitle.font = Fonts.additional
+        navigationItem.attributedSubtitle = subtitle
+
         
         // 좌측 뒤로가기 버튼
         let backButton = UIBarButtonItem(
@@ -99,6 +108,7 @@ private extension ViewPresetListViewController {
     func apply(_ output: ViewPresetListViewModel.Output) {
         navigationItem.subtitle = "\(output.itemCount)개의 뷰 프리셋"
         rootView.reloadList(count: output.itemCount)
+        
         
         switch output.isLoading {
         case .loading(let message):
