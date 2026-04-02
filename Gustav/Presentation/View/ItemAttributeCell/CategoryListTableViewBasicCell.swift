@@ -35,7 +35,7 @@ class CategoryListTableViewBasicCell: UITableViewCell {
         let l = UILabel()
         l.font = .systemFont(ofSize: 14, weight: .regular)
         l.textColor = Colors.Text.additionalInfo
-        l.textAlignment = .left
+        l.textAlignment = .right
         l.numberOfLines = 1
         return l
     }()
@@ -71,6 +71,7 @@ class CategoryListTableViewBasicCell: UITableViewCell {
         self.contentView.addSubview(circlefill)
         self.contentView.addSubview(titleLabel)
         self.contentView.addSubview(chevronImageView)
+        self.contentView.addSubview(childCategoriesLable)
         
         circlefill.snp.makeConstraints {
             $0.height.width.equalTo(20)
@@ -78,13 +79,6 @@ class CategoryListTableViewBasicCell: UITableViewCell {
             $0.centerY.equalTo(self.contentView)
         }
         
-//        titleLabel.snp.makeConstraints {
-//            $0.height.equalTo(48)
-//            $0.leading.equalTo(self.circlefill.snp.trailing).offset(spacing)
-//            $0.trailing.equalTo(self.chevronImageView.snp.leading).offset(-spacing)
-//            $0.centerY.equalTo(self.contentView)
-//        }
-        self.contentView.addSubview(childCategoriesLable)
         titleLabel.snp.makeConstraints {
             $0.height.equalTo(48)
             $0.leading.equalTo(self.circlefill.snp.trailing).offset(spacing)
@@ -101,6 +95,16 @@ class CategoryListTableViewBasicCell: UITableViewCell {
             $0.trailing.equalTo(self.contentView).offset(-spacing)
             $0.centerY.equalTo(self.contentView)
         }
+        
+        // chevron은 절대 밀리면 안됨
+        chevronImageView.setContentHuggingPriority(.required, for: .horizontal)
+        chevronImageView.setContentCompressionResistancePriority(.required, for: .horizontal)
+
+        // child label은 줄어들 수 있음
+        childCategoriesLable.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+
+        // title도 상황에 따라 줄어들 수 있게
+        titleLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
     }
     
     // 자식 카테고리가 있는 경우 실행할 AutoLayOut

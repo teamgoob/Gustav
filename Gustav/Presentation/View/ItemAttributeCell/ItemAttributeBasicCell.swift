@@ -80,6 +80,13 @@ class ItemAttributeBasicCell: UITableViewCell {
             $0.trailing.equalTo(self.contentView).offset(-spacing)
             $0.centerY.equalTo(self.contentView)
         }
+        
+        // chevron은 절대 밀리면 안됨
+        chevronImageView.setContentHuggingPriority(.required, for: .horizontal)
+        chevronImageView.setContentCompressionResistancePriority(.required, for: .horizontal)
+
+        // title도 상황에 따라 줄어들 수 있게
+        titleLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
     }
     
     // MARK: - Configure
