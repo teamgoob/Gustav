@@ -54,6 +54,7 @@ final class LocationListViewModel {
         case didTapreorderLocationButton                        // reorder 확정 버튼
         case didReOrderLocation(at: Int, to: Int)             // 순서 변경 중
         case didSelectTapLocation(index: Int)                   // select
+        case deleteLocation(index: Int)
     }
     
     // MARK: - Navigation Route (화면 이동 경로)
@@ -86,6 +87,8 @@ final class LocationListViewModel {
         case .didSelectTapLocation(let index):
             let location = location[index]
             onNavigation?(.pushToLocationDetail(location))
+        case .deleteLocation(index: let index):
+            deleteLocation(index: index)
         }
     }
     
@@ -216,6 +219,25 @@ final class LocationListViewModel {
             case .failure(let error):
                 self.editingOrderLocation.removeAll()
                 onNavigation?(.showErrorAlert(String(describing: error)))
+            }
+        }
+    }
+    
+    private func deleteLocation(index: Int) {
+        let targetLocation = location[index]
+        
+        locationTask?.cancel()
+        locationTask = Task { [weak self] in
+            guard let self else { return }
+            
+            let result = await self.locationUsecase.deleteLocation(id: targetLocation.id, workspaceId: selectedWorkspaceId)
+            
+            switch result {
+            case .success:
+                self.location.remove(at: index)
+                self.emit(.success)
+            case .failure(let error):
+                self.onNavigation?(.showErrorAlert(String(describing: error)))
             }
         }
     }

@@ -55,6 +55,7 @@ final class CategoryListViewModel {
         case didTapreorderCategoryButton                        // reorder 확정 버튼
         case didReOrderCategories(at: Int, to: Int)             // 순서 변경 중
         case didSelectTapCategory(index: Int)                   // select
+        case deleteCategory(at: Int)
     }
     
     // MARK: - Navigation Route (화면 이동 경로)
@@ -87,6 +88,9 @@ final class CategoryListViewModel {
         case .didSelectTapCategory(let index):
             let category = category[index]
             onNavigation?(.pushToCategoryDetail(category))
+            
+        case .deleteCategory(at: let index):
+            self.deleteCategory(at: index)
         }
     }
     
@@ -216,6 +220,26 @@ final class CategoryListViewModel {
             case .failure(let error):
                 self.editingOrderCategory.removeAll()
                 onNavigation?(.showErrorAlert(String(describing: error)))
+            }
+        }
+    }
+    
+    private func deleteCategory(at index: Int) {
+        let targetCategory = category[index]
+        
+        categoryTask?.cancel()
+        categoryTask = Task { [weak self] in
+            guard let self else { return }
+            
+            let result = await self.categoryUsecase.deleteCategory(id: targetCategory.id, workspaceId: selectedWorkspaceId)
+            
+            switch result {
+            case .success:
+                self.category.remove(at: index)
+                self.makeChildCategoriesTitle(categories: self.category)
+                self.emit(.success)
+            case .failure(let error):
+                self.onNavigation?(.showErrorAlert(String(describing: error)))
             }
         }
     }

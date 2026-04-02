@@ -54,6 +54,7 @@ final class ItemStateListViewModel {
         case didTapreorderItemStateButton                        // reorder 확정 버튼
         case didReOrderItemState(at: Int, to: Int)             // 순서 변경 중
         case didSelectTapItemState(index: Int)                   // select
+        case deleteItemState(index: Int)
     }
     
     // MARK: - Navigation Route (화면 이동 경로)
@@ -86,6 +87,8 @@ final class ItemStateListViewModel {
         case .didSelectTapItemState(let index):
             let itemState = itemState[index]
             onNavigation?(.pushToItemStateDetail(itemState))
+        case .deleteItemState(index: let index):
+            self.deleteItemState(at: index)
         }
     }
     
@@ -216,6 +219,25 @@ final class ItemStateListViewModel {
             case .failure(let error):
                 self.editingOrderItemState.removeAll()
                 onNavigation?(.showErrorAlert(String(describing: error)))
+            }
+        }
+    }
+    
+    private func deleteItemState(at index: Int) {
+        let targetItemState = itemState[index]
+        
+        itemStateTask?.cancel()
+        itemStateTask = Task { [weak self] in
+            guard let self else { return }
+            
+            let result = await self.itemStateUsecase.deleteItemState(id: targetItemState.id, workspaceId: selectedWorkspaceId)
+            
+            switch result {
+            case .success:
+                self.itemState.remove(at: index)
+                self.emit(.success)
+            case .failure(let error):
+                self.onNavigation?(.showErrorAlert(String(describing: error)))
             }
         }
     }

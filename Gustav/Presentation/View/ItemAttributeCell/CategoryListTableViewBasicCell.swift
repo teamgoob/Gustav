@@ -107,22 +107,6 @@ class CategoryListTableViewBasicCell: UITableViewCell {
         titleLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
     }
     
-    // 자식 카테고리가 있는 경우 실행할 AutoLayOut
-    private func setupAutoLayoutforChildCategoriesLable() {
-        self.contentView.addSubview(childCategoriesLable)
-        titleLabel.snp.makeConstraints {
-            $0.height.equalTo(48)
-            $0.leading.equalTo(self.circlefill.snp.trailing).offset(spacing)
-            $0.trailing.equalTo(self.childCategoriesLable.snp.leading).offset(-spacing) // 변경
-            $0.centerY.equalTo(self.contentView)
-        }
-        
-        childCategoriesLable.snp.makeConstraints {
-            $0.trailing.equalTo(self.chevronImageView.snp.leading).offset(-spacing)
-            $0.centerY.equalTo(self.contentView)
-        }
-    }
-    
     // MARK: - Configure
     
     func configure(title: String, tagColor: TagColor, childCategories: String? = nil) {
@@ -131,9 +115,7 @@ class CategoryListTableViewBasicCell: UITableViewCell {
         
         if let childCategories {
             self.childCategoriesLable.text = childCategories
-        } else {
-            self.chevronImageView.isHidden = true
-        }
+        } 
         
     }
     

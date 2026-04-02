@@ -223,9 +223,9 @@ extension CategoryListViewController: UITableViewDataSource {
             
         case .changeOrder:
             let cell = tableView.dequeueReusableCell(
-                withIdentifier: CategoryListTableViewBasicCell.reuseID,
+                withIdentifier: ItemAttributeReorderingCell.reuseID,
                 for: indexPath
-            ) as! CategoryListTableViewBasicCell
+            ) as! ItemAttributeReorderingCell
             
             cell.configure(title: category.name, tagColor: category.color)
             
@@ -257,6 +257,15 @@ extension CategoryListViewController: UITableViewDelegate {
         _ tableView: UITableView,
         editingStyleForRowAt indexPath: IndexPath
     ) -> UITableViewCell.EditingStyle {
-        return .none
+        return .delete
+    }
+    
+    func tableView(_ tableView: UITableView,
+                   commit editingStyle: UITableViewCell.EditingStyle,
+                   forRowAt indexPath: IndexPath) {
+
+        if editingStyle == .delete {
+            self.viewModel.action(.deleteCategory(at: indexPath.row))
+        }
     }
 }
