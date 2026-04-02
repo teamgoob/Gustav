@@ -44,13 +44,14 @@ final class PresetDetailViewModel {
     
     // MARK: - Route
     enum Route {
-        case showViewTypeSelection
-        case showSortBySelection
-        case showSortOrderSelection
-        case showCategorySelection
-        case showLocationSelection
-        case showItemStatusSelection
+        case showOptionPopup(OptionPopupRoute)
         case showMoreMenu
+    }
+    
+    struct OptionPopupRoute {
+        let title: String
+        let items: [OptionPopupItem]
+        let selectedID: String?
     }
     
     // MARK: - Closures
@@ -72,25 +73,25 @@ extension PresetDetailViewModel {
         switch input {
         case .viewDidLoad:
             notifyOutput()
-            
+
         case .didTapViewType:
-            onNavigation?(.showViewTypeSelection)
-            
+            onNavigation?(.showOptionPopup(makeViewTypePopupRoute()))
+
         case .didTapSortBy:
-            onNavigation?(.showSortBySelection)
-            
+            onNavigation?(.showOptionPopup(makeSortByPopupRoute()))
+
         case .didTapSortOrder:
-            onNavigation?(.showSortOrderSelection)
-            
+            onNavigation?(.showOptionPopup(makeSortOrderPopupRoute()))
+
         case .didTapCategory:
-            onNavigation?(.showCategorySelection)
-            
+            onNavigation?(.showOptionPopup(makeCategoryPopupRoute()))
+
         case .didTapLocation:
-            onNavigation?(.showLocationSelection)
-            
+            onNavigation?(.showOptionPopup(makeLocationPopupRoute()))
+
         case .didTapItemStatus:
-            onNavigation?(.showItemStatusSelection)
-            
+            onNavigation?(.showOptionPopup(makeItemStatePopupRoute()))
+
         case .didTapMore:
             onNavigation?(.showMoreMenu)
         }
@@ -116,9 +117,9 @@ private extension PresetDetailViewModel {
     func mapViewTypeToText(_ viewType: Int) -> String {
         switch viewType {
         case 0:
-            return "기본"
+            return "Basic"
         default:
-            return "기본"
+            return "Basic"
         }
     }
     
@@ -127,25 +128,25 @@ private extension PresetDetailViewModel {
         
         switch sortingOption {
         case .indexKey:
-            return "기본순"
+            return "Basic"
         case .name:
-            return "이름"
+            return "Name"
         case .nameDetail:
-            return "상세 이름"
+            return "Detail Name"
         case .purchaseDate:
-            return "구매일"
+            return "Purchase Date"
         case .purchasePlace:
-            return "구매처"
+            return "Purchase Place"
         case .expireDate:
-            return "보증 만료일"
+            return "Expire Date"
         case .price:
-            return "가격"
+            return "Price"
         case .quantity:
-            return "수량"
+            return "Quantity"
         case .createdAt:
-            return "생성일"
+            return "Created At"
         case .updatedAt:
-            return "수정일"
+            return "Updated At"
         }
     }
     
@@ -170,9 +171,9 @@ private extension PresetDetailViewModel {
     func mapSortingOrderText(_ order: SortingOrder) -> String {
         switch order {
         case .ascending:
-            return "오름차순"
+            return "Ascending"
         case .descending:
-            return "내림차순"
+            return "Descending"
         }
     }
     
@@ -216,5 +217,163 @@ private extension PresetDetailViewModel {
     func mapItemStatusText(from filters: [FilterOption]) -> String? {
         guard let id = extractItemStateID(from: filters) else { return nil }
         return context.itemStateNameByID[id]
+    }
+    
+    func makeCategoryPopupRoute() -> OptionPopupRoute {
+        let items = context.categoryNameByID
+            .sorted { $0.value < $1.value }
+            .map { key, value in
+                OptionPopupItem(
+                    id: key.uuidString,
+                    title: value
+                )
+            }
+
+        let selectedID = extractCategoryID(from: context.preset.filters)?.uuidString
+
+        return OptionPopupRoute(
+            title: "Category",
+            items: items,
+            selectedID: selectedID
+        )
+    }
+    
+    func makeLocationPopupRoute() -> OptionPopupRoute {
+        let items = context.locationNameByID
+            .sorted { $0.value < $1.value }
+            .map { key, value in
+                OptionPopupItem(
+                    id: key.uuidString,
+                    title: value
+                )
+            }
+
+        let selectedID = extractLocationID(from: context.preset.filters)?.uuidString
+
+        return OptionPopupRoute(
+            title: "Location",
+            items: items,
+            selectedID: selectedID
+        )
+    }
+    
+    func makeItemStatePopupRoute() -> OptionPopupRoute {
+        let items = context.itemStateNameByID
+            .sorted { $0.value < $1.value }
+            .map { key, value in
+                OptionPopupItem(
+                    id: key.uuidString,
+                    title: value
+                )
+            }
+
+        let selectedID = extractItemStateID(from: context.preset.filters)?.uuidString
+
+        return OptionPopupRoute(
+            title: "Item State",
+            items: items,
+            selectedID: selectedID
+        )
+    }
+    
+    func makeSortByPopupRoute() -> OptionPopupRoute {
+        let options = availableSortingOptions()
+
+        let items = options.map {
+            OptionPopupItem(
+                id: sortingOptionID($0),
+                title: mapSortingOptionToText($0) ?? ""
+            )
+        }
+
+        let selectedID = sortingOptionID(context.preset.sortingOption)
+
+        return OptionPopupRoute(
+            title: "Sort By",
+            items: items,
+            selectedID: selectedID
+        )
+    }
+    
+    func availableSortingOptions() -> [SortingOption] {
+        [
+            .indexKey(order: .ascending),
+            .name(order: .ascending),
+            .nameDetail(order: .ascending),
+            .purchaseDate(order: .ascending),
+            .purchasePlace(order: .ascending),
+            .expireDate(order: .ascending),
+            .price(order: .ascending),
+            .quantity(order: .ascending),
+            .createdAt(order: .ascending),
+            .updatedAt(order: .ascending)
+        ]
+    }
+    
+    func sortingOptionID(_ sortingOption: SortingOption) -> String {
+        switch sortingOption {
+        case .indexKey:
+            return "indexKey"
+        case .name:
+            return "name"
+        case .nameDetail:
+            return "nameDetail"
+        case .purchaseDate:
+            return "purchaseDate"
+        case .purchasePlace:
+            return "purchasePlace"
+        case .expireDate:
+            return "expireDate"
+        case .price:
+            return "price"
+        case .quantity:
+            return "quantity"
+        case .createdAt:
+            return "createdAt"
+        case .updatedAt:
+            return "updatedAt"
+        }
+    }
+    
+    func makeViewTypePopupRoute() -> OptionPopupRoute {
+        let items = [
+            OptionPopupItem(id: "0", title: "Basic")
+        ]
+        let selectedID = String(context.preset.viewType)
+        return OptionPopupRoute(
+            title: "View Type",
+            items: items,
+            selectedID: selectedID
+        )
+    }
+    
+    func makeSortOrderPopupRoute() -> OptionPopupRoute {
+        let items = [
+            OptionPopupItem(id: "asc", title: "Ascending"),
+            OptionPopupItem(id: "desc", title: "Descending")
+        ]
+
+        let sortingOption = context.preset.sortingOption
+        let selectedID: String
+
+        switch sortingOption {
+        case .indexKey(let order),
+             .name(let order),
+             .nameDetail(let order),
+             .purchaseDate(let order),
+             .purchasePlace(let order),
+             .expireDate(let order),
+             .price(let order),
+             .quantity(let order),
+             .createdAt(let order),
+             .updatedAt(let order):
+            selectedID = order == .ascending ? "asc" : "desc"
+        }
+
+        return OptionPopupRoute(
+            title: "Sort Order",
+            items: items,
+            selectedID: selectedID
+        )
     }
 }

@@ -79,6 +79,7 @@ final class ItemAddViewModel {
     enum Input {
         case dismiss
         case viewDidLoad
+        case viewDidAppear
         
         case changeName(String)
         case changeDetailName(String)
@@ -154,6 +155,9 @@ extension ItemAddViewModel {
             onNavigation?(.dismiss)
             
         case .viewDidLoad:
+            notifyOutput()
+            
+        case .viewDidAppear:
             notifyOutput()
             
         case .changeName(let name):

@@ -7,7 +7,6 @@
 
 import UIKit
 import SnapKit
-import SwiftUI
 
 class OptionRowView: UIButton {
     
@@ -108,6 +107,7 @@ class OptionRowView: UIButton {
 
 // MARK: - Preview
 #if DEBUG
+import SwiftUI
 private struct OptionRowViewPreview: UIViewRepresentable {
     func makeUIView(context: Context) -> UIView {
         let container = UIView()

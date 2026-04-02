@@ -200,8 +200,7 @@ final class ItemAddView: UIView {
     private func setupLayout() {
         // 스크롤뷰가 안전 영역을 기준으로 화면 전체를 채우도록 설정
         scrollView.snp.makeConstraints { make in
-            make.edges.equalTo(safeAreaLayoutGuide)
-        }
+            make.edges.equalToSuperview()        }
 
         // contentView가 scrollView의 콘텐츠 영역을 모두 채우고,
         // 가로 폭은 스크롤뷰와 동일하게 유지되도록 설정
@@ -244,8 +243,17 @@ final class ItemAddView: UIView {
 // MARK: - Preview
 #if DEBUG
 private struct ItemAddViewPreview: UIViewRepresentable {
+    let category: String?
+    let itemState: String?
+    let location: String?
+
     func makeUIView(context: Context) -> UIView {
         let view = ItemAddView()
+        view.configureOptionValues(
+            category: category,
+            itemState: itemState,
+            location: location
+        )
         return view
     }
 
@@ -253,7 +261,20 @@ private struct ItemAddViewPreview: UIViewRepresentable {
 }
 
 @available(iOS 17.0, *)
-#Preview("ItemAddView") {
-    ItemAddViewPreview()
+#Preview("ItemAddView - Default") {
+    ItemAddViewPreview(
+        category: nil,
+        itemState: nil,
+        location: nil
+    )
+}
+
+@available(iOS 17.0, *)
+#Preview("ItemAddView - Category Selected") {
+    ItemAddViewPreview(
+        category: "Electronics",
+        itemState: nil,
+        location: nil
+    )
 }
 #endif

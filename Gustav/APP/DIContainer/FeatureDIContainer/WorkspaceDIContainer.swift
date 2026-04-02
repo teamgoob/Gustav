@@ -27,4 +27,8 @@ final class WorkspaceDIContainer {
     func makeWorkspaceSettingDIContainer() -> WorkspaceSettingDIContainer {
         WorkspaceSettingDIContainer(appDIContainer: appDIContainer)
     }
+    
+    func makeItemAddDIContainer() -> ItemAddDIContainer {
+        ItemAddDIContainer(appDIContainer: appDIContainer)
+    }
 }
