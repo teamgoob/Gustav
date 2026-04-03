@@ -15,6 +15,7 @@ class WorkSpaceListViewController: UIViewController {
 
     // 셀 모드
     private enum cellMode {
+        case emptyWorkspace
         case normal
         case addWorkSpace
         case changeName
@@ -59,6 +60,7 @@ class WorkSpaceListViewController: UIViewController {
         contentView.tableView.register(WorkSpaceTableViewBasicCell.self, forCellReuseIdentifier: WorkSpaceTableViewBasicCell.reuseID)
         contentView.tableView.register(WorkspaceNameEditingCell.self, forCellReuseIdentifier: WorkspaceNameEditingCell.reuseID)
         contentView.tableView.register(WorkSpaceReorderingCell.self, forCellReuseIdentifier: WorkSpaceReorderingCell.reuseID)
+        contentView.tableView.register(EmptyWorkspaceTableViewCell.self, forCellReuseIdentifier: EmptyWorkspaceTableViewCell.reuseID)
         
         
         // 2) VM 바인딩
@@ -73,6 +75,22 @@ class WorkSpaceListViewController: UIViewController {
     // 네비게이션바 설정
     private func setNavigationButton() {
         switch self.cellMode {
+        case .emptyWorkspace:
+            let plusButton = UIBarButtonItem(
+                image: UIImage(systemName: "plus"),
+                style: .plain,
+                target: nil,
+                action: #selector(didTapAddWorkspaceButton)
+            )
+
+            let setButton = UIBarButtonItem(
+                image: UIImage(systemName: "gearshape.fill"),
+                style: .plain,
+                target: self,
+                action: #selector(didTapSettingButton)
+            )
+            navigationItem.rightBarButtonItems = [setButton, plusButton]
+            
         case .normal:
             let menuButton = UIBarButtonItem(
                 image: UIImage(systemName: "ellipsis"),
@@ -169,9 +187,11 @@ class WorkSpaceListViewController: UIViewController {
                 
             case .success:
                 self.tableViewReload()
-            
+                
             case .profile(urlstring: let urlstring, name: let name):
                 contentView.updateProfile(imageUrl: urlstring, name: name)
+            case .emptyWorkspace:
+                self.changeCellMode(mode: .emptyWorkspace)
             }
         }
     }
@@ -196,10 +216,17 @@ class WorkSpaceListViewController: UIViewController {
     // 설정 버튼(Gear) 클릭시 실행되는 메서드 - 상단 내비바
     @objc private func didTapSettingButton() {
         viewModel.action(.didTapAppSetting)
+        changeCellMode(mode: .normal)
+    }
+    
+    @objc private func didTapAddWorkspaceButton() {
+        self.viewModel.action(.didTapAddWorkspaceButton)
     }
     
     @objc private func endButtonTapped() {
         switch self.cellMode {
+        case .emptyWorkspace:
+            break
         case .normal:
             break
         case .addWorkSpace:
@@ -228,12 +255,27 @@ class WorkSpaceListViewController: UIViewController {
 extension WorkSpaceListViewController: UITableViewDataSource {
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        viewModel.workSpaces.count
+        if self.cellMode == .emptyWorkspace {
+            return 1
+        } else {
+            return viewModel.workSpaces.count
+        }
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        if viewModel.workSpaces.isEmpty {
+            let cell = tableView.dequeueReusableCell(
+                withIdentifier: EmptyWorkspaceTableViewCell.reuseID, for: indexPath
+                ) as! EmptyWorkspaceTableViewCell
+            return cell
+        }
         let workspace = viewModel.workSpaces[indexPath.row]
         switch self.cellMode {
+        case .emptyWorkspace:
+            let cell = tableView.dequeueReusableCell(
+                withIdentifier: EmptyWorkspaceTableViewCell.reuseID, for: indexPath
+                ) as! EmptyWorkspaceTableViewCell
+            return cell
         case .normal:
             let cell = tableView.dequeueReusableCell(
                 withIdentifier: WorkSpaceTableViewBasicCell.reuseID,

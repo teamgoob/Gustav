@@ -52,6 +52,7 @@ final class WorkSpaceListViewModel {
         case loading(Bool)      // 로딩 유무
         case profile(urlstring: String?, name: String?)   // 프로필 데이터
         case success            // 단순 성공
+        case emptyWorkspace     // 워크스페이스 없음
     }
     
     // MARK: - Input
@@ -124,8 +125,6 @@ final class WorkSpaceListViewModel {
     
     // Fetch
     private func fetchWorkspaces() async {
-//        self.emit(.loading(true))       // 로딩 시작
-//        defer { self.emit(.loading(false) ) }    // 끝나면 로딩 끝
         
 #if DEBUG
         try? await Task.sleep(for: .seconds(2))
@@ -138,6 +137,9 @@ final class WorkSpaceListViewModel {
         switch result {
         case .success(let workspaces):
             self.workSpaces = workspaces
+            if self.workSpaces.isEmpty {
+                emit(.emptyWorkspace)
+            }
             self.emit(.success)
             
         case .failure(let error):
