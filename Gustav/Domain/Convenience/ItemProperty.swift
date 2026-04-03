@@ -23,7 +23,7 @@ enum ItemProperty {
     // 속성 이름 반환 메서드
     var title: String {
         switch self {
-        case .nameDetail: return "Detailed name"
+        case .nameDetail: return "Name detail"
         case .category: return "Category"
         case .state: return "State"
         case .location: return "Location"
