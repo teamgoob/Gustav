@@ -111,6 +111,7 @@ private extension WorkspaceViewController {
         case .loading(for: let text):
             // 전달 받은 로딩 메세지를 반영하여 로딩 뷰 표시
             customView.loadingView.startLoading(with: text)
+            return
         case .notLoading:
             customView.loadingView.stopLoading()
         }
@@ -145,6 +146,12 @@ private extension WorkspaceViewController {
             }
             customView.tableView.performBatchUpdates {
                 customView.tableView.insertRows(at: indexPaths, with: .fade)
+            }
+        // 특정 셀 삭제하기
+        case .deleteRow(let index):
+            let indexPath = IndexPath(row: index, section: 0)
+            customView.tableView.performBatchUpdates {
+                customView.tableView.deleteRows(at: [indexPath], with: .fade)
             }
         }
     }
@@ -190,6 +197,9 @@ extension WorkspaceViewController: UITableViewDataSource {
         }
         cell.onExpandButtonTapped = { [weak self] in
             self?.viewModel.action(.tapExpandButton(cellData.id))
+        }
+        cell.onDeleteButtonTapped = { [weak self] in
+            self?.viewModel.action(.tapDeleteButton(cellData))
         }
         
         return cell

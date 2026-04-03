@@ -41,6 +41,13 @@ final class WorkspaceItemCell: UITableViewCell {
         label.numberOfLines = 1
         return label
     }()
+    // 아이템 삭제 버튼
+    private let deleteButton: UIButton = {
+        let button = UIButton()
+        button.setImage(UIImage(systemName: "trash"), for: .normal)
+        button.tintColor = Colors.Theme.red.withAlphaComponent(0.6)
+        return button
+    }()
     // 아이템 수정 버튼
     private let editButton: UIButton = {
         let button = UIButton()
@@ -63,6 +70,7 @@ final class WorkspaceItemCell: UITableViewCell {
         stackView.alignment = .center
         stackView.addArrangedSubview(titleLabel)
         stackView.addArrangedSubview(UIView())
+        stackView.addArrangedSubview(deleteButton)
         stackView.addArrangedSubview(editButton)
         stackView.addArrangedSubview(expandButton)
         return stackView
@@ -107,12 +115,14 @@ final class WorkspaceItemCell: UITableViewCell {
     private let containerView: UIView = {
         let view = UIView()
         view.backgroundColor = Colors.Theme.cardBackground
-        view.layer.cornerRadius = 12
+        view.layer.cornerRadius = 16
         view.layer.masksToBounds = true
         return view
     }()
     
     // MARK: - Closures
+    // 아이템 삭제 버튼 선택
+    var onDeleteButtonTapped: (() -> Void)?
     // 아이템 수정 버튼 선택
     var onEditButtonTapped: (() -> Void)?
     // 셀 확장 버튼 선택
@@ -142,6 +152,12 @@ final class WorkspaceItemCell: UITableViewCell {
     }
     // 버튼 타겟 메서드 설정
     private func setupActions() {
+        // 아이템 삭제 버튼 타겟 메서드 등록
+        deleteButton.addTarget(
+            self,
+            action: #selector(deleteButtonTapped),
+            for: .touchUpInside
+        )
         // 아이템 수정 버튼 타겟 메서드 등록
         editButton.addTarget(
             self,
@@ -158,7 +174,7 @@ final class WorkspaceItemCell: UITableViewCell {
     // 오토레이아웃 설정
     private func setupConstraints() {
         containerView.snp.makeConstraints {
-            $0.top.bottom.equalToSuperview().inset(1)
+            $0.top.bottom.equalToSuperview().inset(2)
             $0.leading.trailing.equalToSuperview().inset(16)
         }
         containerStackView.snp.makeConstraints {
@@ -167,6 +183,9 @@ final class WorkspaceItemCell: UITableViewCell {
     }
     
     // MARK: - Target Methods
+    @objc private func deleteButtonTapped() {
+        onDeleteButtonTapped?()
+    }
     @objc private func editButtonTapped() {
         onEditButtonTapped?()
     }

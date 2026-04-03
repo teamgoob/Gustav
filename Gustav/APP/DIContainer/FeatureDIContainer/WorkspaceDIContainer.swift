@@ -20,7 +20,7 @@ final class WorkspaceDIContainer {
     
     // MARK: - ViewModel Builder
     func makeWorkspaceViewModel(workspace: Workspace) -> WorkspaceViewModel {
-        WorkspaceViewModel(workspace: workspace, itemQueryUsecase: appDIContainer.itemQueryUsecase, itemReferenceUsecase: appDIContainer.itemReferenceUsecase)
+        WorkspaceViewModel(workspace: workspace, itemUsecase: appDIContainer.itemUsecase, itemQueryUsecase: appDIContainer.itemQueryUsecase, itemReferenceUsecase: appDIContainer.itemReferenceUsecase)
     }
     
     // MARK: - DIContainer Builder
