@@ -1,34 +1,36 @@
 //
-//  PresetDetailViewModel.swift
+//  PresetAddViewModel.swift
 //  Gustav
 //
-//  Created by kaeun on 3/20/26.
+//  Created by kaeun on 4/3/26.
 //
-
 import Foundation
 
-// MARK: - PresetDetailContext
-// 디테일 화면에 필요한 데이터를 UseCase에서 묶어서 전달하기 위한 구조
-struct PresetDetailContext {
-    let preset: ViewPreset
+// MARK: - PresetAddContext
+/// 추가 화면에 필요한 고정 데이터를 ViewModel에 전달하기 위한 구조
+struct PresetAddContext {
+    let workspaceId: UUID
     let categoryNameByID: [UUID: String]
     let locationNameByID: [UUID: String]
     let itemStateNameByID: [UUID: String]
 }
 
-// MARK: - PresetDetailViewModel
-final class PresetDetailViewModel {
+
+// MARK: - PresetAddViewModel
+final class PresetAddViewModel {
     
     // MARK: - Input
     enum Input {
         case viewDidLoad
+        case didChangeName(String)
+        
         case didTapViewType
         case didTapSortBy
         case didTapSortOrder
         case didTapCategory
         case didTapLocation
         case didTapItemStatus
-        case didTapMore
+        case didTapSave
         case didTapBack
         
         case didSelectViewType(String)
@@ -41,21 +43,24 @@ final class PresetDetailViewModel {
     
     // MARK: - Output
     struct Output {
-        let title: String
+        let name: String
         let viewType: String
         let sortingOption: String?
         let sortingOrder: String?
         let category: String?
         let location: String?
         let itemStatus: String?
+        let isSaveEnabled: Bool
+        let isSaving: Bool
     }
     
     // MARK: - Route
     enum Route {
         case showOptionPopup(OptionPopupRoute)
-        case showMoreMenu
         case pop
+        case showValidationAlert(String)
         case showSaveFailureAlert(String)
+        case showSaveSuccess
     }
     
     struct OptionPopupRoute {
@@ -70,52 +75,58 @@ final class PresetDetailViewModel {
     
     // MARK: - Properties
     private let viewPresetUsecase: ViewPresetUsecaseProtocol
-    private let context: PresetDetailContext
+    private let context: PresetAddContext
     
-    private var currentViewType: Int
+    private var currentName: String = ""
+    private var currentViewType: Int = 0
     private var currentSortingOption: SortingOption?
-    private var currentFilters: [FilterOption]
+    private var currentFilters: [FilterOption] = []
+    private var isSaving: Bool = false
     
     // MARK: - Init
-    init(context: PresetDetailContext, viewPresetUsecase: ViewPresetUsecaseProtocol) {
-        self.viewPresetUsecase = viewPresetUsecase
+    init(
+        context: PresetAddContext,
+        viewPresetUsecase: ViewPresetUsecaseProtocol
+    ) {
         self.context = context
-        self.currentViewType = context.preset.viewType
-        self.currentSortingOption = context.preset.sortingOption
-        self.currentFilters = context.preset.filters
+        self.viewPresetUsecase = viewPresetUsecase
     }
 }
 
 // MARK: - External Methods
-extension PresetDetailViewModel {
+extension PresetAddViewModel {
     func action(_ input: Input) {
         switch input {
         case .viewDidLoad:
             notifyOutput()
-
+            
+        case .didChangeName(let name):
+            currentName = name
+            notifyOutput()
+            
         case .didTapViewType:
             onNavigation?(.showOptionPopup(makeViewTypePopupRoute()))
-
+            
         case .didTapSortBy:
             onNavigation?(.showOptionPopup(makeSortByPopupRoute()))
-
+            
         case .didTapSortOrder:
             onNavigation?(.showOptionPopup(makeSortOrderPopupRoute()))
-
+            
         case .didTapCategory:
             onNavigation?(.showOptionPopup(makeCategoryPopupRoute()))
-
+            
         case .didTapLocation:
             onNavigation?(.showOptionPopup(makeLocationPopupRoute()))
-
+            
         case .didTapItemStatus:
             onNavigation?(.showOptionPopup(makeItemStatePopupRoute()))
-
-        case .didTapMore:
-            onNavigation?(.showMoreMenu)
+            
+        case .didTapSave:
+            savePreset()
             
         case .didTapBack:
-            savePresetBeforePop()
+            onNavigation?(.pop)
             
         case .didSelectViewType(let id):
             guard let viewType = Int(id) else { return }
@@ -128,9 +139,8 @@ extension PresetDetailViewModel {
             notifyOutput()
             
         case .didSelectSortOrder(let id):
-            guard let sortingOption = currentSortingOption else { return }
+            let sortByID = sortingOptionID(currentSortingOption) ?? "indexKey"
             let newOrder: SortingOrder = id == "desc" ? .descending : .ascending
-            let sortByID = sortingOptionID(sortingOption)
             currentSortingOption = makeSortingOption(from: sortByID, order: newOrder)
             notifyOutput()
             
@@ -150,19 +160,26 @@ extension PresetDetailViewModel {
 }
 
 // MARK: - Private Logic
-private extension PresetDetailViewModel {
+private extension PresetAddViewModel {
     func notifyOutput() {
         let output = Output(
-            title: context.preset.name,
+            name: currentName,
             viewType: mapViewTypeToText(currentViewType),
             sortingOption: mapSortingOptionToText(currentSortingOption),
             sortingOrder: mapSortingOrderToText(currentSortingOption),
             category: mapCategoryText(from: currentFilters),
             location: mapLocationText(from: currentFilters),
-            itemStatus: mapItemStatusText(from: currentFilters)
+            itemStatus: mapItemStatusText(from: currentFilters),
+            isSaveEnabled: validateForSave(),
+            isSaving: isSaving
         )
         
         onDisplay?(output)
+    }
+    
+    func validateForSave() -> Bool {
+        let trimmedName = currentName.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmedName.isEmpty == false && isSaving == false
     }
     
     func mapViewTypeToText(_ viewType: Int) -> String {
@@ -270,6 +287,33 @@ private extension PresetDetailViewModel {
             return .updatedAt(order: order)
         default:
             return .indexKey(order: order)
+        }
+    }
+    
+    func sortingOptionID(_ sortingOption: SortingOption?) -> String? {
+        guard let sortingOption else { return nil }
+        
+        switch sortingOption {
+        case .indexKey:
+            return "indexKey"
+        case .name:
+            return "name"
+        case .nameDetail:
+            return "nameDetail"
+        case .purchaseDate:
+            return "purchaseDate"
+        case .purchasePlace:
+            return "purchasePlace"
+        case .expireDate:
+            return "expireDate"
+        case .price:
+            return "price"
+        case .quantity:
+            return "quantity"
+        case .createdAt:
+            return "createdAt"
+        case .updatedAt:
+            return "updatedAt"
         }
     }
     
@@ -401,12 +445,12 @@ private extension PresetDetailViewModel {
         
         let items = options.map {
             OptionPopupItem(
-                id: sortingOptionID($0),
+                id: sortingOptionID($0) ?? "",
                 title: mapSortingOptionToText($0) ?? ""
             )
         }
         
-        let selectedID = currentSortingOption.map { sortingOptionID($0) }
+        let selectedID = sortingOptionID(currentSortingOption)
         
         return OptionPopupRoute(
             title: "Sort By",
@@ -430,36 +474,12 @@ private extension PresetDetailViewModel {
         ]
     }
     
-    func sortingOptionID(_ sortingOption: SortingOption) -> String {
-        switch sortingOption {
-        case .indexKey:
-            return "indexKey"
-        case .name:
-            return "name"
-        case .nameDetail:
-            return "nameDetail"
-        case .purchaseDate:
-            return "purchaseDate"
-        case .purchasePlace:
-            return "purchasePlace"
-        case .expireDate:
-            return "expireDate"
-        case .price:
-            return "price"
-        case .quantity:
-            return "quantity"
-        case .createdAt:
-            return "createdAt"
-        case .updatedAt:
-            return "updatedAt"
-        }
-    }
-    
     func makeViewTypePopupRoute() -> OptionPopupRoute {
         let items = [
             OptionPopupItem(id: "0", title: "Basic")
         ]
         let selectedID = String(currentViewType)
+        
         return OptionPopupRoute(
             title: "View Type",
             items: items,
@@ -488,52 +508,63 @@ private extension PresetDetailViewModel {
         )
     }
     
-    func savePresetBeforePop() {
+    func savePreset() {
+        let trimmedName = currentName.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        guard trimmedName.isEmpty == false else {
+            onNavigation?(.showValidationAlert("Preset name is required."))
+            return
+        }
+        
+        let sortingOption = currentSortingOption ?? .indexKey(order: .ascending)
+        
         Task { [weak self] in
             guard let self else { return }
             
-            do {
-                try await updatePreset()
-                await MainActor.run {
-                    self.onNavigation?(.pop)
-                }
-            } catch {
-                await MainActor.run {
-                    self.onNavigation?(.showSaveFailureAlert("저장에 실패했습니다."))
+            await MainActor.run {
+                self.isSaving = true
+                self.notifyOutput()
+            }
+            
+            let preset = ViewPreset(
+                id: UUID(),
+                workspaceId: context.workspaceId,
+                name: trimmedName,
+                viewType: currentViewType,
+                sortingOption: sortingOption,
+                filters: currentFilters,
+                createdAt: Date(),
+                updatedAt: Date()
+            )
+            
+            let result = await viewPresetUsecase.createViewPreset(
+                workspaceId: context.workspaceId,
+                preset: preset
+            )
+            
+            await MainActor.run {
+                self.isSaving = false
+                self.notifyOutput()
+                
+                switch result {
+                case .success:
+                    self.onNavigation?(.showSaveSuccess)
+                    
+                case .failure(let error):
+                    let message = self.makeSaveFailureMessage(from: error)
+                    self.onNavigation?(.showSaveFailureAlert(message))
                 }
             }
         }
     }
-
-    func updatePreset() async throws {
-        guard let currentSortingOption else {
-            throw NSError(
-                domain: "PresetDetailViewModel",
-                code: -1,
-                userInfo: [NSLocalizedDescriptionKey: "정렬 옵션이 없습니다."]
-            )
+    
+    func makeSaveFailureMessage(from error: Error) -> String {
+        if let localizedError = error as? LocalizedError,
+           let description = localizedError.errorDescription,
+           description.isEmpty == false {
+            return description
         }
-        let updatedPreset = ViewPreset(
-            id: context.preset.id,
-            workspaceId: context.preset.workspaceId,
-            name: context.preset.name,
-            viewType: currentViewType,
-            sortingOption: currentSortingOption,
-            filters: currentFilters,
-            createdAt: context.preset.createdAt,
-            updatedAt: context.preset.updatedAt
-        )
         
-        let result = await viewPresetUsecase.updateViewPreset(
-            id: context.preset.id,
-            preset: updatedPreset
-        )
-        
-        switch result {
-        case .success:
-            return
-        case .failure(let error):
-            throw error
-        }
+        return "Failed to save preset. Please try again."
     }
 }

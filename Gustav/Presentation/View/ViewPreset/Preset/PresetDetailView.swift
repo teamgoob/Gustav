@@ -121,7 +121,7 @@ final class PresetDetailView: UIView {
         label.textColor = Colors.Text.additionalInfo
     }
     
-    private func makeSectionStack(titleLabel: UILabel, rows: [OptionRowView]) -> UIStackView {
+    private func makeSectionStack(titleLabel: UILabel, rows: [UIView]) -> UIStackView {
         let stackView = UIStackView()
         stackView.axis = .vertical
         stackView.spacing = 8
@@ -132,4 +132,3 @@ final class PresetDetailView: UIView {
         return stackView
     }
 }
-

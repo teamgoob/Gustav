@@ -1,9 +1,3 @@
-//
-//  ViewPresetListCoordinator.swift
-//  Gustav
-//
-//  Created by kaeun on 4/3/26.
-//
 
 import UIKit
 
@@ -11,24 +5,15 @@ import UIKit
 final class ViewPresetListCoordinator: Coordinator {
     
     // MARK: - Properties
-    
-    /// 화면 전환에 사용할 네비게이션 컨트롤러
     let navigationController: UINavigationController
-    
-    /// 하위 Coordinator들을 보관하는 배열
     var childCoordinators: [Coordinator] = []
     
-    /// ViewPresetList 화면에서 필요한 객체를 생성하는 DIContainer
     private let container: ViewPresetListDIContainer
-    
-    /// 현재 선택된 워크스페이스 ID
     private let selectedWorkspaceId: UUID
     
-    /// 종료 시 상위 Coordinator에 전달하는 콜백
     var onFinish: ((Coordinator) -> Void)?
     
     // MARK: - Init
-    
     init(
         navigationController: UINavigationController,
         container: ViewPresetListDIContainer,
@@ -40,7 +25,6 @@ final class ViewPresetListCoordinator: Coordinator {
     }
     
     // MARK: - Public
-    
     func start() {
         showViewPresetList()
     }
@@ -52,7 +36,7 @@ final class ViewPresetListCoordinator: Coordinator {
 
 // MARK: - Private
 private extension ViewPresetListCoordinator {
-    /// 뷰 프리셋 목록 화면을 표시합니다.
+    
     func showViewPresetList() {
         let viewController = container.makeViewPresetListViewController(workspaceId: selectedWorkspaceId)
         
@@ -63,7 +47,6 @@ private extension ViewPresetListCoordinator {
         navigationController.pushViewController(viewController, animated: true)
     }
     
-    /// ViewModel Route를 해석하여 화면 전환을 처리합니다.
     func handle(_ route: ViewPresetListViewModel.Route) {
         switch route {
         case .pushToAddPreset:
@@ -74,13 +57,36 @@ private extension ViewPresetListCoordinator {
         }
     }
     
-    /// 프리셋 추가 화면으로 이동합니다.
     func showAddPreset() {
-        print("showAddPreset not implemented")
+        Task { [weak self] in
+            guard let self else { return }
+
+            do {
+                let coordinator = try await container.makePresetAddCoordinator(
+                    navigationController: navigationController,
+                    workspaceId: selectedWorkspaceId
+                )
+
+                coordinator.onFinish = { [weak self] child in
+                    self?.removeChildCoordinator(child)
+                }
+
+                childCoordinators.append(coordinator)
+
+                await MainActor.run {
+                    coordinator.start()
+                }
+            } catch {
+                print("Failed to create PresetAddCoordinator: \(error)")
+            }
+        }
     }
     
-    /// 프리셋 상세 화면으로 이동합니다.
     func showPresetDetail(presetID: UUID) {
         print("showPresetDetail not implemented: \(presetID)")
+    }
+    
+    func removeChildCoordinator(_ coordinator: Coordinator) {
+        childCoordinators.removeAll { $0 === coordinator }
     }
 }

@@ -106,7 +106,7 @@ private extension ViewPresetListViewController {
     }
     
     func apply(_ output: ViewPresetListViewModel.Output) {
-        navigationItem.subtitle = "\(output.itemCount)개의 뷰 프리셋"
+        navigationItem.subtitle = "\(output.itemCount) presets"
         rootView.reloadList(count: output.itemCount)
         
         
