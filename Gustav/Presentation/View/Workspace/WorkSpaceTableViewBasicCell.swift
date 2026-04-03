@@ -39,12 +39,6 @@ class WorkSpaceTableViewBasicCell: UITableViewCell {
         return l
     }()
     
-    private func setUI() {
-        self.contentView.addSubview(cardView)
-        self.cardView.addSubview(titleLabel)
-        
-    }
-    
     // MARK: - Init
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
