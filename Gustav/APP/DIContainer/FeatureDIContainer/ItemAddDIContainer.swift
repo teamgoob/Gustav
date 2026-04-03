@@ -5,7 +5,6 @@
 //  Created by kaeun on 4/3/26.
 //
 import Foundation
-import UIKit
 
 /// Item Add 화면에서 필요한 객체를 생성하는 DIContainer
 final class ItemAddDIContainer {

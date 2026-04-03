@@ -107,7 +107,23 @@ private extension WorkspaceCoordinator {
     }
     // 아이템 추가 화면 표시
     func showAddItemView() {
+        let diContainer = container.makeItemAddDIContainer()
+        let coordinator = ItemAddCoordinator(
+            navigationController: navigationController,
+            container: diContainer,
+            workspaceId: workspace.id
+        )
         
+        coordinator.onFinish = { [weak self] coordinator in
+            self?.removeChild(coordinator)
+        }
+        
+        coordinator.onItemCreated = { [weak self] in
+            self?.workspaceViewModel.action(.refreshItems)
+        }
+        
+        childCoordinators.append(coordinator)
+        coordinator.start()
     }
     // 아이템 수정 화면 표시
     func showEditItemView(for id: UUID) {

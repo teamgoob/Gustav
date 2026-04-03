@@ -221,7 +221,7 @@ private extension WorkspaceViewController {
     
     // 아이템 추가 버튼 선택 시 호출
     @objc func didTapAddItemButton() {
-        
+        viewModel.action(.toAddItem)
     }
 }
 

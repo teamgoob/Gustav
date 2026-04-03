@@ -352,7 +352,7 @@ private extension ItemAddViewController {
 
     /// anchor row의 폭과 옵션 개수를 기준으로 dropdown popup의 기본 크기를 계산합니다.
     func preferredDropdownSize(for anchorView: UIView, itemCount: Int) -> CGSize {
-        let rowHeight: CGFloat = 44
+        let rowHeight: CGFloat = 56
         let verticalPadding: CGFloat = 16
         let maxVisibleRows = min(itemCount, 5)
         let height = CGFloat(maxVisibleRows) * rowHeight + verticalPadding
