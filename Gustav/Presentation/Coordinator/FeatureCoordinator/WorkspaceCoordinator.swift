@@ -17,6 +17,10 @@ final class WorkspaceCoordinator: Coordinator {
     private let container: WorkspaceDIContainer
     // Workspace Info
     private let workspace: Workspace
+    // Root ViewModel - 아이템 삭제 확인 후, 아이템 삭제 메서드 호출을 위해 참조
+    private lazy var workspaceViewModel: WorkspaceViewModel = {
+        container.makeWorkspaceViewModel(workspace: workspace)
+    }()
     
     // MARK: - Closures
     // 부모 Coordinator에게 Flow 종료 알림
@@ -54,10 +58,9 @@ private extension WorkspaceCoordinator {
     // 워크스페이스 화면 (아이템 목록) 표시
     func showWorkspaceView() {
         // VM, VC 선언
-        let viewModel = container.makeWorkspaceViewModel(workspace: workspace)
-        let viewController = WorkspaceViewController(viewModel: viewModel)
+        let viewController = WorkspaceViewController(viewModel: workspaceViewModel)
         // VM 클로저 전달
-        viewModel.onNavigation = { [weak self] destination in
+        workspaceViewModel.onNavigation = { [weak self] destination in
             switch destination {
             case .dismiss:
                 // Root View Pop 시, 코디네이터 해제
@@ -70,6 +73,10 @@ private extension WorkspaceCoordinator {
                 self?.showEditItemView(for: id)
             case .showAlertToNoticeQueryFailure:
                 self?.showFailureAlert(for: "Failed to load items.")
+            case .showAlertForDeleteItemConfirmation(let cellData):
+                self?.showDeleteItemConfirmationAlert(for: cellData)
+            case .showAlertForDeleteItemFailure:
+                self?.showFailureAlert(for: "Failed to delete item.")
             }
         }
         // 네비게이션 타이틀 크기 설정
@@ -105,6 +112,33 @@ private extension WorkspaceCoordinator {
     // 아이템 수정 화면 표시
     func showEditItemView(for id: UUID) {
         
+    }
+    // 아이템 삭제 확인 얼럿 창 표시
+    func showDeleteItemConfirmationAlert(for cellData: WorkspaceItemCellData) {
+        // 얼럿 창 생성
+        let alert = UIAlertController(
+            title: "Delete Item",
+            message: "Are you sure you want to delete item \"\(cellData.name)\"?",
+            preferredStyle: .alert
+        )
+        // 취소 버튼 생성
+        let cancelAction = UIAlertAction(
+            title: "Cancel",
+            style: .cancel,
+            handler: nil
+        )
+        // 삭제 버튼 생성
+        let deleteAction = UIAlertAction(
+            title: "Delete",
+            style: .destructive,
+        ) { [weak self] _ in
+            self?.workspaceViewModel.action(.itemDeleteConfirmed(cellData.id))
+        }
+        // 버튼 추가
+        alert.addAction(cancelAction)
+        alert.addAction(deleteAction)
+        // 얼럿 창 표시
+        navigationController.visibleViewController?.present(alert, animated: true)
     }
     // 실패 얼럿 창 표시
     func showFailureAlert(for message: String) {

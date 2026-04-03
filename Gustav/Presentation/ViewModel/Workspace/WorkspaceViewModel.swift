@@ -10,6 +10,7 @@ import Foundation
 final class WorkspaceViewModel {
     // MARK: - Usecase
     private let workspace: Workspace
+    private let itemUsecase: ItemUsecaseProtocol
     private let itemQueryUsecase: ItemQueryUsecaseProtocol
     private let itemReferenceUsecase: ItemReferenceUsecaseProtocol
     
@@ -17,8 +18,9 @@ final class WorkspaceViewModel {
     private var query: ItemQuery
     
     // MARK: - Initializer
-    init(workspace: Workspace, itemQueryUsecase: ItemQueryUsecaseProtocol, itemReferenceUsecase: ItemReferenceUsecaseProtocol) {
+    init(workspace: Workspace, itemUsecase: ItemUsecaseProtocol, itemQueryUsecase: ItemQueryUsecaseProtocol, itemReferenceUsecase: ItemReferenceUsecaseProtocol) {
         self.workspace = workspace
+        self.itemUsecase = itemUsecase
         self.itemQueryUsecase = itemQueryUsecase
         self.itemReferenceUsecase = itemReferenceUsecase
         self.query = ItemQuery(sortOption: .indexKey(order: .ascending), filters: [], searchText: nil)
@@ -44,6 +46,8 @@ final class WorkspaceViewModel {
         case loadNextPage
         case tapExpandButton(UUID)
         case tapEditButton(UUID)
+        case tapDeleteButton(WorkspaceItemCellData)
+        case itemDeleteConfirmed(UUID)
         case queryChanged(ItemQuery)
         case itemReordered([UUID])
         case toWorkspaceSettings
@@ -63,7 +67,9 @@ final class WorkspaceViewModel {
         case showWorkspaceSettings
         case showAddItem
         case showEditItem(UUID)
+        case showAlertForDeleteItemConfirmation(WorkspaceItemCellData)
         case showAlertToNoticeQueryFailure
+        case showAlertForDeleteItemFailure
     }
     
     // MARK: - Loading State
@@ -79,6 +85,7 @@ final class WorkspaceViewModel {
         case reloadData
         case reloadCell(Int)
         case insertRows((Int, Int))
+        case deleteRow(Int)
     }
     
     // MARK: - Closures
@@ -109,6 +116,12 @@ extension WorkspaceViewModel {
             handleExpandButtonTapped(for: id)
         case .tapEditButton(let id):
             onNavigation?(.showEditItem(id))
+        case .tapDeleteButton(let cellData):
+            onNavigation?(.showAlertForDeleteItemConfirmation(cellData))
+        case .itemDeleteConfirmed(let id):
+            Task {
+                await handleDeleteItemConfirmed(for: id)
+            }
         case .queryChanged(let query):
             Task {
                 await handleQueryChanged(to: query)
@@ -184,6 +197,36 @@ private extension WorkspaceViewModel {
         // 해당 아이템의 확장 여부 변경
         itemCellDatas[index].isExpanded.toggle()
         tableViewAction = .reloadCell(index)
+        notifyOutput()
+    }
+    // 아이템 삭제 이벤트 처리
+    func handleDeleteItemConfirmed(for id: UUID) async {
+        // 로딩 상태 표시
+        isLoading = .loading(for: "Deleting Item...")
+        notifyOutput()
+        
+        // 서버에서 아이템 삭제
+        let result = await itemUsecase.deleteItem(id: id)
+        switch result {
+        case .success:
+            break
+        case .failure:
+            onNavigation?(.showAlertForDeleteItemFailure)
+            return
+        }
+        
+        // 뷰 모델에서 아이템 삭제
+        self.offset -= 1
+        itemReferences.removeAll(where: { $0.item.id == id })
+        guard let index = itemCellDatas.firstIndex(where: { $0.id == id }) else { return }
+        itemCellDatas.removeAll(where: { $0.id == id })
+        // 테이블 뷰에서 아이템 Row 삭제
+        if itemCellDatas.isEmpty {
+            tableViewAction = .reloadData
+        } else {
+            tableViewAction = .deleteRow(index)
+        }
+        isLoading = .notLoading
         notifyOutput()
     }
     // 쿼리 조건 변경 이벤트 처리

@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import SnapKit
 
 // MARK: - WorkspaceViewController
 final class WorkspaceViewController: UIViewController {
@@ -13,12 +14,44 @@ final class WorkspaceViewController: UIViewController {
     // 뷰 & 뷰 모델
     private let customView = WorkspaceView()
     private let viewModel: WorkspaceViewModel
+    
     // 워크스페이스 설정 버튼
     private lazy var workspaceSettingButton = UIBarButtonItem(
         image: UIImage(systemName: "gearshape.fill"),
         style: .plain,
         target: self,
         action: #selector(didTapSettingButton)
+    )
+    // 프리셋, 정렬, 필터 적용 버튼
+    private lazy var queryOptionMenuButton = UIBarButtonItem(
+        image: UIImage(systemName: "line.3.horizontal.decrease"),
+        style: .plain,
+        target: self,
+        action: #selector(didTapQueryOptionButton)
+    )
+    // 하단 툴바
+    private let bottomToolbar: UIToolbar = {
+        let toolbar = UIToolbar()
+        return toolbar
+    }()
+    // 하단 검색창
+    private let searchBarItem: UIBarButtonItem = {
+        let searchBar = UISearchBar()
+        searchBar.placeholder = "Search items by name or name detail."
+        searchBar.searchBarStyle = .minimal
+        searchBar.snp.makeConstraints {
+            $0.height.equalTo(44)
+        }
+        
+        let item = UIBarButtonItem(customView: searchBar)
+        return item
+    }()
+    // 아이템 추가 버튼
+    private lazy var addItemButton = UIBarButtonItem(
+        image: UIImage(systemName: "square.and.pencil"),
+        style: .plain,
+        target: self,
+        action: #selector(didTapAddItemButton)
     )
     
     // MARK: - Initializer
@@ -40,6 +73,7 @@ final class WorkspaceViewController: UIViewController {
         super.viewDidLoad()
         
         setupNavigationItem()
+        setupToolbarItems()
         setupDelegate()
         bindViewModel()
         
@@ -85,7 +119,26 @@ private extension WorkspaceViewController {
         navigationItem.attributedSubtitle = subtitle
         
         // 네비게이션 바 우측 워크스페이스 설정 버튼 설정
-        navigationItem.rightBarButtonItem = workspaceSettingButton
+        navigationItem.rightBarButtonItems = [workspaceSettingButton, queryOptionMenuButton]
+    }
+    // Toolbar Item 설정
+    func setupToolbarItems() {
+        // 하단 툴바에 서치 바, 아이템 추가 버튼 추가
+        bottomToolbar.setItems(
+            [
+                searchBarItem,
+                UIBarButtonItem.flexibleSpace(),
+                addItemButton
+            ],
+            animated: false
+        )
+        // 하위 뷰로 추가
+        view.addSubview(bottomToolbar)
+        // 제약 조건 설정
+        bottomToolbar.snp.makeConstraints {
+            $0.leading.trailing.equalToSuperview()
+            $0.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom)
+        }
     }
     
     // Delegate 설정
@@ -111,6 +164,7 @@ private extension WorkspaceViewController {
         case .loading(for: let text):
             // 전달 받은 로딩 메세지를 반영하여 로딩 뷰 표시
             customView.loadingView.startLoading(with: text)
+            return
         case .notLoading:
             customView.loadingView.stopLoading()
         }
@@ -146,12 +200,28 @@ private extension WorkspaceViewController {
             customView.tableView.performBatchUpdates {
                 customView.tableView.insertRows(at: indexPaths, with: .fade)
             }
+        // 특정 셀 삭제하기
+        case .deleteRow(let index):
+            let indexPath = IndexPath(row: index, section: 0)
+            customView.tableView.performBatchUpdates {
+                customView.tableView.deleteRows(at: [indexPath], with: .fade)
+            }
         }
     }
     
     // 워크스페이스 설정 버튼 선택 시 호출
     @objc func didTapSettingButton() {
         viewModel.action(.toWorkspaceSettings)
+    }
+    
+    // 프리셋, 정렬, 필터 설정 메뉴 선택 시 호출
+    @objc func didTapQueryOptionButton() {
+        
+    }
+    
+    // 아이템 추가 버튼 선택 시 호출
+    @objc func didTapAddItemButton() {
+        
     }
 }
 
@@ -190,6 +260,9 @@ extension WorkspaceViewController: UITableViewDataSource {
         }
         cell.onExpandButtonTapped = { [weak self] in
             self?.viewModel.action(.tapExpandButton(cellData.id))
+        }
+        cell.onDeleteButtonTapped = { [weak self] in
+            self?.viewModel.action(.tapDeleteButton(cellData))
         }
         
         return cell
