@@ -119,7 +119,7 @@ private extension WorkspaceCoordinator {
         }
         
         coordinator.onItemCreated = { [weak self] in
-            self?.workspaceViewModel.action(.refreshItems)
+            self?.workspaceViewModel.action(.viewDidAppear)
         }
         
         childCoordinators.append(coordinator)

@@ -43,7 +43,7 @@ final class WorkspaceViewModel {
         case dismiss
         case viewDidLoad
         case viewDidAppear
-        case refreshItems
+        
         case loadNextPage
         case tapExpandButton(UUID)
         case tapEditButton(UUID)
@@ -107,10 +107,8 @@ extension WorkspaceViewModel {
             break
         case .viewDidAppear:
             Task {
-                await fetchItems()
-            }
-        case .refreshItems:
-            Task {
+                // 테스트 추가
+//                self.queryProperties = [.category, .price]
                 await fetchItems()
             }
         case .loadNextPage:
