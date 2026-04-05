@@ -7,54 +7,66 @@
 
 import UIKit
 
-final class PresetDetailCoordinator: Coordinator {
-    
-    let navigationController: UINavigationController
-    var childCoordinators: [Coordinator] = []
-    
+final class PresetDetailCoordinator: BaseCoordinator {
     private let container: PresetDetailDIContainer
     private let context: PresetDetailContext
     
-    var onFinish: (() -> Void)?
+    var onFinish: ((Coordinator) -> Void)?
     
     init(
         navigationController: UINavigationController,
         container: PresetDetailDIContainer,
         context: PresetDetailContext
     ) {
-        self.navigationController = navigationController
         self.container = container
         self.context = context
+        super.init(navigationController: navigationController)
     }
     
-    func start() {
-        let viewController = container.makePresetDetailViewController(context: context)
-        
-        viewController.onRoute = { [weak self] route in
-            self?.handle(route)
-        }
-        
-        navigationController.pushViewController(viewController, animated: true)
+    // MARK: - Flow Start
+    override func start() {
+        super.start()
+        showPresetDetail()
+    }
+
+    // MARK: - Flow Finish
+    func finish() {
+        onFinish?(self)
+    }
+
+    // MARK: - Deinit Children
+    override func removeChild(_ finishedCoordinator: Coordinator) {
+        super.removeChild(finishedCoordinator)
+        childCoordinators.removeAll { $0 === finishedCoordinator }
     }
 }
 
 private extension PresetDetailCoordinator {
-    func handle(_ route: PresetDetailViewModel.Route) {
-        switch route {
-        case .showMoreMenu:
-            showMoreMenu()
-            
-        case .showOptionPopup,
-             .showSaveFailureAlert:
-            break
-            
-        case .pop:
-            navigationController.popViewController(animated: true)
-            onFinish?()
+    // Default View
+    func showPresetDetail() {
+        let viewModel = container.makePresetDetailViewModel(context: context)
+        let viewController = PresetDetailViewController(viewModel: viewModel)
+        
+        viewController.onRoute = { [weak self] route in
+            switch route {
+            case .showMoreMenu:
+                self?.showMoreMenu()
+                
+            case .showOptionPopup,
+                 .showSaveFailureAlert:
+                break
+                
+            case .pop:
+                self?.navigationController.popViewController(animated: true)
+                self?.finish()
+            }
         }
+        
+        navigationController.pushViewController(viewController, animated: true)
     }
     
-    func showMoreMenu() {
+    // More Menu
+    private func showMoreMenu() {
         let alert = UIAlertController(
             title: nil,
             message: nil,

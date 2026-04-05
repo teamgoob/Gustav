@@ -39,6 +39,11 @@ final class ViewPresetListViewController: UIViewController {
         bindViewModel()
         viewModel.action(.viewDidLoad)
     }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        viewModel.action(.viewWillAppear)
+    }
 }
 
 // MARK: - Setup

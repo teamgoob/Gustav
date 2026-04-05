@@ -1,13 +1,9 @@
-
 import UIKit
 
 /// 뷰 프리셋 목록 화면의 흐름을 관리하는 Coordinator
-final class ViewPresetListCoordinator: Coordinator {
+final class ViewPresetListCoordinator: BaseCoordinator {
     
     // MARK: - Properties
-    let navigationController: UINavigationController
-    var childCoordinators: [Coordinator] = []
-    
     private let container: ViewPresetListDIContainer
     private let selectedWorkspaceId: UUID
     
@@ -19,18 +15,26 @@ final class ViewPresetListCoordinator: Coordinator {
         container: ViewPresetListDIContainer,
         selectedWorkspaceId: UUID
     ) {
-        self.navigationController = navigationController
         self.container = container
         self.selectedWorkspaceId = selectedWorkspaceId
+        super.init(navigationController: navigationController)
     }
     
-    // MARK: - Public
-    func start() {
+    // MARK: - Flow Start
+    override func start() {
+        super.start()
         showViewPresetList()
     }
     
+    // MARK: - Flow Finish
     func finish() {
         onFinish?(self)
+    }
+    
+    // MARK: - Deinit Children
+    override func removeChild(_ finishedCoordinator: Coordinator) {
+        super.removeChild(finishedCoordinator)
+        childCoordinators.removeAll { $0 === finishedCoordinator }
     }
 }
 
@@ -38,55 +42,69 @@ final class ViewPresetListCoordinator: Coordinator {
 private extension ViewPresetListCoordinator {
     
     func showViewPresetList() {
-        let viewController = container.makeViewPresetListViewController(workspaceId: selectedWorkspaceId)
+        let viewModel = container.makeViewPresetListViewModel(workspaceId: selectedWorkspaceId)
+        let viewController = ViewPresetListViewController(viewModel: viewModel)
         
         viewController.onRoute = { [weak self] route in
-            self?.handle(route)
+            switch route {
+            case .pushToAddPreset:
+                self?.showAddPreset()
+                
+            case .pushToPresetDetail(let id):
+                self?.showPresetDetail(presetID: id)
+            }
         }
         
         navigationController.pushViewController(viewController, animated: true)
     }
     
-    func handle(_ route: ViewPresetListViewModel.Route) {
-        switch route {
-        case .pushToAddPreset:
-            showAddPreset()
-            
-        case .pushToPresetDetail(let id):
-            showPresetDetail(presetID: id)
-        }
-    }
-    
     func showAddPreset() {
+        let presetAddDIContainer = container.makePresetAddDIContainer()
+
         Task { [weak self] in
             guard let self else { return }
 
-            do {
-                let coordinator = try await container.makePresetAddCoordinator(
-                    navigationController: navigationController,
-                    workspaceId: selectedWorkspaceId
-                )
+            let viewModel = await presetAddDIContainer.makePresetAddViewModel(workspaceId: selectedWorkspaceId)
+            let coordinator = PresetAddCoordinator(
+                navigationController: navigationController,
+                viewModel: viewModel
+            )
 
-                coordinator.onFinish = { [weak self] child in
-                    self?.removeChildCoordinator(child)
-                }
-
-                childCoordinators.append(coordinator)
-
-                await MainActor.run {
-                    coordinator.start()
-                }
-            } catch {
-                print("Failed to create PresetAddCoordinator: \(error)")
+            coordinator.onFinish = { [weak self] child in
+                self?.removeChild(child)
             }
+
+            childCoordinators.append(coordinator)
+
+            coordinator.start()
         }
     }
     
     func showPresetDetail(presetID: UUID) {
-        print("showPresetDetail not implemented: \(presetID)")
+        let presetDetailDIContainer = container.makePresetDetailDIContainer()
+
+        Task { [weak self] in
+            guard let self else { return }
+
+            let context = await presetDetailDIContainer.makePresetDetailContext(
+                workspaceId: selectedWorkspaceId,
+                presetId: presetID
+            )
+
+            let coordinator = PresetDetailCoordinator(
+                navigationController: navigationController,
+                container: presetDetailDIContainer,
+                context: context
+            )
+
+            coordinator.onFinish = { [weak self] coordinator in
+                self?.removeChild(coordinator)
+            }
+
+            childCoordinators.append(coordinator)
+            coordinator.start()
+        }
     }
-    
-    func removeChildCoordinator(_ coordinator: Coordinator) {
-        childCoordinators.removeAll { $0 === coordinator }
-    }
+
+
 }

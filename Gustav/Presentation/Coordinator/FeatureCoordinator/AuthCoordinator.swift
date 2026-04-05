@@ -48,6 +48,7 @@ final class AuthCoordinator: BaseCoordinator, AuthCoordinatorProtocol {
 
         print("LoginViewController created")
 
+        navigationController.navigationBar.prefersLargeTitles = false
         navigationController.setViewControllers([viewController], animated: false)
         
         viewController.onRoute = { [weak self] route in

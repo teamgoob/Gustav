@@ -21,6 +21,7 @@ final class ViewPresetListViewModel {
     // MARK: - Input
     enum Input {
         case viewDidLoad
+        case viewWillAppear
         case didTapAddButton
         case didSelectItem(at: Int)
     }
@@ -65,6 +66,10 @@ extension ViewPresetListViewModel {
     func action(_ input: Input) {
         switch input {
         case .viewDidLoad:
+            Task {
+                await fetchPresets()
+            }
+        case .viewWillAppear:
             Task {
                 await fetchPresets()
             }

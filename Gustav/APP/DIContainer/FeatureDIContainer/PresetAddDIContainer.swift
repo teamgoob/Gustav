@@ -5,7 +5,7 @@
 //  Created by kaeun on 4/3/26.
 //
 
-import UIKit
+import Foundation
 
 final class PresetAddDIContainer {
 
@@ -18,56 +18,23 @@ final class PresetAddDIContainer {
     }
 }
 
-// MARK: - Context Builder
-extension PresetAddDIContainer {
-    func makePresetAddContext(workspaceId: UUID) async -> PresetAddContext {
-        async let categoriesResult = appDIContainer.categoryUsecase.fetchCategories(workspaceId: workspaceId)
-        async let locationsResult = appDIContainer.locationUsecase.fetchLocations(workspaceId: workspaceId)
-        async let itemStatesResult = appDIContainer.itemStateUsecase.fetchItemStates(workspaceId: workspaceId)
-
-        let categoryNameByID: [UUID: String]
-        switch await categoriesResult {
-        case .success(let categories):
-            categoryNameByID = Dictionary(
-                uniqueKeysWithValues: categories.map { ($0.id, $0.name) }
-            )
-        case .failure:
-            categoryNameByID = [:]
-        }
-
-        let locationNameByID: [UUID: String]
-        switch await locationsResult {
-        case .success(let locations):
-            locationNameByID = Dictionary(
-                uniqueKeysWithValues: locations.map { ($0.id, $0.name) }
-            )
-        case .failure:
-            locationNameByID = [:]
-        }
-
-        let itemStateNameByID: [UUID: String]
-        switch await itemStatesResult {
-        case .success(let itemStates):
-            itemStateNameByID = Dictionary(
-                uniqueKeysWithValues: itemStates.map { ($0.id, $0.name) }
-            )
-        case .failure:
-            itemStateNameByID = [:]
-        }
-
-        return PresetAddContext(
-            workspaceId: workspaceId,
-            categoryNameByID: categoryNameByID,
-            locationNameByID: locationNameByID,
-            itemStateNameByID: itemStateNameByID
-        )
-    }
-}
-
 // MARK: - ViewModel Builder
 extension PresetAddDIContainer {
     func makePresetAddViewModel(workspaceId: UUID) async -> PresetAddViewModel {
-        let context = await makePresetAddContext(workspaceId: workspaceId)
+        let result = await appDIContainer.workspaceContextUsecase.fetchContext(workspaceId: workspaceId)
+
+        let context: PresetAddContext
+        switch result {
+        case .success(let workspaceContext):
+            context = makePresetAddContext(from: workspaceContext, workspaceId: workspaceId)
+        case .failure:
+            context = PresetAddContext(
+                workspaceId: workspaceId,
+                categoryNameByID: [:],
+                locationNameByID: [:],
+                itemStateNameByID: [:]
+            )
+        }
 
         return PresetAddViewModel(
             context: context,
@@ -76,17 +43,44 @@ extension PresetAddDIContainer {
     }
 }
 
-// MARK: - Coordinator Builder
+// MARK: - Child DIContainer Builder
 extension PresetAddDIContainer {
-    func makePresetAddCoordinator(
-        navigationController: UINavigationController,
-        workspaceId: UUID
-    ) async -> PresetAddCoordinator {
-        let viewModel = await makePresetAddViewModel(workspaceId: workspaceId)
+    func makeCategoryListDIContainer() -> CategoryListDIContainer {
+        CategoryListDIContainer(appContainer: appDIContainer)
+    }
 
-        return PresetAddCoordinator(
-            navigationController: navigationController,
-            viewModel: viewModel
+    func makeLocationListDIContainer() -> LocationListDIContainer {
+        LocationListDIContainer(appContainer: appDIContainer)
+    }
+
+    func makeItemStateListDIContainer() -> ItemStateListDIContainer {
+        ItemStateListDIContainer(appContainer: appDIContainer)
+    }
+}
+
+// MARK: - Private Helper
+private extension PresetAddDIContainer {
+    func makePresetAddContext(
+        from workspaceContext: WorkspaceContext,
+        workspaceId: UUID
+    ) -> PresetAddContext {
+        let categoryNameByID = Dictionary(
+            uniqueKeysWithValues: workspaceContext.categories.map { ($0.id, $0.name) }
+        )
+
+        let locationNameByID = Dictionary(
+            uniqueKeysWithValues: workspaceContext.locations.map { ($0.id, $0.name) }
+        )
+
+        let itemStateNameByID = Dictionary(
+            uniqueKeysWithValues: workspaceContext.states.map { ($0.id, $0.name) }
+        )
+
+        return PresetAddContext(
+            workspaceId: workspaceId,
+            categoryNameByID: categoryNameByID,
+            locationNameByID: locationNameByID,
+            itemStateNameByID: itemStateNameByID
         )
     }
 }

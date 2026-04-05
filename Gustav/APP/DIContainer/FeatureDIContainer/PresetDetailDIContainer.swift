@@ -5,7 +5,7 @@
 //  Created by kaeun on 4/3/26.
 //
 
-import UIKit
+import Foundation
 
 // MARK: - PresetDetailDIContainer
 final class PresetDetailDIContainer {
@@ -23,28 +23,65 @@ final class PresetDetailDIContainer {
             viewPresetUsecase: appDIContainer.viewPresetUsecase
         )
     }
-    
-    // MARK: - ViewController Builder
-    func makePresetDetailViewController(
-        context: PresetDetailContext
-    ) -> PresetDetailViewController {
-        let viewModel = makePresetDetailViewModel(context: context)
-        return PresetDetailViewController(viewModel: viewModel)
-    }
-    
-}
 
+    func makePresetDetailContext(workspaceId: UUID, presetId: UUID) async -> PresetDetailContext {
+        let presetResult = await appDIContainer.viewPresetUsecase.fetchViewPresets(workspaceId: workspaceId)
+        let workspaceContextResult = await appDIContainer.workspaceContextUsecase.fetchContext(workspaceId: workspaceId)
 
-// MARK: - Coordinator Builder
-extension PresetDetailDIContainer {
-    func makePresetDetailCoordinator(
-        navigationController: UINavigationController,
-        context: PresetDetailContext
-    ) -> PresetDetailCoordinator {
-        PresetDetailCoordinator(
-            navigationController: navigationController,
-            container: self,
-            context: context
+        let fallbackPreset = ViewPreset(
+            id: presetId,
+            workspaceId: workspaceId,
+            name: "",
+            viewType: 0,
+            sortingOption: .indexKey(order: .ascending),
+            filters: [],
+            createdAt: nil,
+            updatedAt: nil
+        )
+
+        let preset: ViewPreset
+        switch presetResult {
+        case .success(let presets):
+            preset = presets.first(where: { $0.id == presetId }) ?? fallbackPreset
+        case .failure:
+            preset = fallbackPreset
+        }
+
+        let categoryNameByID: [UUID: String]
+        let locationNameByID: [UUID: String]
+        let itemStateNameByID: [UUID: String]
+
+        switch workspaceContextResult {
+        case .success(let workspaceContext):
+            categoryNameByID = Dictionary(uniqueKeysWithValues: workspaceContext.categories.map { ($0.id, $0.name) })
+            locationNameByID = Dictionary(uniqueKeysWithValues: workspaceContext.locations.map { ($0.id, $0.name) })
+            itemStateNameByID = Dictionary(uniqueKeysWithValues: workspaceContext.states.map { ($0.id, $0.name) })
+
+        case .failure:
+            categoryNameByID = [:]
+            locationNameByID = [:]
+            itemStateNameByID = [:]
+        }
+
+        return PresetDetailContext(
+            preset: preset,
+            categoryNameByID: categoryNameByID,
+            locationNameByID: locationNameByID,
+            itemStateNameByID: itemStateNameByID
         )
     }
+    
+    // MARK: - Child DIContainer Builder
+    func makeCategoryListDIContainer() -> CategoryListDIContainer {
+        CategoryListDIContainer(appContainer: appDIContainer)
+    }
+
+    func makeLocationListDIContainer() -> LocationListDIContainer {
+        LocationListDIContainer(appContainer: appDIContainer)
+    }
+
+    func makeItemStateListDIContainer() -> ItemStateListDIContainer {
+        ItemStateListDIContainer(appContainer: appDIContainer)
+    }
+    
 }
