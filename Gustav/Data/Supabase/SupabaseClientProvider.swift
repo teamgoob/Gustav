@@ -20,6 +20,9 @@ enum SupabaseClientProvider: SupabaseClientProviding {
             supabaseURL: AppEnvironment.supabaseURL,
             supabaseKey: AppEnvironment.supabaseKey,
             options: SupabaseClientOptions(
+                db: SupabaseClientOptions.DatabaseOptions(
+                    decoder: .gustavSupabaseDecoder()
+                ),
                 auth: SupabaseClientOptions.AuthOptions(
                     emitLocalSessionAsInitialSession: true
                 )
