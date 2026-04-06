@@ -10,6 +10,12 @@ final class CategoryDetailViewModel {
     // Category
     private var category: Category
     
+    // All Categories
+    private var allCategories: [Category] = [] {
+        didSet {
+            emit(.changedParentCategory)
+        }
+    }
     // TagColorCases를 배열로 보관
     private let colors = TagColor.allCases
     
@@ -57,6 +63,7 @@ final class CategoryDetailViewModel {
         case fetchedItems
         case changeTagColor
         case changeName(String)
+        case changedParentCategory
         case delete
     }
     
@@ -72,6 +79,7 @@ final class CategoryDetailViewModel {
         case startChangeName
         case changedNameButton(String)
         case didTappedDeleteButton
+        case changedParentCategory(UUID?)
     }
     
     func action(_ input: Input) {
@@ -80,6 +88,7 @@ final class CategoryDetailViewModel {
             self.taskRemote?.cancel()
             self.taskRemote = Task {
                 await self.fetchItems()
+                await self.fetchCategories()
                 emit(.fetchedItems)
             }
         case .didChangeTagColor(let tagColor):
@@ -104,12 +113,39 @@ final class CategoryDetailViewModel {
                 await self.deleteCategory()
                 onNavigation?(.delete)
             }
+        case .changedParentCategory(let parentId):
+            self.taskRemote?.cancel()
+            self.taskRemote = Task {
+                await self.changeParentCategory(parentId)
+            }
         }
     }
     
     // Category Title 리턴
     func getCategoryTitle() -> String {
         category.name
+    }
+    
+    // Parent Category Title(Name) return
+    func getParentCategoryTitle() -> String {
+        guard let parentId = self.category.parentId else {
+            return "none"
+        }
+        return self.allCategories.first(where: { $0.id == parentId })?.name ?? "none"
+    }
+    
+    // ParentCategoryUUID 리턴
+    func getParentCategoryUUID() -> UUID? {
+        guard let parentId = self.category.parentId else {
+            return nil
+        }
+        return parentId
+    }
+    
+    
+    // Categories Array
+    func getAllCategories() -> [Category] {
+        self.allCategories
     }
     
     // TableView DataSource: 사용할 아이템 갯수
@@ -144,6 +180,7 @@ final class CategoryDetailViewModel {
     
 }
 
+// Data Layer 사용
 private extension CategoryDetailViewModel {
     // 아이템 쿼리
     private func fetchItems() async {
@@ -219,6 +256,46 @@ private extension CategoryDetailViewModel {
         case .failure(let error):
             self.selectedColor = category.color
             self.onNavigation?(.showErrorAlert(error.localizedDescription))
+        }
+    }
+    
+    // 부모카테고리 변경
+    private func changeParentCategory(_ parentCategoryId: UUID?) async {
+        let updatedCategory = Category(
+            id: self.category.id,
+            workspaceId: self.category.workspaceId,
+            parentId: parentCategoryId,
+            indexKey: self.category.indexKey,
+            name: self.category.name,
+            color: self.category.color
+        )
+        
+        let result = await categoryUseCase.updateCategory(
+            id: category.id,
+            category: updatedCategory
+        )
+        
+        switch result {
+            case .success:
+            self.category = updatedCategory
+            emit(.changedParentCategory)
+            self.onNavigation?(.reFetchCategoryList)
+        case .failure(let error):
+            self.onNavigation?(.showErrorAlert(error.localizedDescription))
+        }
+    }
+    
+    // 전체 카테고리 가져오기
+    private func fetchCategories() async {
+        let result = await categoryUseCase.fetchCategories(workspaceId: category.workspaceId)
+        switch result {
+        case .success(var categories):
+            if let myIndex = categories.firstIndex(where: { $0.id == self.category.id }) {
+                categories.remove(at: myIndex)
+            }
+            self.allCategories = categories
+        case .failure:
+            onNavigation?(.showErrorAlert("Failed to get Parent category"))
         }
     }
     

@@ -97,6 +97,8 @@ class CategoryDetailViewController: UIViewController {
                 self.title = name
             case .changeTagColor:
                 self.contentView.collectionView.reloadData()
+            case .changedParentCategory:
+                self.contentView.tableView.reloadSections(IndexSet(integer: 0), with: .automatic)
             case .delete:
                 self.loadingView.startLoading()
                 
@@ -114,6 +116,11 @@ class CategoryDetailViewController: UIViewController {
         contentView.tableView.register(
             ItemAttributeDetailItemCell.self,
             forCellReuseIdentifier: ItemAttributeDetailItemCell.reuseID
+        )
+        
+        contentView.tableView.register(
+            ParentCategoryTableViewCell.self,
+            forCellReuseIdentifier: ParentCategoryTableViewCell.reuseID
         )
     }
     
@@ -186,28 +193,80 @@ extension CategoryDetailViewController: UICollectionViewDelegate {
 extension CategoryDetailViewController: UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        self.viewModel.numberOfRows()
+        switch section {
+        case 0:
+            return 1    // 상위 카테고리 설정 셀
+        case 1:
+            return self.viewModel.numberOfRows()
+        default:
+            return 0
+        }
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let item = self.viewModel.cellForRowAt(index: indexPath.row)
+        switch indexPath.section {
+        case 0:
 
-        let cell = tableView.dequeueReusableCell(
-            withIdentifier: ItemAttributeDetailItemCell.reuseID,
-            for: indexPath
-        ) as! ItemAttributeDetailItemCell
-        
-        cell.configure(title: item.name)
-        return cell
+            let cell = tableView.dequeueReusableCell(
+                withIdentifier: ParentCategoryTableViewCell.reuseID,
+                for: indexPath
+            ) as! ParentCategoryTableViewCell
+            if self.viewModel.getAllCategories().isEmpty {
+                cell.configure(
+                    selectedParentCategoryName: self.viewModel.getParentCategoryTitle(),
+                    makeParentCategoryMenu: nil)
+                return cell
+            } else {
+                let menu = MenuBuilder.makeAssociatedMenu(
+                    selectedid: self.viewModel.getParentCategoryUUID(),
+                    items: self.viewModel.getAllCategories()) { [weak self] id in
+                        guard let self else { return }
+                        self.viewModel.action(.changedParentCategory(id))
+                    }
+                cell.configure(
+                    selectedParentCategoryName: self.viewModel.getParentCategoryTitle(),
+                    makeParentCategoryMenu: menu
+                )
+                
+                return cell
+            }
+        case 1:
+            let item = self.viewModel.cellForRowAt(index: indexPath.row)
+
+            let cell = tableView.dequeueReusableCell(
+                withIdentifier: ItemAttributeDetailItemCell.reuseID,
+                for: indexPath
+            ) as! ItemAttributeDetailItemCell
+            
+            cell.configure(title: item.name)
+            return cell
+        default:
+            let cell = tableView.dequeueReusableCell(
+                withIdentifier: ItemAttributeDetailItemCell.reuseID,
+                for: indexPath
+            ) as! ItemAttributeDetailItemCell
+            
+            cell.configure(title: "테스트 break")
+            return cell
+            
+        }
     }
     
     func numberOfSections(in tableView: UITableView) -> Int {
-        1
+        2
     }
     
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        "Associated Items"
+        switch section {
+        case 0:
+            return "Parent Category"
+        case 1:
+            return "Associated Items"
+        default:
+            return nil
+        }
     }
+    
     
 }
 
