@@ -529,6 +529,7 @@ private extension PresetAddViewModel {
             let preset = ViewPreset(
                 id: UUID(),
                 workspaceId: context.workspaceId,
+//                indexKey: 0,
                 name: trimmedName,
                 viewType: currentViewType,
                 sortingOption: sortingOption,

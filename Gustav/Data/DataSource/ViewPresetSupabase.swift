@@ -23,7 +23,7 @@ final class ViewPresetSupabase: ViewPresetDataSourceProtocol {
                 .from(table)
                 .select()
                 .eq("workspace_id", value: workspaceId)
-                .order("index_key")
+                .order("created_at", ascending: false)
                 .execute()
                 .value
             return .success(response)
@@ -37,15 +37,18 @@ final class ViewPresetSupabase: ViewPresetDataSourceProtocol {
     }
     
     func createViewPreset(workspaceId: UUID, viewPreset: ViewPreset) async -> RepositoryResult<ViewPresetDTO> {
-        let viewPresetDTO = ViewPresetDTO(
+        let entity = ViewPreset(
             id: viewPreset.id,
-            workspaceId: viewPreset.workspaceId,
+            workspaceId: workspaceId,
+//            indexKey: viewPreset.indexKey,
             name: viewPreset.name,
             viewType: viewPreset.viewType,
             sortingOption: viewPreset.sortingOption,
             filters: viewPreset.filters,
             createdAt: Date(),
-            updatedAt: nil)
+            updatedAt: nil
+        )
+        let viewPresetDTO = ViewPresetMapper.toDTO(from: entity)
         do {
             let response: ViewPresetDTO = try await client
                 .from(table)
@@ -56,6 +59,16 @@ final class ViewPresetSupabase: ViewPresetDataSourceProtocol {
                 .value
             return .success(response)
         } catch {
+            print("createViewPreset error:", error)
+            print("localized:", error.localizedDescription)
+
+            if let e = error as? PostgrestError {
+                print("message:", e.message)
+                print("detail:", e.detail ?? "")
+                print("hint:", e.hint ?? "")
+                print("code:", e.code ?? "")
+            }
+            
             // 에러 타입에 따라 Repository Error로 매핑하여 반환
             if let e = error as? RepositoryErrorConvertible {
                 return .failure(e.mapToRepositoryError())
@@ -65,15 +78,18 @@ final class ViewPresetSupabase: ViewPresetDataSourceProtocol {
     }
     
     func updateViewPreset(id: UUID, viewPreset: ViewPreset) async -> RepositoryResult<Void> {
-        let viewPresetDTO = ViewPresetDTO(
+        let entity = ViewPreset(
             id: viewPreset.id,
             workspaceId: viewPreset.workspaceId,
+//            indexKey: viewPreset.indexKey,
             name: viewPreset.name,
             viewType: viewPreset.viewType,
             sortingOption: viewPreset.sortingOption,
             filters: viewPreset.filters,
             createdAt: nil,
-            updatedAt: Date())
+            updatedAt: Date()
+        )
+        let viewPresetDTO = ViewPresetMapper.toDTO(from: entity)
         do {
             _ = try await client
                 .from(table)

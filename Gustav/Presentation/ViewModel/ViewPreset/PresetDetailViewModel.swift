@@ -516,6 +516,7 @@ private extension PresetDetailViewModel {
         let updatedPreset = ViewPreset(
             id: context.preset.id,
             workspaceId: context.preset.workspaceId,
+//            indexKey: context.preset.indexKey,
             name: context.preset.name,
             viewType: currentViewType,
             sortingOption: currentSortingOption,

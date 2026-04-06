@@ -25,6 +25,7 @@ final class TestPresetDetailUsecase: PresetDetailUsecaseProtocol {
         let preset = ViewPreset(
             id: UUID(),
             workspaceId: workspaceID,
+//            indexKey: 0,
             name: "적당히 긴 프리셋명",
             viewType: 0,
             sortingOption: .name(order: .ascending),

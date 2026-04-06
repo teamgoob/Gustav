@@ -11,6 +11,7 @@ import Foundation
 struct ViewPreset {
     let id: UUID                     // 프리셋 ID
     let workspaceId: UUID            // 소속 워크스페이스 ID
+//    let indexKey: Int                // 정렬 순서
     let name: String                 // 프리셋 이름
     let viewType: Int                // 뷰 타입
     let sortingOption: SortingOption // 정렬 기준

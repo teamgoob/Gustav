@@ -29,6 +29,7 @@ final class TestViewPresetUsecase: ViewPresetUsecaseProtocol {
             ViewPreset(
                 id: UUID(),
                 workspaceId: workspaceId,
+//                indexKey: 0,
                 name: "애플 신제품",
                 viewType: 0,
                 sortingOption: .name(order: .ascending),
@@ -39,6 +40,7 @@ final class TestViewPresetUsecase: ViewPresetUsecaseProtocol {
             ViewPreset(
                 id: UUID(),
                 workspaceId: workspaceId,
+//                indexKey: 1,
                 name: "삼성 중고",
                 viewType: 0,
                 sortingOption: .createdAt(order: .descending),
@@ -50,6 +52,7 @@ final class TestViewPresetUsecase: ViewPresetUsecaseProtocol {
             ViewPreset(
                 id: UUID(),
                 workspaceId: workspaceId,
+//                indexKey: 2,
                 name: "삼성 중고2",
                 viewType: 0,
                 sortingOption: .createdAt(order: .descending),
@@ -60,6 +63,7 @@ final class TestViewPresetUsecase: ViewPresetUsecaseProtocol {
             ViewPreset(
                 id: UUID(),
                 workspaceId: workspaceId,
+//                indexKey: 3,
                 name: "삼성 중고3",
                 viewType: 0,
                 sortingOption: .createdAt(order: .descending),
