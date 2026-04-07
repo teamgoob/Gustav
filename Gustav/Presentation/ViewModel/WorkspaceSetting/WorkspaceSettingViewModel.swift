@@ -121,19 +121,10 @@ extension WorkspaceSettingViewModel {
 private extension WorkspaceSettingViewModel {
     // 설정 목록 초기화
     func configureSections() {
-        let categorySetting = SettingListSection(items: [
+        let workspaceContextSetting = SettingListSection(items: [
             .categorySettings,
-            .setCategoriesInBulk
-        ])
-        
-        let locationSetting = SettingListSection(items: [
             .locationSettings,
-            .setLocationsInBulk
-        ])
-        
-        let itemStateSetting = SettingListSection(items: [
-            .itemStateSettings,
-            .setItemStatesInBulk
+            .itemStateSettings
         ])
         
         let viewPresetSetting = SettingListSection(items: [
@@ -144,7 +135,7 @@ private extension WorkspaceSettingViewModel {
             .deleteWorkspace
         ])
         
-        self.settingListSections = [categorySetting, locationSetting, itemStateSetting, viewPresetSetting, workspaceSetting]
+        self.settingListSections = [workspaceContextSetting, viewPresetSetting, workspaceSetting]
     }
     
     // 워크스페이스 이름 불러오기

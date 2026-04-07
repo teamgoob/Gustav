@@ -37,10 +37,10 @@ final class WorkspaceViewController: UIViewController {
     // 하단 검색창
     private let searchBarItem: UIBarButtonItem = {
         let searchBar = UISearchBar()
-        searchBar.placeholder = "Search items by name or name detail."
+        searchBar.placeholder = "Search items by name"
         searchBar.searchBarStyle = .minimal
         searchBar.snp.makeConstraints {
-            $0.height.equalTo(44)
+            $0.height.equalTo(40)
         }
         
         let item = UIBarButtonItem(customView: searchBar)
@@ -48,7 +48,7 @@ final class WorkspaceViewController: UIViewController {
     }()
     // 아이템 추가 버튼
     private lazy var addItemButton = UIBarButtonItem(
-        image: UIImage(systemName: "square.and.pencil"),
+        image: UIImage(systemName: "plus"),
         style: .plain,
         target: self,
         action: #selector(didTapAddItemButton)
@@ -136,7 +136,7 @@ private extension WorkspaceViewController {
         view.addSubview(bottomToolbar)
         // 제약 조건 설정
         bottomToolbar.snp.makeConstraints {
-            $0.leading.trailing.equalToSuperview()
+            $0.leading.trailing.equalToSuperview().inset(8)
             $0.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom)
         }
     }
