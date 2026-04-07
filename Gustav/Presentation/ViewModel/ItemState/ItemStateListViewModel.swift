@@ -4,270 +4,255 @@
 //
 //  Created by 박선린 on 3/1/26.
 //
+
 import Foundation
 
 final class ItemStateListViewModel {
-    // VC가 구독(바인딩)할 콜백
     var onStateChange: ((State) -> Void)?
-    
-    // 화면 이동 이벤트 발생 시 Coordinator에 전달하여 화면 이동
     var onNavigation: ((Route) -> Void)?
-    
-    // 워크스페이스 아이디
-    private var selectedWorkspaceId: UUID
-    
-    // MARK: - Usecase
+
+    private let selectedWorkspaceId: UUID
     private let itemStateUsecase: ItemStateUsecaseProtocol
-    
-    // Task Remote
     private var itemStateTask: Task<Void, Never>?
 
-    // 기본 데이터
-    private(set) var itemState: [ItemState] = [] {
+    private(set) var itemStates: [ItemState] = [] {
         didSet {
-            self.emit(.subTitle(itemStateCounting()))
+            emit(.subTitle(itemStateCountText()))
         }
     }
-    
-    // 장소 순서 업데이트시 사용하는 프로퍼티
-    private(set) var editingOrderItemState: [ItemState] = []
-    
-    // MARK: - init
+
+    private(set) var editingOrderItemStates: [ItemState] = []
+
+    enum State {
+        case loading(Bool)
+        case itemStatesChanged
+        case subTitle(String)
+    }
+
+    enum Input {
+        case dismiss
+        case viewDidLoad
+        case reFetchData
+        case didTapAddButton
+        case didTapreorderItemStateButton
+        case didReOrderItemState(at: Int, to: Int)
+        case didSelectTapItemState(index: Int)
+        case deleteItemState(index: Int)
+    }
+
+    enum Route {
+        case dismiss
+        case pushToItemStateDetail(ItemState)
+        case presentCreateLocation(ItemState)
+        case showErrorAlert(String)
+    }
+
+    // 초기화
     init(itemStateUsecase: ItemStateUsecaseProtocol, selectedWorkspaceId: UUID) {
         self.itemStateUsecase = itemStateUsecase
         self.selectedWorkspaceId = selectedWorkspaceId
     }
-    
-    // MARK: - State(Output)
-    enum State {
-        case loading(Bool)      // 로딩 유무
-        case success            // 단순 성공
-        case subTitle(String)   // 서브타이틀
-    }
-    
-    // MARK: - Input
-    enum Input {
-        case dismiss
-        case viewDidLoad                                        // viewDidLoad
-        case reFetchData                                        // 카테고리 데이터 다시 불러오기
-        case didTapAddButton                                    // Add
-        case didTapreorderItemStateButton                        // reorder 확정 버튼
-        case didReOrderItemState(at: Int, to: Int)             // 순서 변경 중
-        case didSelectTapItemState(index: Int)                   // select
-        case deleteItemState(index: Int)
-    }
-    
-    // MARK: - Navigation Route (화면 이동 경로)
-    enum Route {
-        case dismiss
-        case pushToItemStateDetail(ItemState)   // 워크스페이스 디테일한 화면 이동
-        case presentCreateLocation(ItemState)             // 추후 생성 알럿을 코디네이터 역할로 변경시 사용
-        case showErrorAlert(String)             // 에러 알럿창
-    }
-    
-    
-    // Action
+
+    // 입력 처리
     func action(_ input: Input) {
         switch input {
         case .dismiss:
-            self.onNavigation?(.dismiss)
-        case .viewDidLoad:      // ViewDidLoad
-            fetchItemStates()
+            navigate(.dismiss)
+        case .viewDidLoad:
+            fetchItemStates(showLoading: true)
         case .reFetchData:
-            reFetchItemState()
+            fetchItemStates(showLoading: false)
         case .didTapAddButton:
             createItemState(name: "New ItemState")
-            
         case .didTapreorderItemStateButton:
-            reorderLocation()
-            
-        case .didReOrderItemState(at: let from, to: let to):
+            reorderItemStates()
+        case .didReOrderItemState(let from, let to):
             updateOrder(moveRowAt: from, to: to)
-            
         case .didSelectTapItemState(let index):
-            let itemState = itemState[index]
-            onNavigation?(.pushToItemStateDetail(itemState))
-        case .deleteItemState(index: let index):
-            self.deleteItemState(at: index)
-        }
-    }
-    
-    // Fetch
-    private func fetchItemStates() {
-        emit(.subTitle(itemStateCounting()))
-        itemStateTask?.cancel()     // 저장된 비동기 작업이 존재하는 경우 캔슬
-
-        itemStateTask = Task { [weak self] in   // 새로운 Task 생성 및 Task 저장(메모리 주소 저장)
-            guard let self else { return }  // 실행시 다시 강한 참조
-
-            self.emit(.loading(true))       // 로딩 시작
-            defer { self.emit(.loading(false) ) }    // 끝나면 로딩 끝
-            
-            #if DEBUG
-            try? await Task.sleep(for: .seconds(1))
-            #endif
-            
-            let result = await self.itemStateUsecase.fetchItemStates(workspaceId: self.selectedWorkspaceId)
-
-            guard !Task.isCancelled else { return }         // 전달 받은 캔슬 플래그가 있으면 중단
-
-            switch result {
-            case .success(let itemState):
-                self.itemState = itemState
-                self.emit(.success)
-
-            case .failure(let error):
-                onNavigation?(.showErrorAlert(String(describing: error)))
-            }
-        }
-    }
-    
-    // reFetch
-    private func reFetchItemState() {
-        itemStateTask?.cancel()     // 저장된 비동기 작업이 존재하는 경우 캔슬
-
-        itemStateTask = Task { [weak self] in   // 새로운 Task 생성 및 Task 저장(메모리 주소 저장)
-            guard let self else { return }  // 실행시 다시 강한 참조
-            
-            let result = await self.itemStateUsecase.fetchItemStates(workspaceId: self.selectedWorkspaceId)
-
-            guard !Task.isCancelled else { return }         // 전달 받은 캔슬 플래그가 있으면 중단
-
-            switch result {
-            case .success(let itemState):
-                self.itemState = itemState
-                self.emit(.success)
-
-            case .failure(let error):
-                onNavigation?(.showErrorAlert(String(describing: error)))
-            }
+            guard itemStates.indices.contains(index) else { return }
+            navigate(.pushToItemStateDetail(itemStates[index]))
+        case .deleteItemState(let index):
+            deleteItemState(at: index)
         }
     }
 
-    // Create
-    private func createItemState(name: String) {
-        itemStateTask?.cancel()     // 저장된 비동기 작업이 존재하는 경우 캔슬
-        itemStateTask = Task { [weak self] in
+    // 작업 시작
+    private func startTask(_ operation: @escaping () async -> Void) {
+        itemStateTask?.cancel()
+        itemStateTask = Task {
+            await operation()
+        }
+    }
+
+    // 상태 전달
+    private func emit(_ state: State) {
+        Task { @MainActor in
+            self.onStateChange?(state)
+        }
+    }
+
+    // 화면 이동
+    private func navigate(_ route: Route) {
+        Task { @MainActor in
+            self.onNavigation?(route)
+        }
+    }
+
+    // 개수 텍스트
+    private func itemStateCountText() -> String {
+        "\(itemStates.count) ItemState"
+    }
+
+    // 목록 조회
+    private func fetchItemStates(showLoading: Bool) {
+        startTask { [weak self] in
             guard let self else { return }
-            
+
+            if showLoading {
+                self.emit(.loading(true))
+            }
+            defer {
+                if showLoading {
+                    self.emit(.loading(false))
+                }
+            }
+
+#if DEBUG
+            try? await Task.sleep(for: .seconds(1))
+#endif
+
+            let result = await self.itemStateUsecase.fetchItemStates(workspaceId: self.selectedWorkspaceId)
+            guard !Task.isCancelled else { return }
+
+            switch result {
+            case .success(let itemStates):
+                self.itemStates = itemStates
+                self.emit(.itemStatesChanged)
+            case .failure(let error):
+                self.navigate(.showErrorAlert(String(describing: error)))
+            }
+        }
+    }
+
+    // 항목 생성
+    private func createItemState(name: String) {
+        startTask { [weak self] in
+            guard let self else { return }
+
             let newItemState = ItemState(
                 id: UUID(),
                 workspaceId: self.selectedWorkspaceId,
-                indexKey: itemState.count,
+                indexKey: self.itemStates.count,
                 name: name,
-                color: TagColor.darkGray
+                color: .darkGray
             )
+
             let result = await self.itemStateUsecase.createItemState(itemState: newItemState)
+            guard !Task.isCancelled else { return }
+
             switch result {
             case .success(let itemState):
-                self.itemState.append(itemState)
-                self.emit(.success)
-                self.onNavigation?(.pushToItemStateDetail(itemState))
+                self.itemStates.append(itemState)
+                self.emit(.itemStatesChanged)
+                self.navigate(.pushToItemStateDetail(itemState))
             case .failure(let error):
-                onNavigation?(.showErrorAlert(String(describing: error)))
+                self.navigate(.showErrorAlert(String(describing: error)))
             }
         }
     }
-    
-    // 워크스페이스 순서 변경 내용 임시 저장
-    func updateOrder(moveRowAt : Int, to : Int) {
-        if editingOrderItemState.isEmpty {
-            self.editingOrderItemState = itemState
+
+    // 순서 초안 저장
+    func updateOrder(moveRowAt: Int, to: Int) {
+        if editingOrderItemStates.isEmpty {
+            editingOrderItemStates = itemStates
         }
-        let movedItem = editingOrderItemState.remove(at: moveRowAt)
-        editingOrderItemState.insert(movedItem, at: to)
+
+        guard editingOrderItemStates.indices.contains(moveRowAt) else { return }
+
+        let movedItem = editingOrderItemStates.remove(at: moveRowAt)
+        let destination = min(to, editingOrderItemStates.count)
+        editingOrderItemStates.insert(movedItem, at: destination)
     }
-    
-    // Reorder
-    private func reorderLocation() {
-        guard !editingOrderItemState.isEmpty else { return }
-        
-        itemStateTask?.cancel()
-        itemStateTask = Task { [weak self] in
+
+    // 순서 반영
+    private func reorderItemStates() {
+        guard !editingOrderItemStates.isEmpty else { return }
+
+        startTask { [weak self] in
             guard let self else { return }
-            
+
             self.emit(.loading(true))
-            var draftItemState: [ItemState] = []
-            var uuidArray: [UUID] = []
-            var index: Int = 0
-            
-            for itemState in self.editingOrderItemState {
-                draftItemState.append(
-                    ItemState(
-                        id: itemState.id,
-                        workspaceId: itemState.workspaceId,
-                        indexKey: index,
-                        name: itemState.name,
-                        color: itemState.color
-                    )
+            defer { self.emit(.loading(false)) }
+
+            let orderedIDs = self.editingOrderItemStates.map(\.id)
+            let draftItemStates = self.editingOrderItemStates.enumerated().map { index, itemState in
+                ItemState(
+                    id: itemState.id,
+                    workspaceId: itemState.workspaceId,
+                    indexKey: index,
+                    name: itemState.name,
+                    color: itemState.color
                 )
-                uuidArray.append(itemState.id)
-                index += 1
             }
-            
-            let result = await self.itemStateUsecase.reorderItemStates(workspaceId: self.selectedWorkspaceId, order: uuidArray)
-            
-            #if DEBUG
+
+            let result = await self.itemStateUsecase.reorderItemStates(
+                workspaceId: self.selectedWorkspaceId,
+                order: orderedIDs
+            )
+
+#if DEBUG
             try? await Task.sleep(for: .seconds(1))
-            #endif
-            self.emit(.loading(false) )
+#endif
+
+            self.editingOrderItemStates.removeAll()
+            guard !Task.isCancelled else { return }
+
             switch result {
             case .success:
-                self.itemState = draftItemState
-                self.editingOrderItemState.removeAll()
-                emit(.success)
+                self.itemStates = draftItemStates
+                self.emit(.itemStatesChanged)
             case .failure(let error):
-                self.editingOrderItemState.removeAll()
-                onNavigation?(.showErrorAlert(String(describing: error)))
+                self.navigate(.showErrorAlert(String(describing: error)))
             }
         }
     }
-    
+
+    // 항목 삭제
     private func deleteItemState(at index: Int) {
-        let targetItemState = itemState[index]
-        
-        itemStateTask?.cancel()
-        itemStateTask = Task { [weak self] in
+        guard itemStates.indices.contains(index) else { return }
+        let targetItemState = itemStates[index]
+
+        startTask { [weak self] in
             guard let self else { return }
-            
-            let result = await self.itemStateUsecase.deleteItemState(id: targetItemState.id, workspaceId: selectedWorkspaceId)
-            
+
+            let result = await self.itemStateUsecase.deleteItemState(
+                id: targetItemState.id,
+                workspaceId: self.selectedWorkspaceId
+            )
+            guard !Task.isCancelled else { return }
+
             switch result {
             case .success:
-                self.itemState.remove(at: index)
-                self.emit(.success)
+                self.itemStates.remove(at: index)
+                self.emit(.itemStatesChanged)
             case .failure(let error):
-                self.onNavigation?(.showErrorAlert(String(describing: error)))
+                self.navigate(.showErrorAlert(String(describing: error)))
             }
         }
     }
-    
-    private func itemStateCounting() -> String {
-        return "\(itemState.count) ItemState"
-    }
-    
+
+    // 행 개수
     func numberOfRows() -> Int {
-        itemState.count
+        itemStates.count
     }
+
+    // 행 데이터
     func cellForRowAt(index: Int) -> ItemState {
-        itemState[index]
-    }
-    
-    private func cancel() {
-        itemStateTask?.cancel()     // Task 객체에게 취소 플래그 전달
-        itemStateTask = nil         // Task 객체는 누가 참조하지 않아도 존재 가능하며, 뷰모델에서는 참조 해제
+        itemStates[index]
     }
 
-    // 갱신은 메인스레드에서
-    @MainActor
-    private func emit(_ state: State) {
-        onStateChange?(state)
-    }
-
-    // MARK: - Deinit
+    // 종료 정리
     deinit {
-        print("ItemStateListViewModel deinit")
-        cancel()
-        itemState.removeAll()
+        itemStateTask?.cancel()
     }
 }

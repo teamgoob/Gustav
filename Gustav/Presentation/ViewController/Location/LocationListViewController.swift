@@ -8,67 +8,83 @@
 import UIKit
 import SnapKit
 
-class LocationListViewController: UIViewController {
-    private let contentView = LocationListView()  // 기본 뷰에 사용할 뷰
-    private let loadingView = LoadingView()             // 로딩뷰
-    private let viewModel: LocationListViewModel  // 뷰모델
-    private var cellMode: cellMode = .normal            // 현재 셀 모드
+final class LocationListViewController: UIViewController {
+    private let contentView = LocationListView()
+    private let loadingView = LoadingView()
+    private let viewModel: LocationListViewModel
+    private var editorMode: EditorMode = .viewing
 
-    // 셀 모드
-    private enum cellMode {
-        case normal
-        case addLocation
-        case changeOrder
+    private enum EditorMode {
+        case viewing
+        case reordering
     }
-    
+
+    // 초기화
     init(viewModel: LocationListViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
     }
-    
+
+    // 첫 진입
     override func viewDidLoad() {
         super.viewDidLoad()
-        setUI()
-        set()
-        setNavigationButton()
+        configureView()
+        configureTableView()
+        configureToolbar()
+        bindViewModel()
+        refreshInterface(reloadData: false)
+        viewModel.action(.viewDidLoad)
     }
-    
+
+    // 화면 복귀
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        refreshInterface(reloadData: false)
+    }
+
+    // 화면 종료
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
         if isMovingFromParent {
-            self.viewModel.action(.dismiss)
+            viewModel.action(.dismiss)
         }
     }
-    
-    required init?(coder: NSCoder) { fatalError() }
-    
-    private func setUI() {
+
+    // 코더 초기화
+    required init?(coder: NSCoder) {
+        fatalError()
+    }
+
+    // 뷰 구성
+    private func configureView() {
         view = contentView
         view.addSubview(loadingView)
-        
+
         navigationController?.navigationBar.prefersLargeTitles = true
         navigationItem.title = "Location"
         navigationItem.largeTitleDisplayMode = .always
-        
+
         loadingView.snp.makeConstraints {
             $0.edges.equalToSuperview()
         }
     }
 
-    private func set() {
-        // 1) table 설정
+    // 테이블 구성
+    private func configureTableView() {
         contentView.tableView.dataSource = self
         contentView.tableView.delegate = self
-        contentView.tableView.register(ItemAttributeBasicCell.self, forCellReuseIdentifier: ItemAttributeBasicCell.reuseID)
-        contentView.tableView.register(ItemAttributeReorderingCell.self, forCellReuseIdentifier: ItemAttributeReorderingCell.reuseID)
-        
-        
-        // 2) VM 바인딩
-        bindViewModel()
+        contentView.tableView.register(
+            ItemAttributeBasicCell.self,
+            forCellReuseIdentifier: ItemAttributeBasicCell.reuseID
+        )
+        contentView.tableView.register(
+            ItemAttributeReorderingCell.self,
+            forCellReuseIdentifier: ItemAttributeReorderingCell.reuseID
+        )
+    }
 
-        // 3) 데이터 요청
-        viewModel.action(.viewDidLoad)
-        
+    // 툴바 구성
+    private func configureToolbar() {
         let addButton = UIBarButtonItem(
             barButtonSystemItem: .add,
             target: self,
@@ -76,111 +92,116 @@ class LocationListViewController: UIViewController {
         )
 
         toolbarItems = [UIBarButtonItem.flexibleSpace(), addButton]
-        navigationController?.isToolbarHidden = false
-        
     }
-    
-    
-    // 네비게이션바 버튼 설정
-    private func setNavigationButton() {
-        switch self.cellMode {
-        case .normal, .addLocation:
-            let menuButton = UIBarButtonItem(
-                image: UIImage(systemName: "ellipsis"),
-                style: .plain,
-                target: nil,
-                action: nil
-            )
-            let menu = UIMenu(children: [
-                UIAction(
-                    title: "Change Order",
-                    image: UIImage(systemName: "arrow.up.arrow.down")
-                ) { [weak self] _ in
-                    guard let self else { return }
-                    print("Change Order")
-                    self.changeCellMode(mode: .changeOrder)
-                }
-            ])
 
-            menuButton.menu = menu
-
-            navigationItem.rightBarButtonItems = [menuButton]
-        
-        case .changeOrder:
-            navigationItem.rightBarButtonItems = nil
-            let endButton = UIBarButtonItem(
-                image: UIImage(systemName: "checkmark"),
-                style: .plain,
-                target: self,
-                action: #selector(endButtonTapped)
-            )
-            navigationItem.rightBarButtonItems = [endButton]
-        }
-        
-    }
-    
+    // 상태 바인딩
     private func bindViewModel() {
-        // 데이터 관련
         viewModel.onStateChange = { [weak self] state in
             guard let self else { return }
 
             switch state {
             case .loading(let isLoading):
-                switch isLoading {
-                case true:
-                    self.loadingView.startLoading()
-                case false:
-                    self.loadingView.stopLoading()
-                }
-            case .success:
-                self.tableViewReload()
+                self.applyLoading(isLoading)
             case .subTitle(let subtitle):
-                changeSubTitle(subtitle: subtitle)
+                self.applySubtitle(subtitle)
+            case .locationsChanged:
+                self.refreshInterface()
             }
         }
     }
-    
-    private func changeSubTitle(subtitle: String) {
-        // UI 업데이트
-        var subtitle = AttributedString(subtitle)
-        // Large Title 하단에 표시되는 Large Subtitle 텍스트 설정
-        subtitle.font = Fonts.accent
-        subtitle.foregroundColor = Colors.Text.additionalInfo
-        navigationItem.largeAttributedSubtitle = subtitle
-        // 스크롤 시 상단 Title 하단에 표시되는 Subtitle 텍스트 설정
-        subtitle.font = Fonts.additional
-        navigationItem.attributedSubtitle = subtitle
 
-    }
-    
-    private func changeCellMode(mode: cellMode) {
-        self.cellMode = mode
-        if self.cellMode == .changeOrder {
-            contentView.tableView.isEditing = true
-        } else {
-            contentView.tableView.isEditing = false
-        }
-        setNavigationButton()
-        self.tableViewReload()
-    }
-    
-    @objc private func endButtonTapped() {
-        switch self.cellMode {
-        case .normal:
-            break
-        case .addLocation:
-            break
-        case .changeOrder:
-            self.viewModel.action(.didTapreorderLocationButton)
-            changeCellMode(mode: .normal)
+    // 로딩 적용
+    private func applyLoading(_ isLoading: Bool) {
+        switch isLoading {
+        case true:
+            loadingView.startLoading()
+        case false:
+            loadingView.stopLoading()
         }
     }
-    
-    @objc private func didTapAddButton() {
-        self.viewModel.action(.didTapAddButton)
+
+    // 서브타이틀 적용
+    private func applySubtitle(_ subtitle: String) {
+        var largeSubtitle = AttributedString(subtitle)
+        largeSubtitle.font = Fonts.accent
+        largeSubtitle.foregroundColor = Colors.Text.additionalInfo
+        navigationItem.largeAttributedSubtitle = largeSubtitle
+
+        var compactSubtitle = AttributedString(subtitle)
+        compactSubtitle.font = Fonts.additional
+        compactSubtitle.foregroundColor = Colors.Text.additionalInfo
+        navigationItem.attributedSubtitle = compactSubtitle
     }
-    
-    private func tableViewReload() {
+
+    // 화면 반영
+    private func refreshInterface(reloadData: Bool = true) {
+        contentView.tableView.isEditing = (editorMode == .reordering)
+        configureNavigationItems()
+        updateToolbarVisibility()
+
+        if reloadData {
+            reloadTableView()
+        }
+    }
+
+    // 모드 변경
+    private func updateEditorMode(_ mode: EditorMode) {
+        editorMode = mode
+        refreshInterface()
+    }
+
+    // 네비게이션 버튼
+    private func configureNavigationItems() {
+        switch editorMode {
+        case .viewing:
+            navigationItem.rightBarButtonItems = [makeMenuButton()]
+        case .reordering:
+            navigationItem.rightBarButtonItems = [makeDoneButton()]
+        }
+    }
+
+    // 메뉴 버튼
+    private func makeMenuButton() -> UIBarButtonItem {
+        let menuButton = UIBarButtonItem(
+            image: UIImage(systemName: "ellipsis"),
+            style: .plain,
+            target: nil,
+            action: nil
+        )
+
+        menuButton.menu = makeLocationMenu()
+        return menuButton
+    }
+
+    // 위치 메뉴
+    private func makeLocationMenu() -> UIMenu {
+        UIMenu(children: [
+            UIAction(
+                title: "Change Order",
+                image: UIImage(systemName: "arrow.up.arrow.down")
+            ) { [weak self] _ in
+                self?.updateEditorMode(.reordering)
+            }
+        ])
+    }
+
+    // 완료 버튼
+    private func makeDoneButton() -> UIBarButtonItem {
+        UIBarButtonItem(
+            image: UIImage(systemName: "checkmark"),
+            style: .plain,
+            target: self,
+            action: #selector(didTapDoneButton)
+        )
+    }
+
+    // 툴바 표시
+    private func updateToolbarVisibility() {
+        navigationController?.setToolbarHidden(editorMode != .viewing, animated: false)
+    }
+
+    // 테이블 갱신
+    private func reloadTableView() {
         UIView.transition(
             with: contentView.tableView,
             duration: 0.20,
@@ -189,73 +210,115 @@ class LocationListViewController: UIViewController {
             self.contentView.tableView.reloadData()
         }
     }
+
+    // 기본 셀
+    private func makeLocationCell(
+        tableView: UITableView,
+        indexPath: IndexPath,
+        location: Location
+    ) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(
+            withIdentifier: ItemAttributeBasicCell.reuseID,
+            for: indexPath
+        ) as! ItemAttributeBasicCell
+
+        cell.configure(title: location.name, tagColor: location.color)
+        return cell
+    }
+
+    // 정렬 셀
+    private func makeReorderingCell(
+        tableView: UITableView,
+        indexPath: IndexPath,
+        location: Location
+    ) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(
+            withIdentifier: ItemAttributeReorderingCell.reuseID,
+            for: indexPath
+        ) as! ItemAttributeReorderingCell
+
+        cell.configure(title: location.name, tagColor: location.color)
+        return cell
+    }
 }
 
+// MARK: - OBJC 메서드
+extension LocationListViewController {
+
+    // 완료 탭
+    @objc private func didTapDoneButton() {
+        guard editorMode == .reordering else { return }
+        viewModel.action(.didTapreorderLocationButton)
+        updateEditorMode(.viewing)
+    }
+
+    // 추가 탭
+    @objc private func didTapAddButton() {
+        viewModel.action(.didTapAddButton)
+    }
+}
 
 // MARK: - UITableViewDataSource
 extension LocationListViewController: UITableViewDataSource {
-    
+
+    // 행 개수
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         viewModel.numberOfRows()
     }
-    
+
+    // 셀 구성
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let category = viewModel.cellForRowAt(index: indexPath.row)
-        switch self.cellMode {
-        case .normal, .addLocation:
-            let cell = tableView.dequeueReusableCell(
-                withIdentifier: ItemAttributeBasicCell.reuseID,
-                for: indexPath
-            ) as! ItemAttributeBasicCell
-            
-            cell.configure(title: category.name, tagColor: category.color)
-            return cell
-            
-        case .changeOrder:
-            let cell = tableView.dequeueReusableCell(
-                withIdentifier: ItemAttributeReorderingCell.reuseID,
-                for: indexPath
-            ) as! ItemAttributeReorderingCell
-            
-            cell.configure(title: category.name, tagColor: category.color)
-            
-            return cell
+        let location = viewModel.cellForRowAt(index: indexPath.row)
+
+        switch editorMode {
+        case .viewing:
+            return makeLocationCell(tableView: tableView, indexPath: indexPath, location: location)
+        case .reordering:
+            return makeReorderingCell(tableView: tableView, indexPath: indexPath, location: location)
         }
     }
-    
-    // 이 row가 이동 가능한지 여부를 반환합니다.
+
+    // 이동 가능
     func tableView(_ tableView: UITableView, canMoveRowAt indexPath: IndexPath) -> Bool {
-        return true
+        editorMode == .reordering
     }
 
-    // 사용자가 row를 이동했을 때 원본 배열 순서를 변경합니다.
-    func tableView(_ tableView: UITableView, moveRowAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
+    // 순서 이동
+    func tableView(
+        _ tableView: UITableView,
+        moveRowAt sourceIndexPath: IndexPath,
+        to destinationIndexPath: IndexPath
+    ) {
         viewModel.action(.didReOrderLocation(at: sourceIndexPath.row, to: destinationIndexPath.row))
     }
 }
 
+// MARK: - UITableViewDelegate
 extension LocationListViewController: UITableViewDelegate {
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
 
+    // 행 선택
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
 
-        guard self.cellMode == .normal else { return } // 편집모드면 이동
+        guard editorMode == .viewing else { return }
         viewModel.action(.didSelectTapLocation(index: indexPath.row))
     }
-    
+
+    // 편집 스타일
     func tableView(
         _ tableView: UITableView,
         editingStyleForRowAt indexPath: IndexPath
     ) -> UITableViewCell.EditingStyle {
-        return .delete
+        editorMode == .reordering ? .none : .delete
     }
-    
-    func tableView(_ tableView: UITableView,
-                   commit editingStyle: UITableViewCell.EditingStyle,
-                   forRowAt indexPath: IndexPath) {
 
-        if editingStyle == .delete {
-            self.viewModel.action(.deleteLocation(index: indexPath.row))
-        }
+    // 삭제 커밋
+    func tableView(
+        _ tableView: UITableView,
+        commit editingStyle: UITableViewCell.EditingStyle,
+        forRowAt indexPath: IndexPath
+    ) {
+        guard editorMode == .viewing, editingStyle == .delete else { return }
+        viewModel.action(.deleteLocation(index: indexPath.row))
     }
 }
