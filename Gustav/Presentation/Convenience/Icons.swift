@@ -46,5 +46,41 @@ struct Icons {
     // Bulk Icon
     static let bulk: UIImage? = UIImage(systemName: "square.3.layers.3d.down.right")
     
+    // Last Modified Date Icon
+    static let lastModified: UIImage? = UIImage(systemName: "calendar.badge.clock")?.applyingSymbolConfiguration(.init(paletteColors: [Colors.Theme.green.withAlphaComponent(0.4), Colors.Text.main]))
+    
+    // Created Date Icon
+    static let created: UIImage? = UIImage(systemName: "calendar.badge.plus")?.applyingSymbolConfiguration(.init(paletteColors: [Colors.Theme.green.withAlphaComponent(0.4), Colors.Text.main]))
+    
+    // Name Icon
+    static let name: UIImage? = UIImage(systemName: "tag")
+    
+    // Name Detail Icon
+    static let nameDetail: UIImage? = UIImage(systemName: "text.alignleft")
+    
+    // Purchase Date Icon
+    static let purchaseDate: UIImage? = UIImage(systemName: "calendar.badge.checkmark")?.applyingSymbolConfiguration(.init(paletteColors: [Colors.Theme.green.withAlphaComponent(0.4), Colors.Text.main]))
+    
+    // Purchase Place Icon
+    static let purchasePlace: UIImage? = UIImage(systemName: "storefront")
+    
+    // Expiration Date Icon
+    static let expiration: UIImage? = UIImage(systemName: "calendar.badge.exclamationmark")?.applyingSymbolConfiguration(.init(paletteColors: [Colors.Theme.red.withAlphaComponent(0.5), Colors.Text.main]))
+    
+    // Price Icon
+    static let price: UIImage? = UIImage(systemName: "creditcard")
+    
+    // Quantity Icon
+    static let quantity: UIImage? = UIImage(systemName: "number")
+    
+    // Ascending Icon
+    static let ascending: UIImage? = UIImage(systemName: "arrow.up.to.line")
+    
+    // Descending Icon
+    static let descending: UIImage? = UIImage(systemName: "arrow.down.to.line")
+    
+    // Color Circle Icon
+    static let colorCircle: UIImage? = UIImage(systemName: "circle.fill")
+
     private init() {}
 }

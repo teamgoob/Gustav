@@ -26,6 +26,8 @@ struct Colors {
         static let inactive: UIColor = UIColor(named: "InactiveColor")!
         // Red Color (Red)
         static let red: UIColor = UIColor.red
+        // Green Color (Green)
+        static let green: UIColor = UIColor.green
         
         private init() {}
     }

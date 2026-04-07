@@ -249,9 +249,23 @@ private extension WorkspaceViewController {
     // 정렬 선택 메뉴 생성
     func makeSortMenu(_ menuInfo: WorkspaceViewModel.FilterMenuInfo) -> UIMenu {
         // 정렬 옵션 액션 생성
+        var actionIcon: UIImage? = nil
         let sortOptions = menuInfo.sortOptions.map { option in
-            UIAction(
+            switch option.sortingOptionCase {
+            case .indexKey: actionIcon = Icons.quantity
+            case .name: actionIcon = Icons.name
+            case .nameDetail: actionIcon = Icons.nameDetail
+            case .purchaseDate: actionIcon = Icons.purchaseDate
+            case .purchasePlace: actionIcon = Icons.purchasePlace
+            case .expireDate: actionIcon = Icons.expiration
+            case .price: actionIcon = Icons.price
+            case .quantity: actionIcon = Icons.quantity
+            case .createdAt: actionIcon = Icons.created
+            case .updatedAt: actionIcon = Icons.lastModified
+            }
+            return UIAction(
                 title: option.toText(),
+                image: actionIcon,
                 state: option.sortingOptionCase == menuInfo.currentSortOption.sortingOptionCase ? .on : .off
             ) { [weak self] _ in
                 self?.viewModel.action(.selectSortOption(option))
@@ -260,6 +274,7 @@ private extension WorkspaceViewController {
         // 오름차순 액션 생성
         let ascending = UIAction(
             title: menuInfo.currentSortOption.orderToText(isAscending: true),
+            image: Icons.ascending,
             state: menuInfo.currentSortOption.order == .ascending ? .on : .off
         ) { [weak self] _ in
             self?.viewModel.action(.selectSortOrder(.ascending))
@@ -267,6 +282,7 @@ private extension WorkspaceViewController {
         // 내림차순 액션 생성
         let descending = UIAction(
             title: menuInfo.currentSortOption.orderToText(isAscending: false),
+            image: Icons.descending,
             state: menuInfo.currentSortOption.order == .descending ? .on : .off
         ) { [weak self] _ in
             self?.viewModel.action(.selectSortOrder(.descending))
@@ -313,6 +329,7 @@ private extension WorkspaceViewController {
                 }
                 return UIAction(
                     title: category.name,
+                    image: Icons.colorCircle?.withTintColor(category.color.toUIColor(), renderingMode: .alwaysOriginal),
                     state: menuInfo.currentCategoryFilter?.uuid == category.id ? .on : .off
                 ) { [weak self] _ in
                     self?.viewModel.action(.selectCategoryFilter(category))
@@ -366,6 +383,7 @@ private extension WorkspaceViewController {
                 }
                 return UIAction(
                     title: location.name,
+                    image: Icons.colorCircle?.withTintColor(location.color.toUIColor(), renderingMode: .alwaysOriginal),
                     state: menuInfo.currentLocationFilter?.uuid == location.id ? .on : .off
                 ) { [weak self] _ in
                     self?.viewModel.action(.selectLocationFilter(location))
@@ -419,6 +437,7 @@ private extension WorkspaceViewController {
                 }
                 return UIAction(
                     title: itemState.name,
+                    image: Icons.colorCircle?.withTintColor(itemState.color.toUIColor(), renderingMode: .alwaysOriginal),
                     state: menuInfo.currentItemStateFilter?.uuid == itemState.id ? .on : .off
                 ) { [weak self] _ in
                     self?.viewModel.action(.selectItemStateFilter(itemState))
