@@ -13,17 +13,21 @@ final class WorkspaceViewModel {
     private let itemUsecase: ItemUsecaseProtocol
     private let itemQueryUsecase: ItemQueryUsecaseProtocol
     private let itemReferenceUsecase: ItemReferenceUsecaseProtocol
+    private let workspaceContextUsecase: WorkspaceContextUsecaseProtocol
+    private let viewPresetUsecase: ViewPresetUsecaseProtocol
     
     // MARK: - Query
     private var query: ItemQuery
     
     // MARK: - Initializer
-    init(workspace: Workspace, itemUsecase: ItemUsecaseProtocol, itemQueryUsecase: ItemQueryUsecaseProtocol, itemReferenceUsecase: ItemReferenceUsecaseProtocol) {
+    init(workspace: Workspace, itemUsecase: ItemUsecaseProtocol, itemQueryUsecase: ItemQueryUsecaseProtocol, itemReferenceUsecase: ItemReferenceUsecaseProtocol, workspaceContextUsecase: WorkspaceContextUsecaseProtocol, viewPresetUsecase: ViewPresetUsecaseProtocol) {
         self.workspace = workspace
         self.itemUsecase = itemUsecase
         self.itemQueryUsecase = itemQueryUsecase
         self.itemReferenceUsecase = itemReferenceUsecase
-        self.query = ItemQuery(sortOption: .indexKey(order: .ascending), filters: [], searchText: nil)
+        self.workspaceContextUsecase = workspaceContextUsecase
+        self.viewPresetUsecase = viewPresetUsecase
+        self.query = ItemQuery(sortOption: .updatedAt(order: .descending), filters: [], searchText: nil)
     }
     
     // MARK: - Pagination
@@ -31,18 +35,30 @@ final class WorkspaceViewModel {
     private let limit: Int = 20
     private var isLastPage: Bool = false
     
-    // MARK: - State
+    // MARK: - State for Item List
     private var itemReferences: [ItemReference] = []
     private var itemCellDatas: [WorkspaceItemCellData] = []
     private var queryProperties: Set<ItemProperty> = []
     private var tableViewAction: TableViewAction = .reloadData
     private var isLoading: LoadingState = .notLoading
     
+    // MARK: - State for Sorting / Filter / Preset Menu
+    private var workspaceContext: WorkspaceContext?
+    private var viewPresets: [ViewPreset] = []
+    
     // MARK: - Input
     enum Input {
         case dismiss
         case viewDidLoad
         case viewDidAppear
+        
+        case selectSortOption(SortingOption)
+        case selectSortOrder(SortingOrder)
+        case selectCategoryFilter(Category?)
+        case selectLocationFilter(Location?)
+        case selectItemStateFilter(ItemState?)
+        case selectViewPreset(ViewPreset)
+        case selectRemoveFilters
         
         case loadNextPage
         case tapExpandButton(UUID)
@@ -62,6 +78,20 @@ final class WorkspaceViewModel {
         let isLoading: LoadingState
     }
     
+    // MARK: - Filter Menu Info
+    struct FilterMenuInfo {
+        let sortOptions: [SortingOption]
+        let categoryFilters: [Category]
+        let locationFilters: [Location]
+        let itemStateFilters: [ItemState]
+        let viewPresets: [ViewPreset]
+        
+        let currentSortOption: SortingOption
+        let currentCategoryFilter: FilterOption?
+        let currentLocationFilter: FilterOption?
+        let currentItemStateFilter: FilterOption?
+    }
+    
     // MARK: - Route
     enum Route {
         case dismiss
@@ -71,6 +101,7 @@ final class WorkspaceViewModel {
         case showAlertForDeleteItemConfirmation(WorkspaceItemCellData)
         case showAlertToNoticeQueryFailure
         case showAlertForDeleteItemFailure
+        case showAlertForFetchWorkspaceContextFailure
     }
     
     // MARK: - Loading State
@@ -92,6 +123,8 @@ final class WorkspaceViewModel {
     // MARK: - Closures
     // Output 변경 시 VC에 전달하여 화면 업데이트
     var onDisplay: ((Output) -> Void)?
+    // Filter Menu 변경 시 VC에 전달하여 화면 업데이트
+    var onFilterMenuChanged: ((FilterMenuInfo) -> Void)?
     // 화면 이동 이벤트 발생 시 Coordinator에 전달하여 화면 이동
     var onNavigation: ((Route) -> Void)?
 }
@@ -107,9 +140,40 @@ extension WorkspaceViewModel {
             break
         case .viewDidAppear:
             Task {
-                // 테스트 추가
-//                self.queryProperties = [.category, .price]
+                // Workspace Context 불러오기
+                await fetchWorkspaceContext()
+                // 현재 쿼리의 강조 및 일반 속성 정보 계산
+                self.queryProperties = getQueryProperties(from: self.query)
+                // 아이템 목록 불러오기
                 await fetchItems()
+            }
+        case .selectSortOption(let option):
+            Task {
+                await handleSortingOptionSelected(option)
+            }
+        case .selectSortOrder(let sortingOrder):
+            Task {
+                await handleSortingOrderSelected(sortingOrder)
+            }
+        case .selectCategoryFilter(let category):
+            Task {
+                await handleCategoryFilterSelected(category)
+            }
+        case .selectLocationFilter(let location):
+            Task {
+                await handleLocationFilterSelected(location)
+            }
+        case .selectItemStateFilter(let state):
+            Task {
+                await handleItemStateFilterSelected(state)
+            }
+        case .selectViewPreset(let preset):
+            Task {
+                await handleViewPresetSelected(preset)
+            }
+        case .selectRemoveFilters:
+            Task {
+                await handleRemoveFiltersSelected()
             }
         case .loadNextPage:
             Task {
@@ -241,8 +305,192 @@ private extension WorkspaceViewModel {
         // 새로운 쿼리를 이용하여 아이템 불러오기
         await fetchItems()
     }
+    // 아이템 순서 변경 이벤트 처리
     func handleItemReordered(to order: [UUID]) {
         // 추후 구현
+    }
+    // Workspace Context와 ViewPreset 목록을 불러오는 메서드
+    func fetchWorkspaceContext() async {
+        var successFlag = true
+        let contextResult = await workspaceContextUsecase.fetchContext(workspaceId: workspace.id)
+        switch contextResult {
+        case .success(let context):
+            self.workspaceContext = context
+        case .failure:
+            successFlag = false
+        }
+        let presetResult = await viewPresetUsecase.fetchViewPresets(workspaceId: workspace.id)
+        switch presetResult {
+        case .success(let presets):
+            self.viewPresets = presets
+        case .failure:
+            successFlag = false
+        }
+        switch successFlag {
+        case true:
+            notifyFilterMenu()
+        case false:
+            onNavigation?(.showAlertForFetchWorkspaceContextFailure)
+        }
+    }
+    // 정렬 옵션 선택 이벤트 처리
+    func handleSortingOptionSelected(_ option: SortingOption) async {
+        // 선택한 정렬 옵션으로 현재 쿼리 변경
+        self.query.sortOption = option
+        // 필터 메뉴에 반영
+        notifyFilterMenu()
+        // 현재 쿼리의 강조 및 일반 속성 정보 계산
+        self.queryProperties = getQueryProperties(from: self.query)
+        // 현재 쿼리를 이용하여 아이템 불러오기
+        await fetchItems()
+    }
+    // 정렬 순서 선택 이벤트 처리
+    func handleSortingOrderSelected(_ order: SortingOrder) async {
+        // 선택한 정렬 순서로 현재 쿼리 변경
+        switch self.query.sortOption {
+        case .indexKey:
+            self.query.sortOption = .indexKey(order: order)
+        case .name:
+            self.query.sortOption = .name(order: order)
+        case .nameDetail:
+            self.query.sortOption = .nameDetail(order: order)
+        case .purchaseDate:
+            self.query.sortOption = .purchaseDate(order: order)
+        case .purchasePlace:
+            self.query.sortOption = .purchasePlace(order: order)
+        case .expireDate:
+            self.query.sortOption = .expireDate(order: order)
+        case .price:
+            self.query.sortOption = .price(order: order)
+        case .quantity:
+            self.query.sortOption = .quantity(order: order)
+        case .createdAt:
+            self.query.sortOption = .createdAt(order: order)
+        case .updatedAt:
+            self.query.sortOption = .updatedAt(order: order)
+        default:
+            break
+        }
+        // 필터 메뉴에 반영
+        notifyFilterMenu()
+        // 현재 쿼리의 강조 및 일반 속성 정보 계산
+        self.queryProperties = getQueryProperties(from: self.query)
+        // 현재 쿼리를 이용하여 아이템 불러오기
+        await fetchItems()
+    }
+    // 카테고리 필터 옵션 선택 이벤트 처리
+    func handleCategoryFilterSelected(_ category: Category?) async {
+        guard let category = category else {
+            // 카테고리 없음을 선택한 경우
+            // 현재 쿼리에서 카테고리 필터 제거
+            self.query.filters.removeAll(where: {
+                if case .category = $0 { return true }
+                else { return false }
+            })
+            // 필터 메뉴에 반영
+            notifyFilterMenu()
+            // 현재 쿼리를 이용하여 아이템 불러오기
+            await fetchItems()
+            return
+        }
+        // 특정 카테고리를 선택한 경우
+        // 현재 쿼리에서 기존 카테고리 필터 제거
+        self.query.filters.removeAll(where: {
+            if case .category = $0 { return true }
+            else { return false }
+        })
+        // 현재 쿼리에 선택한 카테고리 필터 추가
+        self.query.filters.append(.category(category.id))
+        // 필터 메뉴에 반영
+        notifyFilterMenu()
+        // 현재 쿼리의 강조 및 일반 속성 정보 계산
+        self.queryProperties = getQueryProperties(from: self.query)
+        // 현재 쿼리를 이용하여 아이템 불러오기
+        await fetchItems()
+    }
+    // 장소 필터 옵션 선택 이벤트 처리
+    func handleLocationFilterSelected(_ location: Location?) async {
+        guard let location = location else {
+            // 장소 없음을 선택한 경우
+            // 현재 쿼리에서 장소 필터 제거
+            self.query.filters.removeAll(where: {
+                if case .location = $0 { return true }
+                else { return false }
+            })
+            // 필터 메뉴에 반영
+            notifyFilterMenu()
+            // 현재 쿼리를 이용하여 아이템 불러오기
+            await fetchItems()
+            return
+        }
+        // 특정 장소를 선택한 경우
+        // 현재 쿼리에서 기존 장소 필터 제거
+        self.query.filters.removeAll(where: {
+            if case .location = $0 { return true }
+            else { return false }
+        })
+        // 현재 쿼리에 선택한 장소 필터 추가
+        self.query.filters.append(.location(location.id))
+        // 필터 메뉴에 반영
+        notifyFilterMenu()
+        // 현재 쿼리의 강조 및 일반 속성 정보 계산
+        self.queryProperties = getQueryProperties(from: self.query)
+        // 현재 쿼리를 이용하여 아이템 불러오기
+        await fetchItems()
+    }
+    // 아이템 상태 필터 옵션 선택 이벤트 처리
+    func handleItemStateFilterSelected(_ state: ItemState?) async  {
+        guard let state = state else {
+            // 상태 없음을 선택한 경우
+            // 현재 쿼리에서 아이템 상태 필터 제거
+            self.query.filters.removeAll(where: {
+                if case .itemState = $0 { return true }
+                else { return false }
+            })
+            // 필터 메뉴에 반영
+            notifyFilterMenu()
+            // 현재 쿼리를 이용하여 아이템 불러오기
+            await fetchItems()
+            return
+        }
+        // 특정 아이템 상태를 선택한 경우
+        // 현재 쿼리에서 기존 아이템 상태 필터 제거
+        self.query.filters.removeAll(where: {
+            if case .itemState = $0 { return true }
+            else { return false }
+        })
+        // 현재 쿼리에 선택한 아이템 상태 필터 추가
+        self.query.filters.append(.itemState(state.id))
+        // 필터 메뉴에 반영
+        notifyFilterMenu()
+        // 현재 쿼리의 강조 및 일반 속성 정보 계산
+        self.queryProperties = getQueryProperties(from: self.query)
+        // 현재 쿼리를 이용하여 아이템 불러오기
+        await fetchItems()
+    }
+    // 뷰 프리셋 선택 이벤트 처리
+    func handleViewPresetSelected(_ preset: ViewPreset) async {
+        // 선택한 뷰 프리셋을 이용하여 현재 쿼리 변경
+        self.query.sortOption = preset.sortingOption
+        self.query.filters = preset.filters
+        // 필터 메뉴에 반영
+        notifyFilterMenu()
+        // 현재 쿼리의 강조 및 일반 속성 정보 계산
+        self.queryProperties = getQueryProperties(from: self.query)
+        // 현재 쿼리를 이용하여 아이템 불러오기
+        await fetchItems()
+    }
+    // 정렬, 필터 초기화 버튼 선택 이벤트 처리
+    func handleRemoveFiltersSelected() async {
+        // 현재 쿼리의 정렬 및 필터 초기화
+        self.query.sortOption = .updatedAt(order: .descending)
+        self.query.filters.removeAll()
+        // 필터 메뉴에 반영
+        notifyFilterMenu()
+        // 현재 쿼리의 강조 및 일반 속성 정보 계산
+        self.queryProperties = getQueryProperties(from: self.query)
+        // 현재 쿼리를 이용하여 아이템 불러오기
+        await fetchItems()
     }
     // 현재 상태를 VC에 전달하는 메서드
     func notifyOutput() {
@@ -255,6 +503,35 @@ private extension WorkspaceViewModel {
         // Main Thread에서 UI 업데이트
         DispatchQueue.main.async {
             self.onDisplay?(output)
+        }
+    }
+    // 현재 Filter Menu 상태를 VC에 전달하는 메서드
+    func notifyFilterMenu() {
+        guard let workspaceContext = self.workspaceContext else { return }
+        let menu = FilterMenuInfo(
+            sortOptions: [.updatedAt(order: .descending), .createdAt(order: .descending), .name(order: .ascending), .nameDetail(order: .ascending), .purchaseDate(order: .descending), .purchasePlace(order: .ascending), .expireDate(order: .ascending), .price(order: .ascending), .quantity(order: .ascending)],
+            categoryFilters: workspaceContext.categories,
+            locationFilters: workspaceContext.locations,
+            itemStateFilters: workspaceContext.states,
+            viewPresets: self.viewPresets,
+            currentSortOption: self.query.sortOption ?? .updatedAt(order: .descending),
+            currentCategoryFilter: self.query.filters.first(where: {
+                if case .category = $0 { return true }
+                else { return false }
+            }),
+            currentLocationFilter: self.query.filters.first(where: {
+                if case .location = $0 { return true }
+                else { return false }
+            }),
+            currentItemStateFilter: self.query.filters.first(where: {
+                if case .itemState = $0 { return true }
+                else { return false }
+            }),
+        )
+        
+        // Main Thread에서 UI 업데이트
+        DispatchQueue.main.async {
+            self.onFilterMenuChanged?(menu)
         }
     }
 }
