@@ -4,39 +4,31 @@
 //
 //  Created by 박선린 on 3/1/26.
 //
+
 import Foundation
 
 final class WorkSpaceListViewModel {
-    
-    // VC가 구독(바인딩)할 콜백
+
     var onStateChange: ((State) -> Void)?
-    
-    // 화면 이동 이벤트 발생 시 Coordinator에 전달하여 화면 이동
     var onNavigation: ((Route) -> Void)?
-    
-    // MARK: - Usecase
+
     private let workspaceUsecase: WorkspaceUsecaseProtocol
     private let authUsecase: AuthUseCaseProtocol
     private let profileUsecase: ProfileUseCaseProtocol
-    
-    // MARK: - Profile Data
-    private var profileImageUrl: String?
-    private var userName: String?
-    
-    // Task Remote
+
+    private var initialLoadTask: Task<Void, Never>?
     private var workspaceTask: Task<Void, Never>?
-    
-    // 기본 데이터
+    private var profileTask: Task<Void, Never>?
+
     private(set) var workSpaces: [Workspace] = []
-    
-    // 워크스페이스 이름 업데이트시 사용하는 프로퍼티
-    private(set) var editingWorkSpaces: [Int : String] = [:]
-    
-    // 워크스페이스 순서 업데이트시 사용하는 프로퍼티
+    private(set) var editingWorkSpaces: [Int: String] = [:]
     private(set) var editingOrderWorkspaces: [Workspace] = []
-    
-    // MARK: - init
-    // 프로필 속성 수정 후 생성 및 프로필 반영 메서드 구현 필요
+
+    var isWorkspaceListEmpty: Bool {
+        workSpaces.isEmpty
+    }
+
+    // 초기화
     init(
         workspaceUsecase: WorkspaceUsecaseProtocol,
         authenticationUsecase: AuthUseCaseProtocol,
@@ -46,250 +38,282 @@ final class WorkSpaceListViewModel {
         self.authUsecase = authenticationUsecase
         self.profileUsecase = profileUsecase
     }
-    
-    // MARK: - State(Output)
+
     enum State {
-        case loading(Bool)      // 로딩 유무
-        case profile(urlstring: String?, name: String?)   // 프로필 데이터
-        case success            // 단순 성공
-        case emptyWorkspace     // 워크스페이스 없음
+        case loading(Bool)
+        case profile(urlstring: String?, name: String?)
+        case workspacesChanged
     }
-    
-    // MARK: - Input
+
     enum Input {
-        case viewDidLoad                                        // viewDidLoad
-        case reFetchData                                        // 다시 불러오기
-        case reFetchProfile                                     // 프로필 가져오기
-        case didTapAddWorkspaceButton                           // Add Workspace
+        case viewDidLoad
+        case reFetchData
+        case reFetchProfile
+        case didTapAddWorkspaceButton
         case didTapCreateWorkspace(name: String)
-        case didTapreorderWorkspacesButton                      // reorder 확정 버튼
-        case didReOrderWorkspaces(at: Int, to: Int)             // 순서 변경 중
-        case didTapupdateWorkspacesNameButton                   // Update
-        case didSelectTapWorkspace(index: Int)                  // select
-        case didTapAppSetting                                   // pushToAppSettingView
+        case didTapreorderWorkspacesButton
+        case didReOrderWorkspaces(at: Int, to: Int)
+        case didTapupdateWorkspacesNameButton
+        case didSelectTapWorkspace(index: Int)
+        case didTapAppSetting
     }
-    
-    // MARK: - Navigation Route (화면 이동 경로)
+
     enum Route {
-        case pushToAppSetting                   // 앱설정 화면 (프로필)
-        case pushToWorkspaceDetail(Workspace)   // 워크스페이스 디테일한 화면 이동
-        case presentCreateWorkspace             // 추후 생성 알럿을 코디네이터 역할로 변경시 사용
-        case showErrorAlert(String)             // 에러 알럿창
+        case pushToAppSetting
+        case pushToWorkspaceDetail(Workspace)
+        case presentCreateWorkspace
+        case showErrorAlert(String)
     }
-    
-    // Action
+
+    // 입력 처리
     func action(_ input: Input) {
         switch input {
-        case .viewDidLoad:                  // ViewDidLoad
-            Task {          // 새로운 Task 생성 및 Task 저장(메모리 주소 저장)
-                self.emit(.loading(true))
-                await fetchWorkspaces()     // 워크스페이스 불러오기
-                await fetchProfileDataAndUpdateView()   // 프로필 불러오기
-                self.emit(.loading(false))
-            }
-            
-        case .reFetchProfile:
-            workspaceTask?.cancel()
-            workspaceTask = Task {
-                await fetchProfileDataAndUpdateView()
-            }
-            
+        case .viewDidLoad:
+            loadInitialData()
         case .reFetchData:
-            Task {
-                await fetchWorkspaces()
-            }
-            
+            refreshWorkspaces()
+        case .reFetchProfile:
+            refreshProfile()
         case .didTapAddWorkspaceButton:
-            onNavigation?(Route.presentCreateWorkspace)
-            
-        case .didTapCreateWorkspace(name: let name):
+            navigate(.presentCreateWorkspace)
+        case .didTapCreateWorkspace(let name):
             createWorkspace(name: name)
-            
         case .didTapreorderWorkspacesButton:
             reorderWorkspaces()
-            
-        case .didReOrderWorkspaces(at: let from, to: let to):
+        case .didReOrderWorkspaces(let from, let to):
             updateOrder(moveRowAt: from, to: to)
-            
         case .didTapupdateWorkspacesNameButton:
             updateWorkspace()
-            
         case .didSelectTapWorkspace(let index):
-            let workspace = workSpaces[index]
-            onNavigation?(.pushToWorkspaceDetail(workspace))
-            
+            guard workSpaces.indices.contains(index) else { return }
+            navigate(.pushToWorkspaceDetail(workSpaces[index]))
         case .didTapAppSetting:
-            onNavigation?(.pushToAppSetting)
+            navigate(.pushToAppSetting)
         }
     }
-    
-    // Fetch
+
+    // 초기 데이터
+    private func loadInitialData() {
+        initialLoadTask?.cancel()
+        initialLoadTask = Task { [weak self] in
+            guard let self else { return }
+
+            self.emit(.loading(true))
+            await self.fetchWorkspaces()
+            await self.fetchProfileDataAndUpdateView()
+            self.emit(.loading(false))
+        }
+    }
+
+    // 목록 새로고침
+    private func refreshWorkspaces() {
+        startWorkspaceTask { [weak self] in
+            guard let self else { return }
+            await self.fetchWorkspaces()
+        }
+    }
+
+    // 프로필 새로고침
+    private func refreshProfile() {
+        startProfileTask { [weak self] in
+            guard let self else { return }
+            await self.fetchProfileDataAndUpdateView()
+        }
+    }
+
+    // 작업 실행
+    private func startWorkspaceTask(_ operation: @escaping () async -> Void) {
+        workspaceTask?.cancel()
+        workspaceTask = Task {
+            await operation()
+        }
+    }
+
+    // 프로필 실행
+    private func startProfileTask(_ operation: @escaping () async -> Void) {
+        profileTask?.cancel()
+        profileTask = Task {
+            await operation()
+        }
+    }
+
+    // 상태 전달
+    private func emit(_ state: State) {
+        Task { @MainActor in
+            self.onStateChange?(state)
+        }
+    }
+
+    // 화면 이동
+    private func navigate(_ route: Route) {
+        Task { @MainActor in
+            self.onNavigation?(route)
+        }
+    }
+
+    // 종료 정리
+    deinit {
+        initialLoadTask?.cancel()
+        workspaceTask?.cancel()
+        profileTask?.cancel()
+    }
+}
+
+// MARK: - Data Layer
+extension WorkSpaceListViewModel {
+
+    // 목록 조회
     private func fetchWorkspaces() async {
-        
+
 #if DEBUG
         try? await Task.sleep(for: .seconds(2))
 #endif
-        
-        let result = await self.workspaceUsecase.fetchWorkspaces()      // fetch
-        
-        guard !Task.isCancelled else { return }         // 전달 받은 캔슬 플래그가 있으면 중단
-        
+
+        let result = await workspaceUsecase.fetchWorkspaces()
+
+        guard !Task.isCancelled else { return }
+
         switch result {
         case .success(let workspaces):
             self.workSpaces = workspaces
-            if self.workSpaces.isEmpty {
-                emit(.emptyWorkspace)
-            }
-            self.emit(.success)
-            
+            self.emit(.workspacesChanged)
         case .failure(let error):
-            onNavigation?(.showErrorAlert(String(describing: error)))
+            navigate(.showErrorAlert(String(describing: error)))
         }
     }
-    
-    // Create
+
+    // 목록 생성
     private func createWorkspace(name: String) {
-        workspaceTask?.cancel()     // 저장된 비동기 작업이 존재하는 경우 캔슬
-        workspaceTask = Task { [weak self] in
+        startWorkspaceTask { [weak self] in
             guard let self else { return }
-            
-            self.emit(.loading(true))
-            defer { self.emit(.loading(false) ) }
-            
+
             let result = await self.workspaceUsecase.createWorkspace(name: name)
+
             switch result {
             case .success(let workspace):
                 self.workSpaces.append(workspace)
-                self.emit(.success)
-                
+                self.emit(.workspacesChanged)
             case .failure(let error):
-                onNavigation?(.showErrorAlert(String(describing: error)))
+                self.navigate(.showErrorAlert(String(describing: error)))
             }
         }
     }
-    
-    // 워크스페이스 이름 변경 내용 임시 저장
+
+    // 이름 초안 저장
     func updateText(index: Int, text: String) {
-        self.editingWorkSpaces[index] = text
+        editingWorkSpaces[index] = text
     }
-    
-    // Update
+
+    // 이름 변경
     private func updateWorkspace() {
-        guard editingWorkSpaces.count > 0 else { return }
-        workspaceTask?.cancel()
-        workspaceTask = Task { [weak self] in
+        guard !editingWorkSpaces.isEmpty else { return }
+
+        startWorkspaceTask { [weak self] in
             guard let self else { return }
-            
+
             self.emit(.loading(true))
-            defer { self.emit(.loading(false) ) }
-            
-            let keyArray = Array(editingWorkSpaces.keys)
-            
-            for i in keyArray {
-                guard let name = editingWorkSpaces[i] else { continue }
-                guard name != "" else { continue }
-                let _ = await self.workspaceUsecase.updateWorkspaceName(id: self.workSpaces[i].id, name: name)
+            defer { self.emit(.loading(false)) }
+
+            let indices = Array(self.editingWorkSpaces.keys).sorted()
+
+            for index in indices {
+                guard self.workSpaces.indices.contains(index) else { continue }
+                guard let rawName = self.editingWorkSpaces[index] else { continue }
+
+                let name = rawName.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !name.isEmpty else { continue }
+
+                let _ = await self.workspaceUsecase.updateWorkspaceName(
+                    id: self.workSpaces[index].id,
+                    name: name
+                )
             }
-            
+
             let result = await self.workspaceUsecase.fetchWorkspaces()
-            
+
 #if DEBUG
             try? await Task.sleep(for: .seconds(2))
 #endif
-            
+
+            self.editingWorkSpaces = [:]
+
             switch result {
             case .success(let workspaces):
                 self.workSpaces = workspaces
-                self.emit(.success)
-                self.editingWorkSpaces = [:]
-                
+                self.emit(.workspacesChanged)
             case .failure(let error):
-                self.editingWorkSpaces = [:]
-                onNavigation?(.showErrorAlert(String(describing: error)))
+                self.navigate(.showErrorAlert(String(describing: error)))
             }
         }
-        
     }
-    
-    // 워크스페이스 순서 변경 내용 임시 저장
-    func updateOrder(moveRowAt : Int, to : Int) {
+
+    // 순서 초안 저장
+    func updateOrder(moveRowAt: Int, to: Int) {
         if editingOrderWorkspaces.isEmpty {
-            self.editingOrderWorkspaces = workSpaces
+            editingOrderWorkspaces = workSpaces
         }
+
+        guard editingOrderWorkspaces.indices.contains(moveRowAt) else { return }
+
         let movedItem = editingOrderWorkspaces.remove(at: moveRowAt)
-        editingOrderWorkspaces.insert(movedItem, at: to)
+        let destination = min(to, editingOrderWorkspaces.count)
+        editingOrderWorkspaces.insert(movedItem, at: destination)
     }
-    
-    // Reorder
+
+    // 순서 변경
     private func reorderWorkspaces() {
         guard !editingOrderWorkspaces.isEmpty else { return }
-        
-        workspaceTask?.cancel()
-        workspaceTask = Task { [weak self] in
+
+        startWorkspaceTask { [weak self] in
             guard let self else { return }
-            
+
             self.emit(.loading(true))
-            
-            var draftworkspaces: [Workspace] = []
-            var uuidArray: [UUID] = []
-            var index: Int = 0
-            
-            for workspace in self.editingOrderWorkspaces {
-                draftworkspaces.append(Workspace(
+            defer { self.emit(.loading(false)) }
+
+            let orderedIDs = self.editingOrderWorkspaces.map(\.id)
+            let draftWorkspaces = self.editingOrderWorkspaces.enumerated().map { index, workspace in
+                Workspace(
                     id: workspace.id,
                     userId: workspace.userId,
                     indexKey: index,
                     name: workspace.name,
                     createdAt: workspace.createdAt,
                     updatedAt: workspace.updatedAt
-                ))
-                uuidArray.append(workspace.id)
-                index += 1
+                )
             }
-            
-            let result = await self.workspaceUsecase.reorderWorkspaces(order: uuidArray)
-            
+
+            let result = await self.workspaceUsecase.reorderWorkspaces(order: orderedIDs)
+
 #if DEBUG
             try? await Task.sleep(for: .seconds(2))
 #endif
-            
+
+            self.editingOrderWorkspaces.removeAll()
+
             switch result {
             case .success:
-                self.workSpaces = draftworkspaces
-                self.editingOrderWorkspaces.removeAll()
-                emit(.success)
+                self.workSpaces = draftWorkspaces
+                self.emit(.workspacesChanged)
             case .failure(let error):
-                self.editingOrderWorkspaces.removeAll()
-                onNavigation?(.showErrorAlert(String(describing: error)))
+                self.navigate(.showErrorAlert(String(describing: error)))
             }
-            self.emit(.loading(false) )
         }
     }
-    
+
+    // 프로필 조회
     private func fetchProfileDataAndUpdateView() async {
-        // 프로필 정보 불러오기
-        guard let currentUserId = authUsecase.currentUserId() else { return }
+        guard let currentUserId = authUsecase.currentUserId() else {
+            emit(.profile(urlstring: nil, name: nil))
+            return
+        }
+
         let result = await profileUsecase.fetchProfile(userId: currentUserId)
+
         switch result {
         case .success(let profile):
             emit(.profile(urlstring: profile.profileImageUrl, name: profile.displayName))
         case .failure:
             emit(.profile(urlstring: nil, name: nil))
         }
-    }
-    
-    private func cancel() {
-        workspaceTask?.cancel()     // Task 객체에게 취소 플래그 전달
-        workspaceTask = nil         // Task 객체는 누가 참조하지 않아도 존재 가능하며, 뷰모델에서는 참조 해제
-    }
-    
-    // 갱신은 메인스레드에서
-    @MainActor
-    private func emit(_ state: State) {
-        onStateChange?(state)
-    }
-    
-    deinit {
-        workspaceTask?.cancel()
     }
 }
