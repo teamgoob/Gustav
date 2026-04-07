@@ -18,7 +18,7 @@ final class SelectingParentCategoryView: UIView {
     private let rightStack = UIStackView()
     private let containerStack = UIStackView()
     
-    // 👉 실제 메뉴를 담당하는 버튼
+    // 실제 메뉴를 담당하는 버튼
     private let menuButton = UIButton(type: .system)
     
     // MARK: - Init
@@ -58,11 +58,11 @@ final class SelectingParentCategoryView: UIView {
         rightStack.addArrangedSubview(valueLabel)
         rightStack.addArrangedSubview(chevronImageView)
         
-        // 👉 버튼 설정
+        // 버튼 설정
         menuButton.showsMenuAsPrimaryAction = true
         menuButton.backgroundColor = .clear
         
-        // 👉 버튼을 rightStack 위에 얹음
+        // 버튼을 rightStack 위에 얹음
         rightStack.addSubview(menuButton)
         
         // container stack
@@ -86,7 +86,7 @@ final class SelectingParentCategoryView: UIView {
             make.size.equalTo(16)
         }
         
-        // 👉 버튼을 rightStack 전체 덮도록
+        // 버튼을 rightStack 전체 덮도록
         menuButton.snp.makeConstraints { make in
             make.edges.equalToSuperview()
         }

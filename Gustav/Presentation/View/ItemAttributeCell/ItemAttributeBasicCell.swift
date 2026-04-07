@@ -81,6 +81,9 @@ class ItemAttributeBasicCell: UITableViewCell {
             $0.centerY.equalTo(self.contentView)
         }
         
+        titleLabel.setContentHuggingPriority(.required, for: .horizontal)
+        titleLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
+        
         // chevron은 절대 밀리면 안됨
         chevronImageView.setContentHuggingPriority(.required, for: .horizontal)
         chevronImageView.setContentCompressionResistancePriority(.required, for: .horizontal)
