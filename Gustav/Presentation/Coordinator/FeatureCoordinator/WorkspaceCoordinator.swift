@@ -77,6 +77,8 @@ private extension WorkspaceCoordinator {
                 self?.showDeleteItemConfirmationAlert(for: cellData)
             case .showAlertForDeleteItemFailure:
                 self?.showFailureAlert(for: "Failed to delete item.")
+            case .showAlertForFetchWorkspaceContextFailure:
+                self?.showFailureAlert(for: "Failed to load workspace information.")
             }
         }
         // 네비게이션 타이틀 크기 설정
