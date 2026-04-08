@@ -509,23 +509,35 @@ private extension PresetAddViewModel {
     }
     
     func savePreset() {
+        // 사용자가 입력한 이름의 앞뒤 공백/줄바꿈을 제거해서
+        // 실제 저장에 사용할 최종 이름을 만듭니다.
         let trimmedName = currentName.trimmingCharacters(in: .whitespacesAndNewlines)
         
+        // 프리셋 이름이 비어 있으면 저장하지 않고
+        // 사용자에게 이름 입력이 필요하다는 알림을 보냅니다.
         guard trimmedName.isEmpty == false else {
             onNavigation?(.showValidationAlert("Preset name is required."))
             return
         }
         
+        // 정렬 옵션을 아직 선택하지 않았다면
+        // 기본값으로 indexKey 오름차순을 사용합니다.
         let sortingOption = currentSortingOption ?? .indexKey(order: .ascending)
         
+        // 저장 작업은 비동기로 처리합니다.
+        // [weak self]를 사용해서 ViewModel이 해제되어야 할 때
+        // Task가 self를 강하게 잡고 있지 않도록 합니다.
         Task { [weak self] in
             guard let self else { return }
             
+            // UI 상태 변경은 MainActor에서 처리합니다.
+            // 저장 시작 시 isSaving을 true로 바꾸고 화면을 다시 갱신합니다.
             await MainActor.run {
                 self.isSaving = true
                 self.notifyOutput()
             }
             
+            // 현재 입력값들을 기반으로 실제 저장할 ViewPreset 모델을 생성합니다.
             let preset = ViewPreset(
                 id: UUID(),
                 workspaceId: context.workspaceId,
@@ -538,20 +550,26 @@ private extension PresetAddViewModel {
                 updatedAt: Date()
             )
             
+            // Usecase에 프리셋 생성을 요청합니다.
+            // ViewModel이 직접 저장소를 다루지 않고 Usecase를 통해 저장하는 구조입니다.
             let result = await viewPresetUsecase.createViewPreset(
                 workspaceId: context.workspaceId,
                 preset: preset
             )
             
+            // 저장 완료 후 다시 MainActor에서 UI 상태를 복구하고
+            // 성공/실패에 따라 다음 화면 동작을 전달합니다.
             await MainActor.run {
                 self.isSaving = false
                 self.notifyOutput()
                 
                 switch result {
                 case .success:
+                    // 저장 성공 시 성공 이벤트를 전달합니다.
                     self.onNavigation?(.showSaveSuccess)
                     
                 case .failure(let error):
+                    // 저장 실패 시 에러를 사용자 메시지로 변환해서 알림을 보냅니다.
                     let message = self.makeSaveFailureMessage(from: error)
                     self.onNavigation?(.showSaveFailureAlert(message))
                 }

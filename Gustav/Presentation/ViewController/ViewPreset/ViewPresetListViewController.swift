@@ -49,50 +49,41 @@ final class ViewPresetListViewController: UIViewController {
 // MARK: - Setup
 private extension ViewPresetListViewController {
     func setupNavigation() {
-        
-        
         navigationItem.title = "Preset"
         navigationItem.largeTitleDisplayMode = .always
-       
-        var subtitle = AttributedString("0 presets")
-        // Large Title 하단에 표시되는 Large Subtitle 텍스트 설정
-        subtitle.font = Fonts.accent
-        subtitle.foregroundColor = Colors.Text.additionalInfo
-        navigationItem.largeAttributedSubtitle = subtitle
-        // 스크롤 시 상단 Title 하단에 표시되는 Subtitle 텍스트 설정
-        subtitle.font = Fonts.additional
-        navigationItem.attributedSubtitle = subtitle
-
         
-        // 좌측 뒤로가기 버튼
+        applySubtitle("0 presets")
+        configureNavigationButtons()
+        configureToolbar()
+    }
+    
+    func configureNavigationButtons() {
         let backButton = UIBarButtonItem(
             image: UIImage(systemName: "chevron.left"),
             style: .plain,
             target: self,
             action: #selector(didTapBack)
         )
-        
         navigationItem.leftBarButtonItem = backButton
         
-        // 우측 more (ellipsis) 버튼
         let moreButton = UIBarButtonItem(
             image: UIImage(systemName: "ellipsis"),
             style: .plain,
             target: self,
             action: #selector(didTapMore)
         )
-        
         navigationItem.rightBarButtonItem = moreButton
-        
-        
+    }
+    
+    func configureToolbar() {
         navigationController?.isToolbarHidden = false
-
+        
         let addButton = UIBarButtonItem(
             barButtonSystemItem: .add,
             target: self,
             action: #selector(didTapAddButton)
         )
-
+        
         toolbarItems = [UIBarButtonItem.flexibleSpace(), addButton]
     }
     
@@ -111,10 +102,9 @@ private extension ViewPresetListViewController {
     }
     
     func apply(_ output: ViewPresetListViewModel.Output) {
-        navigationItem.subtitle = "\(output.itemCount) presets"
+        applySubtitle("\(output.itemCount) presets")
         rootView.reloadList(count: output.itemCount)
-        
-        
+
         switch output.isLoading {
         case .loading(let message):
             rootView.loadingView.startLoading(with: message)
@@ -122,6 +112,19 @@ private extension ViewPresetListViewController {
             rootView.loadingView.stopLoading()
         }
     }
+
+    func applySubtitle(_ text: String) {
+        var largeSubtitle = AttributedString(text)
+        largeSubtitle.font = Fonts.accent
+        largeSubtitle.foregroundColor = Colors.Text.additionalInfo
+        navigationItem.largeAttributedSubtitle = largeSubtitle
+
+        var compactSubtitle = AttributedString(text)
+        compactSubtitle.font = Fonts.additional
+        compactSubtitle.foregroundColor = Colors.Text.additionalInfo
+        navigationItem.attributedSubtitle = compactSubtitle
+    }
+
 }
 
 // MARK: - Action

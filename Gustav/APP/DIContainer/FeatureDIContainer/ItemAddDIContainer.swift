@@ -22,10 +22,17 @@ final class ItemAddDIContainer {
     // MARK: - ViewModel Builder
     
     /// ItemAddViewModel 생성
-    func makeItemAddViewModel(workspaceId: UUID) -> ItemAddViewModel {
+    func makeItemAddViewModel(context: ItemAddContext) -> ItemAddViewModel {
         ItemAddViewModel(
-            workspaceId: workspaceId,
+            context: context,
             itemUseCase: appDIContainer.itemUsecase
+        )
+    }
+    
+    func makeItemAddContext(workspaceContext: WorkspaceContext) -> ItemAddContext {
+        ItemAddContext(
+            workspaceId: workspaceContext.workspace.id,
+            workspaceContext: workspaceContext
         )
     }
     
