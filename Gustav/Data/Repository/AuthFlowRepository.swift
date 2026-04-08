@@ -61,7 +61,6 @@ final class AuthFlowRepository: AuthFlowRepositoryProtocol {
 
         switch result {
         case .success:
-            NotificationCenter.default.post(name: .logout, object: nil)
             return .success(())
 
         case .failure(let e):
