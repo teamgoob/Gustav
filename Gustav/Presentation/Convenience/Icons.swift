@@ -53,7 +53,7 @@ struct Icons {
     static let created: UIImage? = UIImage(systemName: "calendar.badge.plus")?.applyingSymbolConfiguration(.init(paletteColors: [Colors.Theme.green.withAlphaComponent(0.4), Colors.Text.main]))
     
     // Name Icon
-    static let name: UIImage? = UIImage(systemName: "tag")
+    static let name: UIImage? = UIImage(systemName: "cube.box")
     
     // Name Detail Icon
     static let nameDetail: UIImage? = UIImage(systemName: "text.alignleft")

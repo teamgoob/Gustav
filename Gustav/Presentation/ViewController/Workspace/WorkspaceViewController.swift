@@ -36,16 +36,11 @@ final class WorkspaceViewController: UIViewController {
         return toolbar
     }()
     // 하단 검색창
-    private let searchBarItem: UIBarButtonItem = {
+    private let searchBar: UISearchBar = {
         let searchBar = UISearchBar()
         searchBar.placeholder = "Search items by name"
         searchBar.searchBarStyle = .minimal
-        searchBar.snp.makeConstraints {
-            $0.height.equalTo(40)
-        }
-        
-        let item = UIBarButtonItem(customView: searchBar)
-        return item
+        return searchBar
     }()
     // 아이템 추가 버튼
     private lazy var addItemButton = UIBarButtonItem(
@@ -127,7 +122,7 @@ private extension WorkspaceViewController {
         // 하단 툴바에 서치 바, 아이템 추가 버튼 추가
         bottomToolbar.setItems(
             [
-                searchBarItem,
+                UIBarButtonItem(customView: searchBar),
                 UIBarButtonItem.flexibleSpace(),
                 addItemButton
             ],
@@ -136,6 +131,9 @@ private extension WorkspaceViewController {
         // 하위 뷰로 추가
         view.addSubview(bottomToolbar)
         // 제약 조건 설정
+        searchBar.snp.makeConstraints {
+            $0.height.equalTo(40)
+        }
         bottomToolbar.snp.makeConstraints {
             $0.leading.trailing.equalToSuperview().inset(8)
             $0.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom)
@@ -215,6 +213,7 @@ private extension WorkspaceViewController {
         }
     }
     
+    // MARK: - 정렬 / 필터 / 프리셋 적용 메뉴 생성
     // Filter Menu 업데이트
     func updateFilterMenu(_ menuInfo: WorkspaceViewModel.FilterMenuInfo) {
         // 정렬 선택 메뉴 생성
@@ -510,11 +509,6 @@ private extension WorkspaceViewController {
     // 워크스페이스 설정 버튼 선택 시 호출
     @objc func didTapSettingButton() {
         viewModel.action(.toWorkspaceSettings)
-    }
-    
-    // 프리셋, 정렬, 필터 설정 메뉴 선택 시 호출
-    @objc func didTapQueryOptionButton() {
-        
     }
     
     // 아이템 추가 버튼 선택 시 호출
