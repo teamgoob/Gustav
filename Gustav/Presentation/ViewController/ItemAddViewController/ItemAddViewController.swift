@@ -55,16 +55,6 @@ final class ItemAddViewController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
 
-    /// dropdown popup에 사용할 도메인 모델 목록을 주입합니다.
-    func configureDropdownData(
-        categories: [Category],
-        itemStates: [ItemState],
-        locations: [Location]
-    ) {
-        self.categories = categories.sorted { $0.indexKey < $1.indexKey }
-        self.itemStates = itemStates.sorted { $0.indexKey < $1.indexKey }
-        self.locations = locations.sorted { $0.indexKey < $1.indexKey }
-    }
     
     // MARK: - Life Cycle
     
@@ -92,6 +82,14 @@ final class ItemAddViewController: UIViewController {
         // 뷰 모델에 화면 표시 이벤트 전달
         viewModel.action(.viewDidAppear)
     }
+    
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+
+        if isMovingFromParent {
+            onRoute?(.dismiss)
+        }
+    }
 }
 
 // MARK: - Navigation
@@ -111,30 +109,13 @@ private extension ItemAddViewController {
         subtitle.font = Fonts.additional
         navigationItem.attributedSubtitle = subtitle
 
-        
-        navigationItem.leftBarButtonItem = UIBarButtonItem(
-            barButtonSystemItem: .close,
+        // 오른쪽 버튼도 커스텀 checkmark가 아닌 시스템 기본 save 버튼을 사용합니다.
+        let saveButton = UIBarButtonItem(
+            image: UIImage(systemName: "checkmark"),
+            style: .prominent,
             target: self,
-            action: #selector(didTapClose)
+            action: #selector(didTapSave)
         )
-        
-        let saveButton: UIBarButtonItem
-
-        if #available(iOS 26.0, *) {
-            saveButton = UIBarButtonItem(
-                image: UIImage(systemName: "checkmark"),
-                style: .prominent,
-                target: self,
-                action: #selector(didTapSave)
-            )
-        } else {
-            saveButton = UIBarButtonItem(
-                image: UIImage(systemName: "checkmark"),
-                style: .done,
-                target: self,
-                action: #selector(didTapSave)
-            )
-        }
 
         saveButton.isEnabled = false
         navigationItem.rightBarButtonItem = saveButton
@@ -263,13 +244,13 @@ private extension ItemAddViewController {
 private extension ItemAddViewController {
     /// ViewModel Output을 UI에 반영
     func apply(_ output: ItemAddViewModel.Output) {
+        categories = output.availableCategories.sorted { $0.indexKey < $1.indexKey }
+        itemStates = output.availableItemStates.sorted { $0.indexKey < $1.indexKey }
+        locations = output.availableLocations.sorted { $0.indexKey < $1.indexKey }
         navigationItem.rightBarButtonItem?.isEnabled = output.saveButtonEnabled
-        navigationItem.leftBarButtonItem?.isEnabled = !output.isSaving
         
         if output.isSaving {
-            navigationItem.rightBarButtonItem?.title = "Saving..."
-        } else {
-            navigationItem.rightBarButtonItem?.title = "Save"
+            navigationItem.rightBarButtonItem?.isEnabled = false
         }
         
         rootView.configureOptionValues(
@@ -278,23 +259,9 @@ private extension ItemAddViewController {
             location: output.selectedLocationName
         )
 
-        if let selectedCategoryName = output.selectedCategoryName {
-            selectedCategoryID = categories.first(where: { $0.name == selectedCategoryName })?.id
-        } else {
-            selectedCategoryID = nil
-        }
-        
-        if let selectedItemStateName = output.selectedItemStateName {
-            selectedItemStateID = itemStates.first(where: { $0.name == selectedItemStateName })?.id
-        } else {
-            selectedItemStateID = nil
-        }
-        
-        if let selectedLocationName = output.selectedLocationName {
-            selectedLocationID = locations.first(where: { $0.name == selectedLocationName })?.id
-        } else {
-            selectedLocationID = nil
-        }
+        selectedCategoryID = output.selectedCategoryID
+        selectedItemStateID = output.selectedItemStateID
+        selectedLocationID = output.selectedLocationID
         
         rootView.purchaseDateCardView.setSwitchOn(output.isPurchaseDateEnabled, animated: false)
         rootView.expireDateCardView.setSwitchOn(output.isExpireDateEnabled, animated: false)
@@ -462,11 +429,6 @@ private extension ItemAddViewController {
     /// overlay 영역 탭 시 dropdown popup을 닫습니다.
     @objc func didTapDropdownOverlay() {
         dropdownManager.dismiss(animated: true)
-    }
-    
-    /// 닫기 버튼 탭 → ViewModel 전달
-    @objc func didTapClose() {
-        viewModel.action(.dismiss)
     }
     
     /// 저장 버튼 탭 → ViewModel 전달

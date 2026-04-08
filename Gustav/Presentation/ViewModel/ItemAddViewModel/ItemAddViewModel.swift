@@ -7,18 +7,28 @@
 
 import Foundation
 
+// MARK: - ItemAddContext
+/// 아이템 추가 화면에 필요한 고정 데이터를 ViewModel에 전달하기 위한 구조
+struct ItemAddContext {
+    let workspaceId: UUID
+    let workspaceContext: WorkspaceContext
+}
+
 // MARK: - ItemAddViewModel
 final class ItemAddViewModel {
     
     // MARK: Dependencies
-    /// 현재 아이템이 생성될 워크스페이스 ID
-    private let workspaceId: UUID
+    /// 아이템 추가 화면에 필요한 워크스페이스 고정 데이터
+    private let context: ItemAddContext
     
     /// 아이템 생성 유스케이스
     private let itemUseCase: ItemUsecaseProtocol
     
-    init(workspaceId: UUID, itemUseCase: ItemUsecaseProtocol) {
-        self.workspaceId = workspaceId
+    init(
+        context: ItemAddContext,
+        itemUseCase: ItemUsecaseProtocol
+    ) {
+        self.context = context
         self.itemUseCase = itemUseCase
     }
     
@@ -113,11 +123,20 @@ final class ItemAddViewModel {
     struct Output {
         let saveButtonEnabled: Bool
         let isSaving: Bool
+
         let selectedCategoryName: String?
         let selectedItemStateName: String?
         let selectedLocationName: String?
+
+        let selectedCategoryID: UUID?
+        let selectedItemStateID: UUID?
+        let selectedLocationID: UUID?
+        
         let isPurchaseDateEnabled: Bool
         let isExpireDateEnabled: Bool
+        let availableCategories: [Category]
+        let availableItemStates: [ItemState]
+        let availableLocations: [Location]
     }
     
     // MARK: Route
@@ -144,6 +163,12 @@ final class ItemAddViewModel {
     
     /// 저장 진행 중 여부
     private var isSaving = false
+    
+    /// 현재 워크스페이스에 종속된 참조 데이터
+    /// init 시 전달받은 context 안의 workspaceContext를 사용합니다.
+    private var workspaceContext: WorkspaceContext {
+        context.workspaceContext
+    }
 }
 
 // MARK: - Public Action
@@ -250,8 +275,14 @@ private extension ItemAddViewModel {
             selectedCategoryName: formState.selectedCategoryName,
             selectedItemStateName: formState.selectedItemStateName,
             selectedLocationName: formState.selectedLocationName,
+            selectedCategoryID: formState.selectedCategoryId,
+            selectedItemStateID: formState.selectedItemStateId,
+            selectedLocationID: formState.selectedLocationId,
             isPurchaseDateEnabled: formState.isPurchaseDateEnabled,
-            isExpireDateEnabled: formState.isExpireDateEnabled
+            isExpireDateEnabled: formState.isExpireDateEnabled,
+            availableCategories: workspaceContext.categories,
+            availableItemStates: workspaceContext.states,
+            availableLocations: workspaceContext.locations
         )
         
         DispatchQueue.main.async {
@@ -402,7 +433,7 @@ private extension ItemAddViewModel {
 
         // item.workspaceId와 createItem 파라미터의 workspaceId가 달라지지 않도록
         // 하나의 상수로 묶어서 동일한 값을 사용
-        let targetWorkspaceId = workspaceId
+        let targetWorkspaceId = context.workspaceId
         let now = Date()
 
         let item = Item(

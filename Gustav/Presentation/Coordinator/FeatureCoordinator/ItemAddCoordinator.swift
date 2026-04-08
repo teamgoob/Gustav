@@ -20,7 +20,7 @@ final class ItemAddCoordinator: Coordinator {
     let navigationController: UINavigationController
     var childCoordinators: [Coordinator] = []
     
-    private let workspaceId: UUID
+    private let context: ItemAddContext
     private let container: ItemAddDIContainer
     
     var onFinish: ((Coordinator) -> Void)?
@@ -31,11 +31,11 @@ final class ItemAddCoordinator: Coordinator {
     init(
         navigationController: UINavigationController,
         container: ItemAddDIContainer,
-        workspaceId: UUID
+        context: ItemAddContext
     ) {
         self.navigationController = navigationController
         self.container = container
-        self.workspaceId = workspaceId
+        self.context = context
     }
     
     // MARK: - Flow Start
@@ -57,35 +57,29 @@ final class ItemAddCoordinator: Coordinator {
 private extension ItemAddCoordinator {
     // Default View
     func showItemAdd() {
-        Task { [weak self] in
-            guard let self else { return }
+        let viewModel = self.container.makeItemAddViewModel(context: self.context)
+        let viewController = ItemAddViewController(viewModel: viewModel)
 
-            let viewModel = self.container.makeItemAddViewModel(workspaceId: self.workspaceId)
-            let viewController = ItemAddViewController(viewModel: viewModel)
+        viewController.onRoute = { [weak self] route in
+            switch route {
+            case .showCategoryPicker,
+                 .showItemStatePicker,
+                 .showLocationPicker:
+                break
 
-            viewController.onRoute = { [weak self] route in
-                switch route {
-                case .showCategoryPicker,
-                     .showItemStatePicker,
-                     .showLocationPicker:
-                    break
+            case .dismiss:
+                self?.finish()
 
-                case .dismiss:
-                    self?.navigationController.popViewController(animated: true)
-                    self?.finish()
+            case .dismissAfterSave:
+                self?.onItemCreated?()
+                self?.navigationController.popViewController(animated: true)
 
-                case .dismissAfterSave:
-                    self?.onItemCreated?()
-                    self?.navigationController.popViewController(animated: true)
-                    self?.finish()
-
-                case .showErrorAlert(let message):
-                    self?.presentErrorAlert(string: message)
-                }
+            case .showErrorAlert(let message):
+                self?.presentErrorAlert(string: message)
             }
-
-            self.navigationController.pushViewController(viewController, animated: true)
         }
+
+        self.navigationController.pushViewController(viewController, animated: true)
     }
 
     // Error Alert
