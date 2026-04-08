@@ -67,6 +67,8 @@ final class WorkspaceViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        // 테이블 뷰 데이터가 준비되기 전에는 표시하지 않음
+        customView.tableView.isHidden = true
         
         setupNavigationItem()
         setupToolbarItems()
@@ -224,6 +226,9 @@ private extension WorkspaceViewController {
                 customView.tableView.deleteRows(at: [indexPath], with: .fade)
             }
         }
+        
+        // 테이블 뷰 데이터가 준비된 후 테이블 뷰 표시
+        customView.tableView.isHidden = false
     }
     
     // MARK: - 정렬 / 필터 / 프리셋 적용 메뉴 생성
