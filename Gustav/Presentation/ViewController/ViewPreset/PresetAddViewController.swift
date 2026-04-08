@@ -53,12 +53,6 @@ private extension PresetAddViewController {
     func setupNavigationBar() {
         title = "Add Preset"
         navigationItem.rightBarButtonItem = saveButton
-        navigationItem.leftBarButtonItem = UIBarButtonItem(
-            image: UIImage(systemName: "chevron.left"),
-            style: .plain,
-            target: self,
-            action: #selector(didTapBackButton)
-        )
     }
     
     func bindViewModel() {
