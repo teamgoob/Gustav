@@ -28,6 +28,7 @@ final class CategoryListViewController: UIViewController {
     // 첫 진입
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         configureView()
         configureTableView()
         configureToolbar()
@@ -63,6 +64,7 @@ final class CategoryListViewController: UIViewController {
         navigationController?.navigationBar.prefersLargeTitles = true
         navigationItem.title = "Category"
         navigationItem.largeTitleDisplayMode = .always
+        applySubtitle("Category")
 
         loadingView.snp.makeConstraints {
             $0.edges.equalToSuperview()

@@ -63,7 +63,8 @@ final class ItemStateListViewController: UIViewController {
         navigationController?.navigationBar.prefersLargeTitles = true
         navigationItem.title = "ItemState"
         navigationItem.largeTitleDisplayMode = .always
-
+        applySubtitle("ItemState")
+        
         loadingView.snp.makeConstraints {
             $0.edges.equalToSuperview()
         }

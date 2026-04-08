@@ -63,7 +63,8 @@ final class LocationListViewController: UIViewController {
         navigationController?.navigationBar.prefersLargeTitles = true
         navigationItem.title = "Location"
         navigationItem.largeTitleDisplayMode = .always
-
+        applySubtitle("Location")
+        
         loadingView.snp.makeConstraints {
             $0.edges.equalToSuperview()
         }
