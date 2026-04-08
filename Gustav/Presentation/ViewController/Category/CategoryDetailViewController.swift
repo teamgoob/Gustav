@@ -218,6 +218,7 @@ extension CategoryDetailViewController: UITableViewDataSource {
                 return cell
             } else {
                 let menu = MenuBuilder.makeAssociatedMenu(
+                    title: "Category",
                     selectedid: self.viewModel.getParentCategoryUUID(),
                     items: self.viewModel.getAllCategories()) { [weak self] id in
                         guard let self else { return }

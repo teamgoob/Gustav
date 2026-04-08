@@ -9,6 +9,7 @@ import UIKit
 struct MenuBuilder {
 
     static func makeAssociatedMenu(
+        title: String,
         selectedid: UUID?,
         items: [Category],
         onSelect: @escaping (UUID?) -> Void
@@ -37,6 +38,6 @@ struct MenuBuilder {
             }
         )
         
-        return UIMenu(title: "Categoies", children: actions)
+        return UIMenu(title: title, children: actions)
     }
 }
