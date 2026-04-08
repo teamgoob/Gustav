@@ -71,6 +71,7 @@ final class WorkspaceViewController: UIViewController {
         setupNavigationItem()
         setupToolbarItems()
         setupDelegate()
+        setupGesture()
         bindViewModel()
         
         viewModel.action(.viewDidLoad)
@@ -144,6 +145,18 @@ private extension WorkspaceViewController {
     func setupDelegate() {
         customView.tableView.dataSource = self
         customView.tableView.delegate = self
+        searchBar.delegate = self
+    }
+    
+    // 제스처 설정
+    func setupGesture() {
+        // 빈 화면 탭 제스처 설정
+        let emptyTapGesture = UITapGestureRecognizer(
+            target: self,
+            action: #selector(dismissKeyboard)
+        )
+        emptyTapGesture.cancelsTouchesInView = false
+        view.addGestureRecognizer(emptyTapGesture)
     }
     
     // ViewModel Output 바인딩
@@ -506,6 +519,45 @@ private extension WorkspaceViewController {
         }
     }
     
+    // MARK: - SearchBar Event UI Update
+    func updateLayoutOfToolBar() {
+        if searchBar.searchTextField.isFirstResponder {
+            // 하단 툴 바 제약 조건 변경
+            bottomToolbar.snp.remakeConstraints {
+                $0.leading.trailing.equalToSuperview().inset(8)
+                // 키보드 위치 기준으로 설정
+                $0.bottom.equalTo(view.keyboardLayoutGuide.snp.top).offset(-16)
+            }
+            // 아이템 추가 버튼의 아이콘 변경
+            addItemButton.image = UIImage(systemName: "xmark")
+            // 애니메이션 적용
+            UIView.animate(withDuration: 0.2) {
+                self.view.layoutIfNeeded()
+            }
+        } else {
+            // 하단 툴 바 제약 조건 변경
+            bottomToolbar.snp.remakeConstraints {
+                $0.leading.trailing.equalToSuperview().inset(8)
+                $0.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom)
+            }
+            // 텍스트 입력 여부에 따라 아이템 추가 버튼의 아이콘 변경
+            if let text = searchBar.searchTextField.text, !text.isEmpty {
+                addItemButton.image = UIImage(systemName: "xmark")
+            } else {
+                addItemButton.image = UIImage(systemName: "plus")
+            }
+            // 애니메이션 적용
+            UIView.animate(withDuration: 0.2) {
+                self.view.layoutIfNeeded()
+            }
+        }
+    }
+    
+    // 키보드 내리기
+    @objc func dismissKeyboard() {
+        view.endEditing(true)
+    }
+    
     // 워크스페이스 설정 버튼 선택 시 호출
     @objc func didTapSettingButton() {
         viewModel.action(.toWorkspaceSettings)
@@ -513,7 +565,29 @@ private extension WorkspaceViewController {
     
     // 아이템 추가 버튼 선택 시 호출
     @objc func didTapAddItemButton() {
-        viewModel.action(.toAddItem)
+        // 키보드 활성화 시 (x mark)
+        if searchBar.searchTextField.isFirstResponder {
+            // 검색 문자열 지우기
+            searchBar.searchTextField.text = nil
+            // 키보드 내리기
+            searchBar.searchTextField.resignFirstResponder()
+            // 현재 쿼리의 검색 문자열 빈 문자열로 수정
+            viewModel.action(.searchTextEdited(""))
+        } else {
+            // 키보드 비활성화 시
+            // 문자열이 입력되어 있는 경우 (x mark)
+            if let text = searchBar.searchTextField.text, !text.isEmpty {
+                // 검색 문자열 지우기
+                searchBar.searchTextField.text = nil
+                // 버튼 아이콘 변경
+                updateLayoutOfToolBar()
+                // 현재 쿼리의 검색 문자열 빈 문자열로 수정
+                viewModel.action(.searchTextEdited(""))
+            } else {
+                // 문자열이 비어 있는 경우 (+ mark)
+                viewModel.action(.toAddItem)
+            }
+        }
     }
 }
 
@@ -579,5 +653,29 @@ extension WorkspaceViewController: UITableViewDelegate {
         if indexPath.row == updateIndex {
             viewModel.action(.loadNextPage)
         }
+    }
+}
+
+// MARK: - UISearchBarDelegate
+extension WorkspaceViewController: UISearchBarDelegate {
+    // 서치 바에 텍스트 입력 시 호출
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        // 공백 문자 제거
+        let trimmedText = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        // 뷰 모델에 이벤트 전달
+        viewModel.action(.searchTextEdited(trimmedText))
+    }
+    // 서치 바가 First Responder가 될 때(키보드 활성화 시) 호출
+    func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
+        updateLayoutOfToolBar()
+    }
+    // 서치 바의 First Responder가 해제될 때(키보드 비활성화 시) 호출
+    func searchBarTextDidEndEditing(_ searchBar: UISearchBar) {
+        updateLayoutOfToolBar()
+    }
+    // 서치 바의 검색 버튼 입력 시 호출
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        // 키보드 내리기
+        searchBar.searchTextField.resignFirstResponder()
     }
 }

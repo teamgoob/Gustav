@@ -48,10 +48,12 @@ final class WorkspaceViewModel {
     
     // MARK: - Input
     enum Input {
+        // Life Cycle
         case dismiss
         case viewDidLoad
         case viewDidAppear
         
+        // Filter Menu
         case selectSortOption(SortingOption)
         case selectSortOrder(SortingOrder)
         case selectCategoryFilter(Category?)
@@ -60,12 +62,15 @@ final class WorkspaceViewModel {
         case selectViewPreset(ViewPreset)
         case selectRemoveFilters
         
+        // Search Bar
+        case searchTextEdited(String)
+        
+        // Item List & Buttons
         case loadNextPage
         case tapExpandButton(UUID)
         case tapEditButton(UUID)
         case tapDeleteButton(WorkspaceItemCellData)
         case itemDeleteConfirmed(UUID)
-        case queryChanged(ItemQuery)
         case itemReordered([UUID])
         case toWorkspaceSettings
         case toAddItem
@@ -175,6 +180,10 @@ extension WorkspaceViewModel {
             Task {
                 await handleRemoveFiltersSelected()
             }
+        case .searchTextEdited(let text):
+            Task {
+                await handleSearchTextEdited(text)
+            }
         case .loadNextPage:
             Task {
                 await loadNextPage()
@@ -188,10 +197,6 @@ extension WorkspaceViewModel {
         case .itemDeleteConfirmed(let id):
             Task {
                 await handleDeleteItemConfirmed(for: id)
-            }
-        case .queryChanged(let query):
-            Task {
-                await handleQueryChanged(to: query)
             }
         case .itemReordered(let order):
             handleItemReordered(to: order)
@@ -209,6 +214,7 @@ extension WorkspaceViewModel {
 
 // MARK: - Private Logic
 private extension WorkspaceViewModel {
+    // MARK: - Items
     // 현재 쿼리 및 페이지 정보를 이용하여 아이템 불러오기
     func queryItems() async {
         let pagination = Pagination(offset: self.offset, limit: self.limit)
@@ -296,19 +302,11 @@ private extension WorkspaceViewModel {
         isLoading = .notLoading
         notifyOutput()
     }
-    // 쿼리 조건 변경 이벤트 처리
-    func handleQueryChanged(to query: ItemQuery) async {
-        // 저장 중인 쿼리 변경
-        self.query = query
-        // 저장 중인 쿼리 속성 변경
-        self.queryProperties = getQueryProperties(from: query)
-        // 새로운 쿼리를 이용하여 아이템 불러오기
-        await fetchItems()
-    }
     // 아이템 순서 변경 이벤트 처리
     func handleItemReordered(to order: [UUID]) {
         // 추후 구현
     }
+    // MARK: - Workspace Cotext
     // Workspace Context와 ViewPreset 목록을 불러오는 메서드
     func fetchWorkspaceContext() async {
         var successFlag = true
@@ -333,6 +331,7 @@ private extension WorkspaceViewModel {
             onNavigation?(.showAlertForFetchWorkspaceContextFailure)
         }
     }
+    // MARK: - Filter Menu
     // 정렬 옵션 선택 이벤트 처리
     func handleSortingOptionSelected(_ option: SortingOption) async {
         // 선택한 정렬 옵션으로 현재 쿼리 변경
@@ -492,6 +491,21 @@ private extension WorkspaceViewModel {
         // 현재 쿼리를 이용하여 아이템 불러오기
         await fetchItems()
     }
+    // MARK: - Search Bar
+    // Search Text 입력 이벤트 처리
+    func handleSearchTextEdited(_ text: String) async {
+        // 현재 쿼리의 Search Text 변경
+        if text.isEmpty {
+            self.query.searchText = nil
+        } else {
+            self.query.searchText = text
+        }
+        // 현재 쿼리의 강조 및 일반 속성 정보 계산
+        self.queryProperties = getQueryProperties(from: self.query)
+        // 현재 쿼리를 이용하여 아이템 불러오기
+        await fetchItems()
+    }
+    // MARK: - Output Handling
     // 현재 상태를 VC에 전달하는 메서드
     func notifyOutput() {
         let output = Output(
@@ -583,6 +597,10 @@ private extension WorkspaceViewModel {
         // 필터 조건 검사
         query.filters.forEach {
             properties.insert(ItemProperty.from(filterOption: $0))
+        }
+        // 검색 문자열 검사
+        if let searchText = query.searchText, !searchText.isEmpty {
+            properties.insert(.nameDetail)
         }
         // 쿼리에 적용된 정렬 및 필터 조건들을 강조 속성으로 반환
         return properties
