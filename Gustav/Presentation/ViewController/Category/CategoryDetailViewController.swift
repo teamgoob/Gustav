@@ -113,11 +113,18 @@ class CategoryDetailViewController: UIViewController {
         contentView.tableView.dataSource = self
         
         // 셀 등록
+        // 관련 아이템
         contentView.tableView.register(
             ItemAttributeDetailItemCell.self,
             forCellReuseIdentifier: ItemAttributeDetailItemCell.reuseID
         )
+        // 상위카테고리로 지정 가능한 카테고리가 없는 경우
+        contentView.tableView.register(
+            DisabledParentCategoryCell.self,
+            forCellReuseIdentifier: DisabledParentCategoryCell.reuseID
+        )
         
+        // 상위 카테고리 지정 셀
         contentView.tableView.register(
             ParentCategoryTableViewCell.self,
             forCellReuseIdentifier: ParentCategoryTableViewCell.reuseID
@@ -205,16 +212,18 @@ extension CategoryDetailViewController: UITableViewDataSource {
         switch indexPath.section {
         case 0:
 
-            let cell = tableView.dequeueReusableCell(
-                withIdentifier: ParentCategoryTableViewCell.reuseID,
-                for: indexPath
-            ) as! ParentCategoryTableViewCell
+            
             if self.viewModel.getAllCategories().isEmpty {
-                cell.configure(
-                    selectedParentCategoryName: self.viewModel.getParentCategoryTitle(),
-                    makeParentCategoryMenu: nil)
+                let cell = tableView.dequeueReusableCell(
+                    withIdentifier: DisabledParentCategoryCell.reuseID,
+                    for: indexPath
+                ) as! DisabledParentCategoryCell
                 return cell
             } else {
+                let cell = tableView.dequeueReusableCell(
+                    withIdentifier: ParentCategoryTableViewCell.reuseID,
+                    for: indexPath
+                ) as! ParentCategoryTableViewCell
                 let menu = MenuBuilder.makeAssociatedMenu(
                     title: "Category",
                     selectedid: self.viewModel.getParentCategoryUUID(),

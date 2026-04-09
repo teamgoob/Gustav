@@ -143,9 +143,17 @@ final class CategoryDetailViewModel {
     }
     
     
-    // Categories Array
+    // Categories Array(self.category & self.category를 부모카테고리로 지정한 카테고리 제외)
     func getAllCategories() -> [Category] {
-        self.allCategories
+        var allCategories = self.allCategories
+        
+        // 해당 워크스페이스의 카테고리 중 지금 소유하고 있는 카테고리는 제거
+        allCategories.removeAll { $0.id == self.category.id }
+        
+        // 지금 소유하고 있는 카테고리를 상위 카테고리로 지정한 카테고리는 제거
+        allCategories.removeAll { $0.parentId == self.category.id }
+        
+        return allCategories
     }
     
     // TableView DataSource: 사용할 아이템 갯수
