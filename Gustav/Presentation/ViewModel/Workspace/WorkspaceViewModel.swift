@@ -210,6 +210,10 @@ extension WorkspaceViewModel {
     var tableViewCellDatas: [WorkspaceItemCellData] {
         self.itemCellDatas
     }
+
+    func item(for id: UUID) -> Item? {
+        itemReferences.first(where: { $0.item.id == id })?.item
+    }
 }
 
 // MARK: - Private Logic

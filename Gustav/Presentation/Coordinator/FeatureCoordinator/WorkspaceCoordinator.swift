@@ -1,5 +1,5 @@
 //
-//  WorkspaceCoordinator 2.swift
+//  WorkspaceCoordinator.swift
 //  Gustav
 //
 //  Created by kaeun on 3/16/26.
@@ -151,7 +151,47 @@ private extension WorkspaceCoordinator {
     }
     // 아이템 수정 화면 표시
     func showEditItemView(for id: UUID) {
-        
+        guard let item = workspaceViewModel.item(for: id) else {
+            showFailureAlert(for: "Failed to load item details.")
+            return
+        }
+
+        let diContainer = container.makeItemAddDIContainer()
+
+        Task { [weak self] in
+            guard let self else { return }
+
+            let result = await self.container.fetchWorkspaceContext(workspaceId: self.workspace.id)
+
+            switch result {
+            case .success(let workspaceContext):
+                let itemDetailContext = diContainer.makeItemDetailContext(
+                    workspaceContext: workspaceContext,
+                    item: item
+                )
+                let coordinator = ItemDetailCoordinator(
+                    navigationController: self.navigationController,
+                    container: diContainer,
+                    context: itemDetailContext
+                )
+
+                coordinator.onFinish = { [weak self] coordinator in
+                    self?.removeChild(coordinator)
+                }
+
+                coordinator.onItemUpdated = { [weak self] in
+                    self?.workspaceViewModel.action(.viewDidAppear)
+                }
+
+                self.childCoordinators.append(coordinator)
+                coordinator.start()
+
+            case .failure:
+                await MainActor.run {
+                    self.showFailureAlert(for: "Failed to load category, state, and location data.")
+                }
+            }
+        }
     }
     // 아이템 삭제 확인 얼럿 창 표시
     func showDeleteItemConfirmationAlert(for cellData: WorkspaceItemCellData) {

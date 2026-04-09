@@ -28,11 +28,26 @@ final class ItemAddDIContainer {
             itemUseCase: appDIContainer.itemUsecase
         )
     }
+
+    func makeItemDetailViewModel(context: ItemDetailContext) -> ItemDetailViewModel {
+        ItemDetailViewModel(
+            context: context,
+            itemUseCase: appDIContainer.itemUsecase
+        )
+    }
     
     func makeItemAddContext(workspaceContext: WorkspaceContext) -> ItemAddContext {
         ItemAddContext(
             workspaceId: workspaceContext.workspace.id,
             workspaceContext: workspaceContext
+        )
+    }
+
+    func makeItemDetailContext(workspaceContext: WorkspaceContext, item: Item) -> ItemDetailContext {
+        ItemDetailContext(
+            workspaceId: workspaceContext.workspace.id,
+            workspaceContext: workspaceContext,
+            item: item
         )
     }
     
