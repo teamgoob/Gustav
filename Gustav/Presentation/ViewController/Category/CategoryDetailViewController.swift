@@ -181,10 +181,8 @@ extension CategoryDetailViewController: UICollectionViewDataSource {
 extension CategoryDetailViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let tagColor: TagColor = self.viewModel.cellForItemAt(index: indexPath.row)
-        print("셀 눌림: \(tagColor.rawValue)")
         guard tagColor != self.viewModel.getSelectedTagColor() else { return }
         self.viewModel.action(.didChangeTagColor(tagColor))
-        print("변경된 카테고리: \(tagColor.rawValue)")
         self.contentView.collectionView.reloadData()
     }
 }
@@ -247,7 +245,6 @@ extension CategoryDetailViewController: UITableViewDataSource {
                 for: indexPath
             ) as! ItemAttributeDetailItemCell
             
-            cell.configure(title: "테스트 break")
             return cell
             
         }

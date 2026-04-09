@@ -173,10 +173,8 @@ extension LocationDetailViewController: UICollectionViewDataSource {
 extension LocationDetailViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let tagColor: TagColor = self.viewModel.cellForItemAt(index: indexPath.row)
-        print("셀 눌림: \(tagColor.rawValue)")
         guard tagColor != self.viewModel.getSelectedTagColor() else { return }
         self.viewModel.action(.didChangeTagColor(tagColor))
-        print("변경된 카테고리: \(tagColor.rawValue)")
         self.contentView.collectionView.reloadData()
     }
 }
