@@ -117,6 +117,7 @@ final class ItemAddViewModel {
     // MARK: Output
     /// ViewModel이 ViewController에 전달하는 화면 표시용 상태
     struct Output {
+        let workspaceName: String
         let saveButtonEnabled: Bool
         let isSaving: Bool
 
@@ -254,6 +255,7 @@ private extension ItemAddViewModel {
     /// 현재 상태를 Output으로 만들어 ViewController에 전달
     func notifyOutput() {
         let output = Output(
+            workspaceName: workspaceContext.workspace.name,
             saveButtonEnabled: isSaveButtonEnabled,
             isSaving: isSaving,
             selectedCategoryName: formState.selectedCategoryName,

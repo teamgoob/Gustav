@@ -51,12 +51,27 @@ final class PresetAddViewController: UIViewController {
 private extension PresetAddViewController {
     func setupNavigationBar() {
         title = "Add Preset"
+        navigationItem.largeTitleDisplayMode = .always
+        applySubtitle("Workspace Name")
         navigationItem.rightBarButtonItem = saveButton
+    }
+
+    func applySubtitle(_ text: String) {
+        var largeSubtitle = AttributedString(text)
+        largeSubtitle.font = Fonts.accent
+        largeSubtitle.foregroundColor = Colors.Text.additionalInfo
+        navigationItem.largeAttributedSubtitle = largeSubtitle
+
+        var compactSubtitle = AttributedString(text)
+        compactSubtitle.font = Fonts.additional
+        compactSubtitle.foregroundColor = Colors.Text.additionalInfo
+        navigationItem.attributedSubtitle = compactSubtitle
     }
     
     func bindViewModel() {
         viewModel.onDisplay = { [weak self] output in
             guard let self else { return }
+            self.applySubtitle(output.workspaceName)
             
             self.contentView.configure(
                 name: output.name,
@@ -255,26 +270,46 @@ private extension PresetAddViewController {
                 self?.viewModel.action(.selectSortOption(option))
             }
         }
-
-        return UIMenu(children: actions)
+        let clearAction = UIAction(
+            title: "Clear Sort By",
+            attributes: menuInfo.currentSortOption == nil ? [.disabled] : [.destructive]
+        ) { [weak self] _ in
+            self?.viewModel.action(.clearSortOption)
+        }
+        
+        return UIMenu(children: [
+            UIMenu(options: .displayInline, children: actions),
+            UIMenu(options: .displayInline, children: [clearAction])
+        ])
     }
 
     func makeSortOrderMenu(_ menuInfo: PresetAddViewModel.FilterMenuInfo) -> UIMenu {
-        let referenceSortOption = menuInfo.currentSortOption ?? .indexKey(order: .ascending)
+        let referenceSortOption = menuInfo.currentSortOption ?? .name(order: .ascending)
         let ascending = UIAction(
             title: referenceSortOption.orderToText(isAscending: true),
+            attributes: menuInfo.currentSortOption == nil ? [.disabled] : [],
             state: menuInfo.currentSortOption?.order == .ascending ? .on : .off
         ) { [weak self] _ in
             self?.viewModel.action(.selectSortOrder(.ascending))
         }
         let descending = UIAction(
             title: referenceSortOption.orderToText(isAscending: false),
+            attributes: menuInfo.currentSortOption == nil ? [.disabled] : [],
             state: menuInfo.currentSortOption?.order == .descending ? .on : .off
         ) { [weak self] _ in
             self?.viewModel.action(.selectSortOrder(.descending))
         }
+        let clearAction = UIAction(
+            title: "Clear Sort Order",
+            attributes: menuInfo.currentSortOption == nil ? [.disabled] : [.destructive]
+        ) { [weak self] _ in
+            self?.viewModel.action(.clearSortOrder)
+        }
 
-        return UIMenu(children: [ascending, descending])
+        return UIMenu(children: [
+            UIMenu(options: .displayInline, children: [ascending, descending]),
+            UIMenu(options: .displayInline, children: [clearAction])
+        ])
     }
 
     @objc func didTapBackButton() {

@@ -30,6 +30,7 @@ extension PresetAddDIContainer {
         case .failure:
             context = PresetAddContext(
                 workspaceId: workspaceId,
+                workspaceName: "",
                 categoryNameByID: [:],
                 locationNameByID: [:],
                 itemStateNameByID: [:]
@@ -78,6 +79,7 @@ private extension PresetAddDIContainer {
 
         return PresetAddContext(
             workspaceId: workspaceId,
+            workspaceName: workspaceContext.workspace.name,
             categoryNameByID: categoryNameByID,
             locationNameByID: locationNameByID,
             itemStateNameByID: itemStateNameByID

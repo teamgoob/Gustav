@@ -10,6 +10,7 @@ import Foundation
 // MARK: - PresetDetailContext
 struct PresetDetailContext {
     let preset: ViewPreset
+    let workspaceName: String
     let categoryNameByID: [UUID: String]
     let locationNameByID: [UUID: String]
     let itemStateNameByID: [UUID: String]
@@ -26,6 +27,8 @@ final class PresetDetailViewModel {
         case selectViewType(Int)
         case selectSortOption(SortingOption)
         case selectSortOrder(SortingOrder)
+        case clearSortOption
+        case clearSortOrder
         case selectCategoryFilter(UUID?)
         case selectLocationFilter(UUID?)
         case selectItemStateFilter(UUID?)
@@ -34,6 +37,7 @@ final class PresetDetailViewModel {
     // MARK: - Output
     struct Output {
         let title: String
+        let workspaceName: String
         let viewType: String
         let sortingOption: String?
         let sortingOrder: String?
@@ -94,7 +98,7 @@ final class PresetDetailViewModel {
         self.viewPresetUsecase = viewPresetUsecase
         self.context = context
         self.currentViewType = context.preset.viewType
-        self.currentSortingOption = context.preset.sortingOption
+        self.currentSortingOption = Self.normalizedSortingOption(context.preset.sortingOption)
         self.selectedCategoryID = Self.extractCategoryID(from: context.preset.filters)
         self.selectedLocationID = Self.extractLocationID(from: context.preset.filters)
         self.selectedItemStateID = Self.extractItemStateID(from: context.preset.filters)
@@ -130,8 +134,18 @@ extension PresetDetailViewModel {
             notifyFilterMenu()
             
         case .selectSortOrder(let order):
-            let sortCase = currentSortingOption?.sortingOptionCase ?? .indexKey
+            guard let sortCase = currentSortingOption?.sortingOptionCase else { return }
             currentSortingOption = makeSortingOption(from: sortCase, order: order)
+            notifyOutput()
+            notifyFilterMenu()
+            
+        case .clearSortOption:
+            currentSortingOption = nil
+            notifyOutput()
+            notifyFilterMenu()
+            
+        case .clearSortOrder:
+            currentSortingOption = nil
             notifyOutput()
             notifyFilterMenu()
             
@@ -158,8 +172,9 @@ private extension PresetDetailViewModel {
     func notifyOutput() {
         let output = Output(
             title: context.preset.name,
+            workspaceName: context.workspaceName,
             viewType: mapViewTypeToText(currentViewType),
-            sortingOption: currentSortingOption?.toText(),
+            sortingOption: mapSortingOptionToText(currentSortingOption),
             sortingOrder: mapSortingOrderToText(currentSortingOption),
             category: selectedCategoryID.flatMap { context.categoryNameByID[$0] },
             location: selectedLocationID.flatMap { context.locationNameByID[$0] },
@@ -197,14 +212,20 @@ private extension PresetDetailViewModel {
         }
     }
     
+    func mapSortingOptionToText(_ sortingOption: SortingOption?) -> String? {
+        guard let sortingOption else { return nil }
+        guard sortingOption.sortingOptionCase != .indexKey else { return nil }
+        return sortingOption.toText()
+    }
+    
     func mapSortingOrderToText(_ sortingOption: SortingOption?) -> String? {
         guard let sortingOption else { return nil }
+        guard sortingOption.sortingOptionCase != .indexKey else { return nil }
         return sortingOption.orderToText(isAscending: sortingOption.order == .ascending)
     }
     
     func makeSortOptions() -> [SortingOption] {
         [
-            .indexKey(order: .ascending),
             .name(order: .ascending),
             .nameDetail(order: .ascending),
             .purchaseDate(order: .descending),
@@ -290,13 +311,7 @@ private extension PresetDetailViewModel {
     }
     
     func updatePreset() async throws {
-        guard let currentSortingOption else {
-            throw NSError(
-                domain: "PresetDetailViewModel",
-                code: -1,
-                userInfo: [NSLocalizedDescriptionKey: "정렬 옵션이 없습니다."]
-            )
-        }
+        let currentSortingOption = currentSortingOption ?? .indexKey(order: .ascending)
         
         let updatedPreset = ViewPreset(
             id: context.preset.id,
@@ -324,6 +339,11 @@ private extension PresetDetailViewModel {
 }
 
 private extension PresetDetailViewModel {
+    static func normalizedSortingOption(_ sortingOption: SortingOption) -> SortingOption? {
+        guard sortingOption.sortingOptionCase != .indexKey else { return nil }
+        return sortingOption
+    }
+    
     static func extractCategoryID(from filters: [FilterOption]) -> UUID? {
         for filter in filters {
             if case .category(let id) = filter {

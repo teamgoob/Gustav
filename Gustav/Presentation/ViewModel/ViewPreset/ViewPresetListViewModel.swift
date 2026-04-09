@@ -24,6 +24,7 @@ final class ViewPresetListViewModel {
         case viewWillAppear
         case didTapAddButton
         case didSelectItem(at: Int)
+        case deletePreset(at: Int)
     }
     
     // MARK: - Output
@@ -36,6 +37,7 @@ final class ViewPresetListViewModel {
     enum Route {
         case pushToAddPreset
         case pushToPresetDetail(id: UUID)
+        case showErrorAlert(String)
     }
     
     // MARK: - Loading State
@@ -77,6 +79,8 @@ extension ViewPresetListViewModel {
             onNavigation?(.pushToAddPreset)
         case .didSelectItem(let index):
             handleSelection(at: index)
+        case .deletePreset(let index):
+            deletePreset(at: index)
         }
     }
     
@@ -122,7 +126,27 @@ private extension ViewPresetListViewModel {
         guard items.indices.contains(index) else { return }
         onNavigation?(.pushToPresetDetail(id: items[index].id))
     }
-    
+
+    func deletePreset(at index: Int) {
+        guard items.indices.contains(index) else { return }
+
+        let presetID = items[index].id
+
+        Task {
+            let result = await viewPresetUsecase.deleteViewPreset(id: presetID)
+
+            switch result {
+            case .success:
+                items.remove(at: index)
+                notifyOutput()
+            case .failure(let error):
+                DispatchQueue.main.async {
+                    self.onNavigation?(.showErrorAlert(String(describing: error)))
+                }
+            }
+        }
+    }
+
     func notifyOutput() {
         let output = Output(
             isLoading: isLoading,

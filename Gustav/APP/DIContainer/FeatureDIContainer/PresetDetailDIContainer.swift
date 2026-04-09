@@ -50,14 +50,17 @@ final class PresetDetailDIContainer {
         let categoryNameByID: [UUID: String]
         let locationNameByID: [UUID: String]
         let itemStateNameByID: [UUID: String]
+        let workspaceName: String
 
         switch workspaceContextResult {
         case .success(let workspaceContext):
+            workspaceName = workspaceContext.workspace.name
             categoryNameByID = Dictionary(uniqueKeysWithValues: workspaceContext.categories.map { ($0.id, $0.name) })
             locationNameByID = Dictionary(uniqueKeysWithValues: workspaceContext.locations.map { ($0.id, $0.name) })
             itemStateNameByID = Dictionary(uniqueKeysWithValues: workspaceContext.states.map { ($0.id, $0.name) })
 
         case .failure:
+            workspaceName = ""
             categoryNameByID = [:]
             locationNameByID = [:]
             itemStateNameByID = [:]
@@ -65,6 +68,7 @@ final class PresetDetailDIContainer {
 
         return PresetDetailContext(
             preset: preset,
+            workspaceName: workspaceName,
             categoryNameByID: categoryNameByID,
             locationNameByID: locationNameByID,
             itemStateNameByID: itemStateNameByID

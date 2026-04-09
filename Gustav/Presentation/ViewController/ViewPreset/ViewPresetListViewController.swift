@@ -66,13 +66,6 @@ private extension ViewPresetListViewController {
         )
         navigationItem.leftBarButtonItem = backButton
         
-        let moreButton = UIBarButtonItem(
-            image: UIImage(systemName: "ellipsis"),
-            style: .plain,
-            target: self,
-            action: #selector(didTapMore)
-        )
-        navigationItem.rightBarButtonItem = moreButton
     }
     
     func configureToolbar() {
@@ -169,6 +162,15 @@ extension ViewPresetListViewController: UITableViewDataSource {
         let item = viewModel.rowItem(at: indexPath.row)
         cell.configure(title: item.title, subtitle: item.subtitle)
         return cell
+    }
+
+    func tableView(
+        _ tableView: UITableView,
+        commit editingStyle: UITableViewCell.EditingStyle,
+        forRowAt indexPath: IndexPath
+    ) {
+        guard editingStyle == .delete else { return }
+        viewModel.action(.deletePreset(at: indexPath.row))
     }
 }
 

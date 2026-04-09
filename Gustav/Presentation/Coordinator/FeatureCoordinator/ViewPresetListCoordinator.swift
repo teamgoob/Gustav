@@ -52,6 +52,8 @@ private extension ViewPresetListCoordinator {
                 
             case .pushToPresetDetail(let id):
                 self?.showPresetDetail(presetID: id)
+            case .showErrorAlert(let message):
+                self?.showErrorAlert(message)
             }
         }
         
@@ -104,6 +106,16 @@ private extension ViewPresetListCoordinator {
             childCoordinators.append(coordinator)
             coordinator.start()
         }
+    }
+
+    func showErrorAlert(_ message: String) {
+        let alert = UIAlertController(
+            title: "Error",
+            message: message,
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "확인", style: .default))
+        navigationController.present(alert, animated: true)
     }
 
 

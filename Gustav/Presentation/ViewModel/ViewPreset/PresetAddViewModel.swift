@@ -10,6 +10,7 @@ import Foundation
 /// 추가 화면에 필요한 고정 데이터를 ViewModel에 전달하기 위한 구조
 struct PresetAddContext {
     let workspaceId: UUID
+    let workspaceName: String
     let categoryNameByID: [UUID: String]
     let locationNameByID: [UUID: String]
     let itemStateNameByID: [UUID: String]
@@ -27,6 +28,8 @@ final class PresetAddViewModel {
         case selectViewType(Int)
         case selectSortOption(SortingOption)
         case selectSortOrder(SortingOrder)
+        case clearSortOption
+        case clearSortOrder
         case selectCategoryFilter(UUID?)
         case selectLocationFilter(UUID?)
         case selectItemStateFilter(UUID?)
@@ -34,6 +37,7 @@ final class PresetAddViewModel {
     
     // MARK: - Output
     struct Output {
+        let workspaceName: String
         let name: String
         let viewType: String
         let sortingOption: String?
@@ -139,8 +143,18 @@ extension PresetAddViewModel {
             notifyFilterMenu()
             
         case .selectSortOrder(let order):
-            let sortCase = currentSortingOption?.sortingOptionCase ?? .indexKey
+            guard let sortCase = currentSortingOption?.sortingOptionCase else { return }
             currentSortingOption = makeSortingOption(from: sortCase, order: order)
+            notifyOutput()
+            notifyFilterMenu()
+            
+        case .clearSortOption:
+            currentSortingOption = nil
+            notifyOutput()
+            notifyFilterMenu()
+            
+        case .clearSortOrder:
+            currentSortingOption = nil
             notifyOutput()
             notifyFilterMenu()
             
@@ -175,6 +189,7 @@ extension PresetAddViewModel {
 private extension PresetAddViewModel {
     func notifyOutput() {
         let output = Output(
+            workspaceName: context.workspaceName,
             name: currentName,
             viewType: mapViewTypeToText(currentViewType),
             sortingOption: mapSortingOptionToText(currentSortingOption),
@@ -221,11 +236,14 @@ private extension PresetAddViewModel {
     }
     
     func mapSortingOptionToText(_ sortingOption: SortingOption?) -> String? {
-        sortingOption?.toText()
+        guard let sortingOption else { return nil }
+        guard sortingOption.sortingOptionCase != .indexKey else { return nil }
+        return sortingOption.toText()
     }
-    
+
     func mapSortingOrderToText(_ sortingOption: SortingOption?) -> String? {
         guard let sortingOption else { return nil }
+        guard sortingOption.sortingOptionCase != .indexKey else { return nil }
         return sortingOption.orderToText(isAscending: sortingOption.order == .ascending)
     }
     
@@ -280,7 +298,6 @@ private extension PresetAddViewModel {
     
     func makeSortOptions() -> [SortingOption] {
         [
-            .indexKey(order: .ascending),
             .name(order: .ascending),
             .nameDetail(order: .ascending),
             .purchaseDate(order: .descending),

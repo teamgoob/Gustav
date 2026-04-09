@@ -40,6 +40,7 @@ final class TestPresetDetailUsecase: PresetDetailUsecaseProtocol {
         
         return PresetDetailContext(
             preset: preset,
+            workspaceName: "Workspace Name",
             categoryNameByID: [
                 categoryID: "전자기기"
             ],

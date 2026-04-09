@@ -77,17 +77,8 @@ private extension ItemAddViewController {
     func setupNavigation() {
         navigationItem.title = "Add Item"
         navigationItem.largeTitleDisplayMode = .always
-       
-        var subtitle = AttributedString("")
-        // Large Title 하단에 표시되는 Large Subtitle 텍스트 설정
-        subtitle.font = Fonts.accent
-        subtitle.foregroundColor = Colors.Text.additionalInfo
-        navigationItem.largeAttributedSubtitle = subtitle
-        // 스크롤 시 상단 Title 하단에 표시되는 Subtitle 텍스트 설정
-        subtitle.font = Fonts.additional
-        navigationItem.attributedSubtitle = subtitle
+        applySubtitle("Workspace Name")
 
-        // 오른쪽 버튼도 커스텀 checkmark가 아닌 시스템 기본 save 버튼을 사용합니다.
         let saveButton = UIBarButtonItem(
             image: UIImage(systemName: "checkmark"),
             style: .prominent,
@@ -98,6 +89,18 @@ private extension ItemAddViewController {
         saveButton.isEnabled = false
         navigationItem.rightBarButtonItem = saveButton
 
+    }
+
+    func applySubtitle(_ text: String) {
+        var largeSubtitle = AttributedString(text)
+        largeSubtitle.font = Fonts.accent
+        largeSubtitle.foregroundColor = Colors.Text.additionalInfo
+        navigationItem.largeAttributedSubtitle = largeSubtitle
+
+        var compactSubtitle = AttributedString(text)
+        compactSubtitle.font = Fonts.additional
+        compactSubtitle.foregroundColor = Colors.Text.additionalInfo
+        navigationItem.attributedSubtitle = compactSubtitle
     }
 
 }
@@ -203,6 +206,7 @@ private extension ItemAddViewController {
 private extension ItemAddViewController {
     /// ViewModel Output을 UI에 반영
     func apply(_ output: ItemAddViewModel.Output) {
+        applySubtitle(output.workspaceName)
         navigationItem.rightBarButtonItem?.isEnabled = output.saveButtonEnabled
         
         if output.isSaving {
