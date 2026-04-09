@@ -9,7 +9,6 @@ import Foundation
 // 상세 화면 진입 시점에 필요한 고정 데이터 묶음
 struct ItemDetailContext {
     let workspaceId: UUID
-    let workspaceContext: WorkspaceContext
     let item: Item
 }
 
@@ -20,13 +19,16 @@ final class ItemDetailViewModel {
 
     private let context: ItemDetailContext
     private let itemUseCase: ItemUsecaseProtocol
+    private let workspaceContextUsecase: WorkspaceContextUsecaseProtocol
 
     init(
         context: ItemDetailContext,
-        itemUseCase: ItemUsecaseProtocol
+        itemUseCase: ItemUsecaseProtocol,
+        workspaceContextUsecase: WorkspaceContextUsecaseProtocol
     ) {
         self.context = context
         self.itemUseCase = itemUseCase
+        self.workspaceContextUsecase = workspaceContextUsecase
         configureInitialFormState()
     }
 
@@ -146,10 +148,9 @@ final class ItemDetailViewModel {
     // 현재 편집 중인 상태와 저장 진행 여부
     private var formState = FormState()
     private var isSaving = false
+    private var hasLoadedWorkspaceContext = false
 
-    private var workspaceContext: WorkspaceContext {
-        context.workspaceContext
-    }
+    private var workspaceContext: WorkspaceContext?
 
     // 최초 화면 구성 시 View에 전달할 초기 표시 데이터
     var initialContent: ItemDetailView.Content {
@@ -166,11 +167,11 @@ final class ItemDetailViewModel {
             expireDate: formState.expireDatePart,
             expireTime: formState.expireTimePart,
             isExpireDateEnabled: formState.isExpireDateEnabled,
-            category: formState.selectedParentCategoryName,
-            subcategory: formState.selectedChildCategoryName,
-            showsSubcategory: currentChildCategories.isEmpty == false,
-            itemState: formState.selectedItemStateName,
-            location: formState.selectedLocationName
+            category: nil,
+            subcategory: nil,
+            showsSubcategory: false,
+            itemState: nil,
+            location: nil
         )
     }
 }
@@ -186,7 +187,13 @@ extension ItemDetailViewModel {
             onNavigation?(.dismiss)
 
         // 초기 화면 표시
-        case .viewDidLoad, .viewDidAppear:
+        case .viewDidLoad:
+            notifyOutput()
+            Task {
+                await fetchWorkspaceContextIfNeeded()
+            }
+
+        case .viewDidAppear:
             notifyOutput()
 
         // 텍스트 입력 변경
@@ -281,6 +288,9 @@ private extension ItemDetailViewModel {
         formState.quantityText = item.quantity.map(String.init) ?? ""
         formState.memo = item.memo ?? ""
         formState.purchasePlace = item.purchasePlace ?? ""
+        formState.selectedParentCategoryId = item.categoryId
+        formState.selectedItemStateId = item.stateId
+        formState.selectedLocationId = item.locationId
 
         formState.isPurchaseDateEnabled = item.purchaseDate != nil
         formState.purchaseDatePart = item.purchaseDate ?? Date()
@@ -289,15 +299,34 @@ private extension ItemDetailViewModel {
         formState.isExpireDateEnabled = item.warrantyExpireAt != nil
         formState.expireDatePart = item.warrantyExpireAt ?? Date()
         formState.expireTimePart = item.warrantyExpireAt ?? Date()
+    }
 
-        configureSelectedCategory(with: item.categoryId)
+    func fetchWorkspaceContextIfNeeded() async {
+        guard hasLoadedWorkspaceContext == false else { return }
 
-        if let state = workspaceContext.states.first(where: { $0.id == item.stateId }) {
+        let result = await workspaceContextUsecase.fetchContext(workspaceId: context.workspaceId)
+
+        switch result {
+        case .success(let workspaceContext):
+            self.workspaceContext = workspaceContext
+            self.hasLoadedWorkspaceContext = true
+            configureSelectionsFromWorkspaceContext()
+            notifyOutput()
+
+        case .failure:
+            onNavigation?(.showErrorAlert("Failed to load category, state, and location data."))
+        }
+    }
+
+    func configureSelectionsFromWorkspaceContext() {
+        configureSelectedCategory(with: context.item.categoryId)
+
+        if let state = workspaceContext?.states.first(where: { $0.id == context.item.stateId }) {
             formState.selectedItemStateId = state.id
             formState.selectedItemStateName = state.name
         }
 
-        if let location = workspaceContext.locations.first(where: { $0.id == item.locationId }) {
+        if let location = workspaceContext?.locations.first(where: { $0.id == context.item.locationId }) {
             formState.selectedLocationId = location.id
             formState.selectedLocationName = location.name
         }
@@ -323,7 +352,7 @@ private extension ItemDetailViewModel {
     // 현재 상태를 Output으로 변환하여 화면에 전달
     func notifyOutput() {
         let output = Output(
-            workspaceName: workspaceContext.workspace.name,
+            workspaceName: workspaceContext?.workspace.name ?? "",
             saveButtonEnabled: isSaveButtonEnabled,
             isSaving: isSaving,
             selectedCategoryName: formState.selectedParentCategoryName,
@@ -339,8 +368,8 @@ private extension ItemDetailViewModel {
             availableParentCategories: parentCategories,
             availableChildCategories: currentChildCategories,
             showsSubcategoryRow: currentChildCategories.isEmpty == false,
-            availableItemStates: workspaceContext.states,
-            availableLocations: workspaceContext.locations
+            availableItemStates: workspaceContext?.states ?? [],
+            availableLocations: workspaceContext?.locations ?? []
         )
 
         DispatchQueue.main.async {
@@ -350,17 +379,17 @@ private extension ItemDetailViewModel {
 
     // 선택 UI 구성을 위한 카테고리 계산 프로퍼티
     var parentCategories: [Category] {
-        workspaceContext.categories.filter { $0.parentId == nil }
+        workspaceContext?.categories.filter { $0.parentId == nil } ?? []
     }
 
     var currentChildCategories: [Category] {
         guard let parentId = formState.selectedParentCategoryId else { return [] }
-        return workspaceContext.categories.filter { $0.parentId == parentId }
+        return workspaceContext?.categories.filter { $0.parentId == parentId } ?? []
     }
 
     // ID로 카테고리 조회
     func category(by id: UUID) -> Category? {
-        workspaceContext.categories.first(where: { $0.id == id })
+        workspaceContext?.categories.first(where: { $0.id == id })
     }
 
     // 부모 카테고리 선택 시 자식 카테고리 유효성까지 함께 정리
@@ -378,7 +407,7 @@ private extension ItemDetailViewModel {
         formState.selectedParentCategoryId = category.id
         formState.selectedParentCategoryName = category.name
 
-        let childCategories = workspaceContext.categories.filter { $0.parentId == category.id }
+        let childCategories = workspaceContext?.categories.filter { $0.parentId == category.id } ?? []
         if childCategories.contains(where: { $0.id == formState.selectedChildCategoryId }) == false {
             formState.selectedChildCategoryId = nil
             formState.selectedChildCategoryName = nil

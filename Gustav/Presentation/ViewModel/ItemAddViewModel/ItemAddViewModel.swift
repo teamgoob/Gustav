@@ -11,7 +11,7 @@ import Foundation
 /// 아이템 추가 화면에 필요한 고정 데이터를 ViewModel에 전달하기 위한 구조
 struct ItemAddContext {
     let workspaceId: UUID
-    let workspaceContext: WorkspaceContext
+    let workspaceName: String
 }
 
 // MARK: - ItemAddViewModel
@@ -23,13 +23,16 @@ final class ItemAddViewModel {
     
     /// 아이템 생성 유스케이스
     private let itemUseCase: ItemUsecaseProtocol
+    private let workspaceContextUsecase: WorkspaceContextUsecaseProtocol
     
     init(
         context: ItemAddContext,
-        itemUseCase: ItemUsecaseProtocol
+        itemUseCase: ItemUsecaseProtocol,
+        workspaceContextUsecase: WorkspaceContextUsecaseProtocol
     ) {
         self.context = context
         self.itemUseCase = itemUseCase
+        self.workspaceContextUsecase = workspaceContextUsecase
     }
     
     // MARK: Form State
@@ -172,12 +175,10 @@ final class ItemAddViewModel {
     
     /// 저장 진행 중 여부
     private var isSaving = false
+    private var hasLoadedWorkspaceContext = false
     
     /// 현재 워크스페이스에 종속된 참조 데이터
-    /// init 시 전달받은 context 안의 workspaceContext를 사용합니다.
-    private var workspaceContext: WorkspaceContext {
-        context.workspaceContext
-    }
+    private var workspaceContext: WorkspaceContext?
 }
 
 // MARK: - Public Action
@@ -192,6 +193,9 @@ extension ItemAddViewModel {
         // 초기 화면 표시
         case .viewDidLoad:
             notifyOutput()
+            Task {
+                await fetchWorkspaceContextIfNeeded()
+            }
             
         case .viewDidAppear:
             notifyOutput()
@@ -277,10 +281,26 @@ extension ItemAddViewModel {
 
 // MARK: - Private Logic
 private extension ItemAddViewModel {
+    func fetchWorkspaceContextIfNeeded() async {
+        guard hasLoadedWorkspaceContext == false else { return }
+
+        let result = await workspaceContextUsecase.fetchContext(workspaceId: context.workspaceId)
+
+        switch result {
+        case .success(let workspaceContext):
+            self.workspaceContext = workspaceContext
+            self.hasLoadedWorkspaceContext = true
+            notifyOutput()
+
+        case .failure:
+            onNavigation?(.showErrorAlert("Failed to load category, state, and location data."))
+        }
+    }
+
     /// 현재 상태를 Output으로 만들어 ViewController에 전달
     func notifyOutput() {
         let output = Output(
-            workspaceName: workspaceContext.workspace.name,
+            workspaceName: context.workspaceName,
             saveButtonEnabled: isSaveButtonEnabled,
             isSaving: isSaving,
             selectedCategoryName: formState.selectedParentCategoryName,
@@ -296,8 +316,8 @@ private extension ItemAddViewModel {
             availableParentCategories: parentCategories,
             availableChildCategories: currentChildCategories,
             showsSubcategoryRow: currentChildCategories.isEmpty == false,
-            availableItemStates: workspaceContext.states,
-            availableLocations: workspaceContext.locations
+            availableItemStates: workspaceContext?.states ?? [],
+            availableLocations: workspaceContext?.locations ?? []
         )
         
         DispatchQueue.main.async {
@@ -307,18 +327,18 @@ private extension ItemAddViewModel {
 
     /// 상위 카테고리만 추려서 반환
     var parentCategories: [Category] {
-        workspaceContext.categories.filter { $0.parentId == nil }
+        workspaceContext?.categories.filter { $0.parentId == nil } ?? []
     }
 
     /// 현재 선택된 상위 카테고리에 속한 하위 카테고리 목록
     var currentChildCategories: [Category] {
         guard let parentId = formState.selectedParentCategoryId else { return [] }
-        return workspaceContext.categories.filter { $0.parentId == parentId }
+        return workspaceContext?.categories.filter { $0.parentId == parentId } ?? []
     }
 
     /// 카테고리 ID로 실제 Category 모델 조회
     func category(by id: UUID) -> Category? {
-        workspaceContext.categories.first(where: { $0.id == id })
+        workspaceContext?.categories.first(where: { $0.id == id })
     }
 
     /// 상위 카테고리 선택 처리
@@ -339,7 +359,7 @@ private extension ItemAddViewModel {
         formState.selectedParentCategoryId = category.id
         formState.selectedParentCategoryName = category.name
 
-        let childCategories = workspaceContext.categories.filter { $0.parentId == category.id }
+        let childCategories = workspaceContext?.categories.filter { $0.parentId == category.id } ?? []
         if childCategories.contains(where: { $0.id == formState.selectedChildCategoryId }) == false {
             formState.selectedChildCategoryId = nil
             formState.selectedChildCategoryName = nil

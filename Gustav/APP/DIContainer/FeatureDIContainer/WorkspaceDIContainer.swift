@@ -32,7 +32,4 @@ final class WorkspaceDIContainer {
         ItemAddDIContainer(appDIContainer: appDIContainer)
     }
     
-    func fetchWorkspaceContext(workspaceId: UUID) async -> DomainResult<WorkspaceContext> {
-        await appDIContainer.workspaceContextUsecase.fetchContext(workspaceId: workspaceId)
-    }
 }

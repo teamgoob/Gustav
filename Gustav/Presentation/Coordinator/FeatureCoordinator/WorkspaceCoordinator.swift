@@ -111,43 +111,26 @@ private extension WorkspaceCoordinator {
     func showAddItemView() {
         // DIContainer 생성
         let diContainer = container.makeItemAddDIContainer()
-        
-        Task { [weak self] in
-            guard let self else { return }
-            
-            // ItemAddContext 생성을 위한 WorkspaceContext 조회
-            let result = await self.container.fetchWorkspaceContext(workspaceId: self.workspace.id)
-            
-            switch result {
-            case .success(let workspaceContext):
-                // Context, Coordinator 생성
-                let itemAddContext = diContainer.makeItemAddContext(workspaceContext: workspaceContext)
-                let coordinator = ItemAddCoordinator(
-                    navigationController: self.navigationController,
-                    container: diContainer,
-                    context: itemAddContext
-                )
-                
-                // 클로저 할당
-                coordinator.onFinish = { [weak self] coordinator in
-                    self?.removeChild(coordinator)
-                }
-                
-                coordinator.onItemCreated = { [weak self] in
-                    self?.workspaceViewModel.action(.viewDidAppear)
-                }
-                
-                // 자식 코디네이터 배열에 추가
-                self.childCoordinators.append(coordinator)
-                // 코디네이터 시작
-                coordinator.start()
-                
-            case .failure:
-                await MainActor.run {
-                    self.showFailureAlert(for: "Failed to load category, state, and location data.")
-                }
-            }
+        let itemAddContext = ItemAddContext(
+            workspaceId: workspace.id,
+            workspaceName: workspace.name
+        )
+        let coordinator = ItemAddCoordinator(
+            navigationController: self.navigationController,
+            container: diContainer,
+            context: itemAddContext
+        )
+
+        coordinator.onFinish = { [weak self] coordinator in
+            self?.removeChild(coordinator)
         }
+
+        coordinator.onItemCreated = { [weak self] in
+            self?.workspaceViewModel.action(.viewDidAppear)
+        }
+
+        self.childCoordinators.append(coordinator)
+        coordinator.start()
     }
     // 아이템 수정 화면 표시
     func showEditItemView(for id: UUID) {
@@ -157,41 +140,26 @@ private extension WorkspaceCoordinator {
         }
 
         let diContainer = container.makeItemAddDIContainer()
+        let itemDetailContext = ItemDetailContext(
+            workspaceId: self.workspace.id,
+            item: item
+        )
+        let coordinator = ItemDetailCoordinator(
+            navigationController: self.navigationController,
+            container: diContainer,
+            context: itemDetailContext
+        )
 
-        Task { [weak self] in
-            guard let self else { return }
-
-            let result = await self.container.fetchWorkspaceContext(workspaceId: self.workspace.id)
-
-            switch result {
-            case .success(let workspaceContext):
-                let itemDetailContext = diContainer.makeItemDetailContext(
-                    workspaceContext: workspaceContext,
-                    item: item
-                )
-                let coordinator = ItemDetailCoordinator(
-                    navigationController: self.navigationController,
-                    container: diContainer,
-                    context: itemDetailContext
-                )
-
-                coordinator.onFinish = { [weak self] coordinator in
-                    self?.removeChild(coordinator)
-                }
-
-                coordinator.onItemUpdated = { [weak self] in
-                    self?.workspaceViewModel.action(.viewDidAppear)
-                }
-
-                self.childCoordinators.append(coordinator)
-                coordinator.start()
-
-            case .failure:
-                await MainActor.run {
-                    self.showFailureAlert(for: "Failed to load category, state, and location data.")
-                }
-            }
+        coordinator.onFinish = { [weak self] coordinator in
+            self?.removeChild(coordinator)
         }
+
+        coordinator.onItemUpdated = { [weak self] in
+            self?.workspaceViewModel.action(.viewDidAppear)
+        }
+
+        self.childCoordinators.append(coordinator)
+        coordinator.start()
     }
     // 아이템 삭제 확인 얼럿 창 표시
     func showDeleteItemConfirmationAlert(for cellData: WorkspaceItemCellData) {

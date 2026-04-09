@@ -25,32 +25,19 @@ final class ItemAddDIContainer {
     func makeItemAddViewModel(context: ItemAddContext) -> ItemAddViewModel {
         ItemAddViewModel(
             context: context,
-            itemUseCase: appDIContainer.itemUsecase
+            itemUseCase: appDIContainer.itemUsecase,
+            workspaceContextUsecase: appDIContainer.workspaceContextUsecase
         )
     }
 
     func makeItemDetailViewModel(context: ItemDetailContext) -> ItemDetailViewModel {
         ItemDetailViewModel(
             context: context,
-            itemUseCase: appDIContainer.itemUsecase
-        )
-    }
-    
-    func makeItemAddContext(workspaceContext: WorkspaceContext) -> ItemAddContext {
-        ItemAddContext(
-            workspaceId: workspaceContext.workspace.id,
-            workspaceContext: workspaceContext
+            itemUseCase: appDIContainer.itemUsecase,
+            workspaceContextUsecase: appDIContainer.workspaceContextUsecase
         )
     }
 
-    func makeItemDetailContext(workspaceContext: WorkspaceContext, item: Item) -> ItemDetailContext {
-        ItemDetailContext(
-            workspaceId: workspaceContext.workspace.id,
-            workspaceContext: workspaceContext,
-            item: item
-        )
-    }
-    
     // MARK: - Child DIContainer Builder
 
     func makeCategoryListDIContainer() -> CategoryListDIContainer {

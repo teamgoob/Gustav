@@ -111,6 +111,9 @@ private extension PresetAddViewController {
             switch route {
             case .pop:
                 self.onBack?()
+
+            case .showLoadFailureAlert(let message):
+                self.presentAlert(message: message)
                 
             case .showValidationAlert(let message):
                 self.presentAlert(message: message)

@@ -62,24 +62,19 @@ private extension ViewPresetListCoordinator {
     
     func showAddPreset() {
         let presetAddDIContainer = container.makePresetAddDIContainer()
+        let context = PresetAddContext(workspaceId: selectedWorkspaceId)
+        let viewModel = presetAddDIContainer.makePresetAddViewModel(context: context)
+        let coordinator = PresetAddCoordinator(
+            navigationController: navigationController,
+            viewModel: viewModel
+        )
 
-        Task { [weak self] in
-            guard let self else { return }
-
-            let viewModel = await presetAddDIContainer.makePresetAddViewModel(workspaceId: selectedWorkspaceId)
-            let coordinator = PresetAddCoordinator(
-                navigationController: navigationController,
-                viewModel: viewModel
-            )
-
-            coordinator.onFinish = { [weak self] child in
-                self?.removeChild(child)
-            }
-
-            childCoordinators.append(coordinator)
-
-            coordinator.start()
+        coordinator.onFinish = { [weak self] child in
+            self?.removeChild(child)
         }
+
+        childCoordinators.append(coordinator)
+        coordinator.start()
     }
     
     func showPresetDetail(presetID: UUID) {

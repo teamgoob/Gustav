@@ -10,11 +10,6 @@ import Foundation
 /// 추가 화면에 필요한 고정 데이터를 ViewModel에 전달하기 위한 구조
 struct PresetAddContext {
     let workspaceId: UUID
-    let workspaceName: String
-    let categories: [Category]
-    let categoryNameByID: [UUID: String]
-    let locationNameByID: [UUID: String]
-    let itemStateNameByID: [UUID: String]
 }
 
 
@@ -83,6 +78,7 @@ final class PresetAddViewModel {
     // MARK: - Route
     enum Route {
         case pop
+        case showLoadFailureAlert(String)
         case showValidationAlert(String)
         case showSaveFailureAlert(String)
         case showSaveSuccess
@@ -96,7 +92,14 @@ final class PresetAddViewModel {
     
     // MARK: - Properties
     private let viewPresetUsecase: ViewPresetUsecaseProtocol
+    private let workspaceContextUsecase: WorkspaceContextUsecaseProtocol
     private let context: PresetAddContext
+    private var workspaceName: String = ""
+    private var categories: [Category] = []
+    private var categoryNameByID: [UUID: String] = [:]
+    private var locationNameByID: [UUID: String] = [:]
+    private var itemStateNameByID: [UUID: String] = [:]
+    private var hasLoadedWorkspaceContext = false
     
     private var currentName: String = ""
     private var currentViewType: Int = 0
@@ -110,10 +113,12 @@ final class PresetAddViewModel {
     // MARK: - Init
     init(
         context: PresetAddContext,
-        viewPresetUsecase: ViewPresetUsecaseProtocol
+        viewPresetUsecase: ViewPresetUsecaseProtocol,
+        workspaceContextUsecase: WorkspaceContextUsecaseProtocol
     ) {
         self.context = context
         self.viewPresetUsecase = viewPresetUsecase
+        self.workspaceContextUsecase = workspaceContextUsecase
     }
 }
 
@@ -124,6 +129,9 @@ extension PresetAddViewModel {
         case .viewDidLoad:
             notifyOutput()
             notifyFilterMenu()
+            Task {
+                await fetchWorkspaceContextIfNeeded()
+            }
             
         case .didChangeName(let name):
             currentName = name
@@ -178,7 +186,7 @@ extension PresetAddViewModel {
         case .selectLocationFilter(let id):
             selectedLocationID = validatedFilterID(
                 id,
-                from: context.locationNameByID
+                from: locationNameByID
             )
             notifyOutput()
             notifyFilterMenu()
@@ -186,7 +194,7 @@ extension PresetAddViewModel {
         case .selectItemStateFilter(let id):
             selectedItemStateID = validatedFilterID(
                 id,
-                from: context.itemStateNameByID
+                from: itemStateNameByID
             )
             notifyOutput()
             notifyFilterMenu()
@@ -196,9 +204,36 @@ extension PresetAddViewModel {
 
 // MARK: - Private Logic
 private extension PresetAddViewModel {
+    func fetchWorkspaceContextIfNeeded() async {
+        guard hasLoadedWorkspaceContext == false else { return }
+
+        let result = await workspaceContextUsecase.fetchContext(workspaceId: context.workspaceId)
+
+        switch result {
+        case .success(let workspaceContext):
+            hasLoadedWorkspaceContext = true
+            workspaceName = workspaceContext.workspace.name
+            categories = workspaceContext.categories
+            categoryNameByID = Dictionary(
+                uniqueKeysWithValues: workspaceContext.categories.map { ($0.id, $0.name) }
+            )
+            locationNameByID = Dictionary(
+                uniqueKeysWithValues: workspaceContext.locations.map { ($0.id, $0.name) }
+            )
+            itemStateNameByID = Dictionary(
+                uniqueKeysWithValues: workspaceContext.states.map { ($0.id, $0.name) }
+            )
+            notifyOutput()
+            notifyFilterMenu()
+
+        case .failure:
+            onNavigation?(.showLoadFailureAlert("Failed to load category, state, and location data."))
+        }
+    }
+
     func notifyOutput() {
         let output = Output(
-            workspaceName: context.workspaceName,
+            workspaceName: workspaceName,
             name: currentName,
             viewType: mapViewTypeToText(currentViewType),
             sortingOption: mapSortingOptionToText(currentSortingOption),
@@ -221,8 +256,8 @@ private extension PresetAddViewModel {
             sortOptions: makeSortOptions(),
             parentCategoryFilters: makeCategoryFilterOptions(from: parentCategories),
             childCategoryFilters: makeCategoryFilterOptions(from: currentChildCategories),
-            locationFilters: makeNamedFilterOptions(from: context.locationNameByID),
-            itemStateFilters: makeNamedFilterOptions(from: context.itemStateNameByID),
+            locationFilters: makeNamedFilterOptions(from: locationNameByID),
+            itemStateFilters: makeNamedFilterOptions(from: itemStateNameByID),
             currentViewType: currentViewType,
             currentSortOption: currentSortingOption,
             currentParentCategoryID: selectedParentCategoryID,
@@ -235,16 +270,16 @@ private extension PresetAddViewModel {
     }
     
     var parentCategories: [Category] {
-        context.categories.filter { $0.parentId == nil }
+        categories.filter { $0.parentId == nil }
     }
 
     var currentChildCategories: [Category] {
         guard let parentId = selectedParentCategoryID else { return [] }
-        return context.categories.filter { $0.parentId == parentId }
+        return categories.filter { $0.parentId == parentId }
     }
 
     func category(by id: UUID) -> Category? {
-        context.categories.first(where: { $0.id == id })
+        categories.first(where: { $0.id == id })
     }
 
     func handleParentCategorySelection(_ id: UUID?) {
@@ -337,22 +372,22 @@ private extension PresetAddViewModel {
     
     func mapCategoryText() -> String? {
         guard let selectedParentCategoryID else { return nil }
-        return context.categoryNameByID[selectedParentCategoryID]
+        return categoryNameByID[selectedParentCategoryID]
     }
 
     func mapSubcategoryText() -> String? {
         guard let selectedChildCategoryID else { return nil }
-        return context.categoryNameByID[selectedChildCategoryID]
+        return categoryNameByID[selectedChildCategoryID]
     }
     
     func mapLocationText() -> String? {
         guard let selectedLocationID else { return nil }
-        return context.locationNameByID[selectedLocationID]
+        return locationNameByID[selectedLocationID]
     }
     
     func mapItemStatusText() -> String? {
         guard let selectedItemStateID else { return nil }
-        return context.itemStateNameByID[selectedItemStateID]
+        return itemStateNameByID[selectedItemStateID]
     }
 
     func makeViewTypeOptions() -> [FilterMenuInfo.ViewTypeOption] {
