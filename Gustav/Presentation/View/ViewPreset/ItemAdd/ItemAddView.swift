@@ -63,6 +63,7 @@ final class ItemAddView: UIView {
     // 선택형 옵션 영역
     private let optionSectionStackView = UIStackView()
     let categoryRowView = OptionRowView()
+    let subcategoryRowView = OptionRowView()
     let itemStateRowView = OptionRowView()
     let locationRowView = OptionRowView()
 
@@ -85,10 +86,14 @@ final class ItemAddView: UIView {
     // 선택형 옵션 행의 표시 값을 외부에서 업데이트합니다.
     func configureOptionValues(
         category: String?,
+        subcategory: String?,
+        showsSubcategory: Bool,
         itemState: String?,
         location: String?
     ) {
         categoryRowView.configure(title: "Category", value: category ?? "none")
+        subcategoryRowView.configure(title: "Subcategory", value: subcategory ?? "none")
+        subcategoryRowView.isHidden = !showsSubcategory
         itemStateRowView.configure(title: "Item state", value: itemState ?? "none")
         locationRowView.configure(title: "Location", value: location ?? "none")
     }
@@ -99,6 +104,7 @@ final class ItemAddView: UIView {
     private func setupUI() {
         // 화면 전체 배경색 설정
         backgroundColor = Colors.Theme.mainBackground
+        subcategoryRowView.isHidden = true
 
         // 스택뷰, 입력 방식, placeholder, 탭 액션 등 초기 UI 설정
         setupMainStackView()
@@ -122,6 +128,7 @@ final class ItemAddView: UIView {
 
         // 옵션 영역 내부에 선택 행 추가
         optionSectionStackView.addArrangedSubview(categoryRowView)
+        optionSectionStackView.addArrangedSubview(subcategoryRowView)
         optionSectionStackView.addArrangedSubview(itemStateRowView)
         optionSectionStackView.addArrangedSubview(locationRowView)
     }
@@ -155,7 +162,13 @@ final class ItemAddView: UIView {
 
     // 옵션 행의 초기 표시값을 기본 상태로 설정합니다.
     private func configureDefaultValues() {
-        configureOptionValues(category: nil, itemState: nil, location: nil)
+        configureOptionValues(
+            category: nil,
+            subcategory: nil,
+            showsSubcategory: false,
+            itemState: nil,
+            location: nil
+        )
     }
 
     // MARK: - Layout
@@ -195,7 +208,7 @@ final class ItemAddView: UIView {
         }
 
         // 옵션 행들의 높이를 동일하게 맞춤
-        [categoryRowView, itemStateRowView, locationRowView].forEach { row in
+        [categoryRowView, subcategoryRowView, itemStateRowView, locationRowView].forEach { row in
             row.snp.makeConstraints { make in
                 make.height.equalTo(56)
             }
@@ -208,6 +221,7 @@ final class ItemAddView: UIView {
 #if DEBUG
 private struct ItemAddViewPreview: UIViewRepresentable {
     let category: String?
+    let subcategory: String?
     let itemState: String?
     let location: String?
 
@@ -215,6 +229,8 @@ private struct ItemAddViewPreview: UIViewRepresentable {
         let view = ItemAddView()
         view.configureOptionValues(
             category: category,
+            subcategory: subcategory,
+            showsSubcategory: subcategory != nil,
             itemState: itemState,
             location: location
         )
@@ -228,6 +244,7 @@ private struct ItemAddViewPreview: UIViewRepresentable {
 #Preview("ItemAddView - Default") {
     ItemAddViewPreview(
         category: nil,
+        subcategory: nil,
         itemState: nil,
         location: nil
     )
@@ -237,6 +254,7 @@ private struct ItemAddViewPreview: UIViewRepresentable {
 #Preview("ItemAddView - Category Selected") {
     ItemAddViewPreview(
         category: "Electronics",
+        subcategory: "Laptop",
         itemState: nil,
         location: nil
     )

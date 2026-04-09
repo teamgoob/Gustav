@@ -28,6 +28,7 @@ final class PresetAddView: UIView {
     let sortByRow = OptionRowView()
     let sortOrderRow = OptionRowView()
     let categoryRow = OptionRowView()
+    let subcategoryRow = OptionRowView()
     let locationRow = OptionRowView()
     let itemStatusRow = OptionRowView()
     
@@ -48,6 +49,7 @@ final class PresetAddView: UIView {
         addSubview(scrollView)
         scrollView.addSubview(contentView)
         contentView.addSubview(mainStackView)
+        subcategoryRow.isHidden = true
         
         mainStackView.axis = .vertical
         mainStackView.spacing = 24
@@ -74,7 +76,7 @@ final class PresetAddView: UIView {
         
         let filterSectionStack = makeSectionStack(
             titleLabel: filterSectionLabel,
-            rows: [categoryRow, locationRow, itemStatusRow]
+            rows: [categoryRow, subcategoryRow, locationRow, itemStatusRow]
         )
         
         mainStackView.addArrangedSubview(nameSectionStack)
@@ -98,7 +100,7 @@ final class PresetAddView: UIView {
             make.edges.equalToSuperview().inset(20)
         }
         
-        [nameCardView, viewTypeRow, sortByRow, sortOrderRow, categoryRow, locationRow, itemStatusRow].forEach { row in
+        [nameCardView, viewTypeRow, sortByRow, sortOrderRow, categoryRow, subcategoryRow, locationRow, itemStatusRow].forEach { row in
             row.snp.makeConstraints { make in
                 make.height.equalTo(56)
             }
@@ -116,6 +118,8 @@ final class PresetAddView: UIView {
         sortingOption: String?,
         sortingOrder: String?,
         category: String?,
+        subcategory: String?,
+        showsSubcategory: Bool,
         location: String?,
         itemStatus: String?
     ) {
@@ -124,6 +128,8 @@ final class PresetAddView: UIView {
         sortByRow.configure(title: "Sort By", value: sortingOption ?? "None")
         sortOrderRow.configure(title: "Sort Order", value: sortingOrder ?? "None")
         categoryRow.configure(title: "Category", value: category ?? "None")
+        subcategoryRow.configure(title: "Subcategory", value: subcategory ?? "None")
+        subcategoryRow.isHidden = !showsSubcategory
         locationRow.configure(title: "Location", value: location ?? "None")
         itemStatusRow.configure(title: "Status", value: itemStatus ?? "None")
     }

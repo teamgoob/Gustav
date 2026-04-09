@@ -31,6 +31,7 @@ extension PresetAddDIContainer {
             context = PresetAddContext(
                 workspaceId: workspaceId,
                 workspaceName: "",
+                categories: [],
                 categoryNameByID: [:],
                 locationNameByID: [:],
                 itemStateNameByID: [:]
@@ -80,6 +81,7 @@ private extension PresetAddDIContainer {
         return PresetAddContext(
             workspaceId: workspaceId,
             workspaceName: workspaceContext.workspace.name,
+            categories: workspaceContext.categories,
             categoryNameByID: categoryNameByID,
             locationNameByID: locationNameByID,
             itemStateNameByID: itemStateNameByID

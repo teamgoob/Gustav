@@ -47,6 +47,7 @@ final class PresetDetailDIContainer {
             preset = fallbackPreset
         }
 
+        let categories: [Category]
         let categoryNameByID: [UUID: String]
         let locationNameByID: [UUID: String]
         let itemStateNameByID: [UUID: String]
@@ -55,12 +56,14 @@ final class PresetDetailDIContainer {
         switch workspaceContextResult {
         case .success(let workspaceContext):
             workspaceName = workspaceContext.workspace.name
+            categories = workspaceContext.categories
             categoryNameByID = Dictionary(uniqueKeysWithValues: workspaceContext.categories.map { ($0.id, $0.name) })
             locationNameByID = Dictionary(uniqueKeysWithValues: workspaceContext.locations.map { ($0.id, $0.name) })
             itemStateNameByID = Dictionary(uniqueKeysWithValues: workspaceContext.states.map { ($0.id, $0.name) })
 
         case .failure:
             workspaceName = ""
+            categories = []
             categoryNameByID = [:]
             locationNameByID = [:]
             itemStateNameByID = [:]
@@ -69,6 +72,7 @@ final class PresetDetailDIContainer {
         return PresetDetailContext(
             preset: preset,
             workspaceName: workspaceName,
+            categories: categories,
             categoryNameByID: categoryNameByID,
             locationNameByID: locationNameByID,
             itemStateNameByID: itemStateNameByID

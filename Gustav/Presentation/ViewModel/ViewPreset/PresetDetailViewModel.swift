@@ -11,6 +11,7 @@ import Foundation
 struct PresetDetailContext {
     let preset: ViewPreset
     let workspaceName: String
+    let categories: [Category]
     let categoryNameByID: [UUID: String]
     let locationNameByID: [UUID: String]
     let itemStateNameByID: [UUID: String]
@@ -29,7 +30,8 @@ final class PresetDetailViewModel {
         case selectSortOrder(SortingOrder)
         case clearSortOption
         case clearSortOrder
-        case selectCategoryFilter(UUID?)
+        case selectParentCategoryFilter(UUID?)
+        case selectChildCategoryFilter(UUID?)
         case selectLocationFilter(UUID?)
         case selectItemStateFilter(UUID?)
     }
@@ -42,6 +44,8 @@ final class PresetDetailViewModel {
         let sortingOption: String?
         let sortingOrder: String?
         let category: String?
+        let subcategory: String?
+        let showsSubcategory: Bool
         let location: String?
         let itemStatus: String?
     }
@@ -60,13 +64,15 @@ final class PresetDetailViewModel {
         
         let viewTypeOptions: [ViewTypeOption]
         let sortOptions: [SortingOption]
-        let categoryFilters: [NamedFilterOption]
+        let parentCategoryFilters: [NamedFilterOption]
+        let childCategoryFilters: [NamedFilterOption]
         let locationFilters: [NamedFilterOption]
         let itemStateFilters: [NamedFilterOption]
         
         let currentViewType: Int
         let currentSortOption: SortingOption?
-        let currentCategoryID: UUID?
+        let currentParentCategoryID: UUID?
+        let currentChildCategoryID: UUID?
         let currentLocationID: UUID?
         let currentItemStateID: UUID?
     }
@@ -89,7 +95,8 @@ final class PresetDetailViewModel {
     
     private var currentViewType: Int
     private var currentSortingOption: SortingOption?
-    private var selectedCategoryID: UUID?
+    private var selectedParentCategoryID: UUID?
+    private var selectedChildCategoryID: UUID?
     private var selectedLocationID: UUID?
     private var selectedItemStateID: UUID?
     
@@ -99,9 +106,20 @@ final class PresetDetailViewModel {
         self.context = context
         self.currentViewType = context.preset.viewType
         self.currentSortingOption = Self.normalizedSortingOption(context.preset.sortingOption)
-        self.selectedCategoryID = Self.extractCategoryID(from: context.preset.filters)
         self.selectedLocationID = Self.extractLocationID(from: context.preset.filters)
         self.selectedItemStateID = Self.extractItemStateID(from: context.preset.filters)
+
+        let selectedCategoryID = Self.extractCategoryID(from: context.preset.filters)
+        if let selectedCategoryID,
+           let category = context.categories.first(where: { $0.id == selectedCategoryID }) {
+            if let parentId = category.parentId {
+                self.selectedParentCategoryID = parentId
+                self.selectedChildCategoryID = category.id
+            } else {
+                self.selectedParentCategoryID = category.id
+                self.selectedChildCategoryID = nil
+            }
+        }
     }
 }
 
@@ -149,8 +167,13 @@ extension PresetDetailViewModel {
             notifyOutput()
             notifyFilterMenu()
             
-        case .selectCategoryFilter(let id):
-            selectedCategoryID = validatedFilterID(id, from: context.categoryNameByID)
+        case .selectParentCategoryFilter(let id):
+            handleParentCategorySelection(id)
+            notifyOutput()
+            notifyFilterMenu()
+
+        case .selectChildCategoryFilter(let id):
+            handleChildCategorySelection(id)
             notifyOutput()
             notifyFilterMenu()
             
@@ -176,7 +199,9 @@ private extension PresetDetailViewModel {
             viewType: mapViewTypeToText(currentViewType),
             sortingOption: mapSortingOptionToText(currentSortingOption),
             sortingOrder: mapSortingOrderToText(currentSortingOption),
-            category: selectedCategoryID.flatMap { context.categoryNameByID[$0] },
+            category: selectedParentCategoryID.flatMap { context.categoryNameByID[$0] },
+            subcategory: selectedChildCategoryID.flatMap { context.categoryNameByID[$0] },
+            showsSubcategory: currentChildCategories.isEmpty == false,
             location: selectedLocationID.flatMap { context.locationNameByID[$0] },
             itemStatus: selectedItemStateID.flatMap { context.itemStateNameByID[$0] }
         )
@@ -190,12 +215,14 @@ private extension PresetDetailViewModel {
                 FilterMenuInfo.ViewTypeOption(id: 0, title: "Basic")
             ],
             sortOptions: makeSortOptions(),
-            categoryFilters: makeNamedFilterOptions(from: context.categoryNameByID),
+            parentCategoryFilters: makeCategoryFilterOptions(from: parentCategories),
+            childCategoryFilters: makeCategoryFilterOptions(from: currentChildCategories),
             locationFilters: makeNamedFilterOptions(from: context.locationNameByID),
             itemStateFilters: makeNamedFilterOptions(from: context.itemStateNameByID),
             currentViewType: currentViewType,
             currentSortOption: currentSortingOption,
-            currentCategoryID: selectedCategoryID,
+            currentParentCategoryID: selectedParentCategoryID,
+            currentChildCategoryID: selectedChildCategoryID,
             currentLocationID: selectedLocationID,
             currentItemStateID: selectedItemStateID
         )
@@ -203,6 +230,53 @@ private extension PresetDetailViewModel {
         onFilterMenuChanged?(menu)
     }
     
+    var parentCategories: [Category] {
+        context.categories.filter { $0.parentId == nil }
+    }
+
+    var currentChildCategories: [Category] {
+        guard let parentId = selectedParentCategoryID else { return [] }
+        return context.categories.filter { $0.parentId == parentId }
+    }
+
+    func category(by id: UUID) -> Category? {
+        context.categories.first(where: { $0.id == id })
+    }
+
+    func handleParentCategorySelection(_ id: UUID?) {
+        guard let id else {
+            selectedParentCategoryID = nil
+            selectedChildCategoryID = nil
+            return
+        }
+
+        guard let category = category(by: id), category.parentId == nil else { return }
+
+        selectedParentCategoryID = category.id
+        if currentChildCategories.contains(where: { $0.id == selectedChildCategoryID }) == false {
+            selectedChildCategoryID = nil
+        }
+    }
+
+    func handleChildCategorySelection(_ id: UUID?) {
+        guard let parentId = selectedParentCategoryID else {
+            selectedChildCategoryID = nil
+            return
+        }
+
+        guard let id else {
+            selectedChildCategoryID = nil
+            return
+        }
+
+        guard let category = category(by: id), category.parentId == parentId else { return }
+        selectedChildCategoryID = category.id
+    }
+
+    var effectiveSelectedCategoryID: UUID? {
+        selectedChildCategoryID ?? selectedParentCategoryID
+    }
+
     func mapViewTypeToText(_ viewType: Int) -> String {
         switch viewType {
         case 0:
@@ -238,6 +312,16 @@ private extension PresetDetailViewModel {
         ]
     }
     
+    func makeCategoryFilterOptions(
+        from categories: [Category]
+    ) -> [FilterMenuInfo.NamedFilterOption] {
+        categories
+            .sorted { $0.indexKey < $1.indexKey }
+            .map { category in
+                FilterMenuInfo.NamedFilterOption(id: category.id, title: category.name)
+            }
+    }
+
     func makeNamedFilterOptions(
         from nameByID: [UUID: String]
     ) -> [FilterMenuInfo.NamedFilterOption] {
@@ -286,7 +370,7 @@ private extension PresetDetailViewModel {
     
     var currentFilters: [FilterOption] {
         [
-            selectedCategoryID.map { .category($0) },
+            effectiveSelectedCategoryID.map { .category($0) },
             selectedLocationID.map { .location($0) },
             selectedItemStateID.map { .itemState($0) }
         ]

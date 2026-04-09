@@ -105,6 +105,8 @@ private extension PresetDetailViewController {
             sortingOption: output.sortingOption,
             sortingOrder: output.sortingOrder,
             category: output.category,
+            subcategory: output.subcategory,
+            showsSubcategory: output.showsSubcategory,
             location: output.location,
             itemStatus: output.itemStatus
         )
@@ -122,6 +124,10 @@ private extension PresetDetailViewController {
         
         rootView.categoryRow.setMenuEnabled(true)
         rootView.categoryRow.menu = makeCategoryMenu(menuInfo)
+
+        rootView.subcategoryRow.isHidden = menuInfo.childCategoryFilters.isEmpty
+        rootView.subcategoryRow.setMenuEnabled(menuInfo.childCategoryFilters.isEmpty == false)
+        rootView.subcategoryRow.menu = menuInfo.childCategoryFilters.isEmpty ? nil : makeSubcategoryMenu(menuInfo)
         
         rootView.locationRow.setMenuEnabled(true)
         rootView.locationRow.menu = makeLocationMenu(menuInfo)
@@ -217,12 +223,12 @@ private extension PresetDetailViewController {
     }
     
     func makeCategoryMenu(_ menuInfo: PresetDetailViewModel.FilterMenuInfo) -> UIMenu {
-        var actions = menuInfo.categoryFilters.map { option in
+        var actions = menuInfo.parentCategoryFilters.map { option in
             UIAction(
                 title: option.title,
-                state: menuInfo.currentCategoryID == option.id ? .on : .off
+                state: menuInfo.currentParentCategoryID == option.id ? .on : .off
             ) { [weak self] _ in
-                self?.viewModel.action(.selectCategoryFilter(option.id))
+                self?.viewModel.action(.selectParentCategoryFilter(option.id))
             }
         }
         
@@ -232,11 +238,38 @@ private extension PresetDetailViewController {
         
         let clearAction = UIAction(
             title: "Clear Category",
-            attributes: menuInfo.currentCategoryID == nil ? [.disabled] : [.destructive]
+            attributes: menuInfo.currentParentCategoryID == nil ? [.disabled] : [.destructive]
         ) { [weak self] _ in
-            self?.viewModel.action(.selectCategoryFilter(nil))
+            self?.viewModel.action(.selectParentCategoryFilter(nil))
         }
         
+        return UIMenu(children: [
+            UIMenu(options: .displayInline, children: actions),
+            UIMenu(options: .displayInline, children: [clearAction])
+        ])
+    }
+
+    func makeSubcategoryMenu(_ menuInfo: PresetDetailViewModel.FilterMenuInfo) -> UIMenu {
+        var actions = menuInfo.childCategoryFilters.map { option in
+            UIAction(
+                title: option.title,
+                state: menuInfo.currentChildCategoryID == option.id ? .on : .off
+            ) { [weak self] _ in
+                self?.viewModel.action(.selectChildCategoryFilter(option.id))
+            }
+        }
+
+        if actions.isEmpty {
+            actions = [UIAction(title: "There's no subcategory.", attributes: .disabled) { _ in }]
+        }
+
+        let clearAction = UIAction(
+            title: "Clear Subcategory",
+            attributes: menuInfo.currentChildCategoryID == nil ? [.disabled] : [.destructive]
+        ) { [weak self] _ in
+            self?.viewModel.action(.selectChildCategoryFilter(nil))
+        }
+
         return UIMenu(children: [
             UIMenu(options: .displayInline, children: actions),
             UIMenu(options: .displayInline, children: [clearAction])

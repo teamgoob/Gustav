@@ -72,8 +72,10 @@ final class ItemAddViewModel {
         var expireTimePart: Date = Date()
 
         /// 선택된 카테고리 정보
-        var selectedCategoryId: UUID?
-        var selectedCategoryName: String?
+        var selectedParentCategoryId: UUID?
+        var selectedParentCategoryName: String?
+        var selectedChildCategoryId: UUID?
+        var selectedChildCategoryName: String?
 
         /// 선택된 상태 정보
         var selectedItemStateId: UUID?
@@ -107,7 +109,8 @@ final class ItemAddViewModel {
         case changeExpireDate(Date)
         case changeExpireTime(Date)
         
-        case selectCategory(id: UUID?, name: String?)
+        case selectParentCategory(UUID?)
+        case selectChildCategory(UUID?)
         case selectItemState(id: UUID?, name: String?)
         case selectLocation(id: UUID?, name: String?)
         
@@ -122,16 +125,20 @@ final class ItemAddViewModel {
         let isSaving: Bool
 
         let selectedCategoryName: String?
+        let selectedSubcategoryName: String?
         let selectedItemStateName: String?
         let selectedLocationName: String?
 
-        let selectedCategoryID: UUID?
+        let selectedParentCategoryID: UUID?
+        let selectedChildCategoryID: UUID?
         let selectedItemStateID: UUID?
         let selectedLocationID: UUID?
         
         let isPurchaseDateEnabled: Bool
         let isExpireDateEnabled: Bool
-        let availableCategories: [Category]
+        let availableParentCategories: [Category]
+        let availableChildCategories: [Category]
+        let showsSubcategoryRow: Bool
         let availableItemStates: [ItemState]
         let availableLocations: [Location]
     }
@@ -227,9 +234,12 @@ extension ItemAddViewModel {
             formState.expireTimePart = time
             notifyOutput()
             
-        case .selectCategory(let id, let name):
-            formState.selectedCategoryId = id
-            formState.selectedCategoryName = name
+        case .selectParentCategory(let id):
+            handleParentCategorySelection(id)
+            notifyOutput()
+            
+        case .selectChildCategory(let id):
+            handleChildCategorySelection(id)
             notifyOutput()
             
         case .selectItemState(let id, let name):
@@ -258,15 +268,19 @@ private extension ItemAddViewModel {
             workspaceName: workspaceContext.workspace.name,
             saveButtonEnabled: isSaveButtonEnabled,
             isSaving: isSaving,
-            selectedCategoryName: formState.selectedCategoryName,
+            selectedCategoryName: formState.selectedParentCategoryName,
+            selectedSubcategoryName: formState.selectedChildCategoryName,
             selectedItemStateName: formState.selectedItemStateName,
             selectedLocationName: formState.selectedLocationName,
-            selectedCategoryID: formState.selectedCategoryId,
+            selectedParentCategoryID: formState.selectedParentCategoryId,
+            selectedChildCategoryID: formState.selectedChildCategoryId,
             selectedItemStateID: formState.selectedItemStateId,
             selectedLocationID: formState.selectedLocationId,
             isPurchaseDateEnabled: formState.isPurchaseDateEnabled,
             isExpireDateEnabled: formState.isExpireDateEnabled,
-            availableCategories: workspaceContext.categories,
+            availableParentCategories: parentCategories,
+            availableChildCategories: currentChildCategories,
+            showsSubcategoryRow: currentChildCategories.isEmpty == false,
             availableItemStates: workspaceContext.states,
             availableLocations: workspaceContext.locations
         )
@@ -274,6 +288,62 @@ private extension ItemAddViewModel {
         DispatchQueue.main.async {
             self.onDisplay?(output)
         }
+    }
+
+    var parentCategories: [Category] {
+        workspaceContext.categories.filter { $0.parentId == nil }
+    }
+
+    var currentChildCategories: [Category] {
+        guard let parentId = formState.selectedParentCategoryId else { return [] }
+        return workspaceContext.categories.filter { $0.parentId == parentId }
+    }
+
+    func category(by id: UUID) -> Category? {
+        workspaceContext.categories.first(where: { $0.id == id })
+    }
+
+    func handleParentCategorySelection(_ id: UUID?) {
+        guard let id else {
+            formState.selectedParentCategoryId = nil
+            formState.selectedParentCategoryName = nil
+            formState.selectedChildCategoryId = nil
+            formState.selectedChildCategoryName = nil
+            return
+        }
+
+        guard let category = category(by: id), category.parentId == nil else { return }
+
+        formState.selectedParentCategoryId = category.id
+        formState.selectedParentCategoryName = category.name
+
+        let childCategories = workspaceContext.categories.filter { $0.parentId == category.id }
+        if childCategories.contains(where: { $0.id == formState.selectedChildCategoryId }) == false {
+            formState.selectedChildCategoryId = nil
+            formState.selectedChildCategoryName = nil
+        }
+    }
+
+    func handleChildCategorySelection(_ id: UUID?) {
+        guard let parentId = formState.selectedParentCategoryId else {
+            formState.selectedChildCategoryId = nil
+            formState.selectedChildCategoryName = nil
+            return
+        }
+
+        guard let id else {
+            formState.selectedChildCategoryId = nil
+            formState.selectedChildCategoryName = nil
+            return
+        }
+
+        guard let category = category(by: id), category.parentId == parentId else { return }
+        formState.selectedChildCategoryId = category.id
+        formState.selectedChildCategoryName = category.name
+    }
+
+    var effectiveSelectedCategoryId: UUID? {
+        formState.selectedChildCategoryId ?? formState.selectedParentCategoryId
     }
 
     /// 저장 버튼 활성화 여부 계산
@@ -428,7 +498,7 @@ private extension ItemAddViewModel {
             indexKey: 0,
             name: trimmedName,
             nameDetail: detailName,
-            categoryId: formState.selectedCategoryId,
+            categoryId: effectiveSelectedCategoryId,
             stateId: formState.selectedItemStateId,
             locationId: formState.selectedLocationId,
             purchaseDate: purchaseDate,

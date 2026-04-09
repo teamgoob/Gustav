@@ -215,6 +215,8 @@ private extension ItemAddViewController {
         
         rootView.configureOptionValues(
             category: output.selectedCategoryName,
+            subcategory: output.selectedSubcategoryName,
+            showsSubcategory: output.showsSubcategoryRow,
             itemState: output.selectedItemStateName,
             location: output.selectedLocationName
         )
@@ -237,6 +239,10 @@ private extension ItemAddViewController {
     func updateOptionMenus(_ output: ItemAddViewModel.Output) {
         rootView.categoryRowView.setMenuEnabled(true)
         rootView.categoryRowView.menu = makeCategoryMenu(output)
+
+        rootView.subcategoryRowView.isHidden = !output.showsSubcategoryRow
+        rootView.subcategoryRowView.setMenuEnabled(output.showsSubcategoryRow)
+        rootView.subcategoryRowView.menu = output.showsSubcategoryRow ? makeSubcategoryMenu(output) : nil
         
         rootView.itemStateRowView.setMenuEnabled(true)
         rootView.itemStateRowView.menu = makeItemStateMenu(output)
@@ -246,14 +252,14 @@ private extension ItemAddViewController {
     }
     
     func makeCategoryMenu(_ output: ItemAddViewModel.Output) -> UIMenu {
-        var actions = output.availableCategories
+        var actions = output.availableParentCategories
             .sorted { $0.indexKey < $1.indexKey }
             .map { category in
                 UIAction(
                     title: category.name,
-                    state: output.selectedCategoryID == category.id ? .on : .off
+                    state: output.selectedParentCategoryID == category.id ? .on : .off
                 ) { [weak self] _ in
-                    self?.viewModel.action(.selectCategory(id: category.id, name: category.name))
+                    self?.viewModel.action(.selectParentCategory(category.id))
                 }
             }
         
@@ -263,11 +269,40 @@ private extension ItemAddViewController {
         
         let clearAction = UIAction(
             title: "Clear Category",
-            attributes: output.selectedCategoryID == nil ? [.disabled] : [.destructive]
+            attributes: output.selectedParentCategoryID == nil ? [.disabled] : [.destructive]
         ) { [weak self] _ in
-            self?.viewModel.action(.selectCategory(id: nil, name: nil))
+            self?.viewModel.action(.selectParentCategory(nil))
         }
         
+        return UIMenu(children: [
+            UIMenu(options: .displayInline, children: actions),
+            UIMenu(options: .displayInline, children: [clearAction])
+        ])
+    }
+
+    func makeSubcategoryMenu(_ output: ItemAddViewModel.Output) -> UIMenu {
+        var actions = output.availableChildCategories
+            .sorted { $0.indexKey < $1.indexKey }
+            .map { category in
+                UIAction(
+                    title: category.name,
+                    state: output.selectedChildCategoryID == category.id ? .on : .off
+                ) { [weak self] _ in
+                    self?.viewModel.action(.selectChildCategory(category.id))
+                }
+            }
+
+        if actions.isEmpty {
+            actions = [UIAction(title: "There's no subcategory.", attributes: .disabled) { _ in }]
+        }
+
+        let clearAction = UIAction(
+            title: "Clear Subcategory",
+            attributes: output.selectedChildCategoryID == nil ? [.disabled] : [.destructive]
+        ) { [weak self] _ in
+            self?.viewModel.action(.selectChildCategory(nil))
+        }
+
         return UIMenu(children: [
             UIMenu(options: .displayInline, children: actions),
             UIMenu(options: .displayInline, children: [clearAction])

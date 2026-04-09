@@ -79,6 +79,8 @@ private extension PresetAddViewController {
                 sortingOption: output.sortingOption,
                 sortingOrder: output.sortingOrder,
                 category: output.category,
+                subcategory: output.subcategory,
+                showsSubcategory: output.showsSubcategory,
                 location: output.location,
                 itemStatus: output.itemStatus
             )
@@ -133,6 +135,10 @@ private extension PresetAddViewController {
         contentView.categoryRow.setMenuEnabled(true)
         contentView.categoryRow.menu = makeCategoryMenu(menuInfo)
 
+        contentView.subcategoryRow.isHidden = menuInfo.childCategoryFilters.isEmpty
+        contentView.subcategoryRow.setMenuEnabled(menuInfo.childCategoryFilters.isEmpty == false)
+        contentView.subcategoryRow.menu = menuInfo.childCategoryFilters.isEmpty ? nil : makeSubcategoryMenu(menuInfo)
+
         contentView.locationRow.setMenuEnabled(true)
         contentView.locationRow.menu = makeLocationMenu(menuInfo)
 
@@ -141,12 +147,12 @@ private extension PresetAddViewController {
     }
     
     func makeCategoryMenu(_ menuInfo: PresetAddViewModel.FilterMenuInfo) -> UIMenu {
-        var actions = menuInfo.categoryFilters.map { option in
+        var actions = menuInfo.parentCategoryFilters.map { option in
             UIAction(
                 title: option.title,
-                state: menuInfo.currentCategoryID == option.id ? .on : .off
+                state: menuInfo.currentParentCategoryID == option.id ? .on : .off
             ) { [weak self] _ in
-                self?.viewModel.action(.selectCategoryFilter(option.id))
+                self?.viewModel.action(.selectParentCategoryFilter(option.id))
             }
         }
 
@@ -161,9 +167,40 @@ private extension PresetAddViewController {
 
         let clearAction = UIAction(
             title: "Clear Category",
-            attributes: menuInfo.currentCategoryID == nil ? [.disabled] : [.destructive]
+            attributes: menuInfo.currentParentCategoryID == nil ? [.disabled] : [.destructive]
         ) { [weak self] _ in
             self?.clearCategorySelection()
+        }
+
+        let categoryGroup = UIMenu(options: .displayInline, children: actions)
+        let clearGroup = UIMenu(options: .displayInline, children: [clearAction])
+        return UIMenu(children: [categoryGroup, clearGroup])
+    }
+
+    func makeSubcategoryMenu(_ menuInfo: PresetAddViewModel.FilterMenuInfo) -> UIMenu {
+        var actions = menuInfo.childCategoryFilters.map { option in
+            UIAction(
+                title: option.title,
+                state: menuInfo.currentChildCategoryID == option.id ? .on : .off
+            ) { [weak self] _ in
+                self?.viewModel.action(.selectChildCategoryFilter(option.id))
+            }
+        }
+
+        if actions.isEmpty {
+            actions = [
+                UIAction(
+                    title: "There's no subcategory.",
+                    attributes: .disabled
+                ) { _ in }
+            ]
+        }
+
+        let clearAction = UIAction(
+            title: "Clear Subcategory",
+            attributes: menuInfo.currentChildCategoryID == nil ? [.disabled] : [.destructive]
+        ) { [weak self] _ in
+            self?.viewModel.action(.selectChildCategoryFilter(nil))
         }
 
         let categoryGroup = UIMenu(options: .displayInline, children: actions)
@@ -234,7 +271,7 @@ private extension PresetAddViewController {
     }
 
     func clearCategorySelection() {
-        viewModel.action(.selectCategoryFilter(nil))
+        viewModel.action(.selectParentCategoryFilter(nil))
     }
 
     func clearLocationSelection() {
