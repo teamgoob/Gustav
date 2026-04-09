@@ -47,12 +47,18 @@ final class ItemStateListViewModel {
         case showErrorAlert(String)
     }
 
-    // 초기화
+    // MARK: - Init
     init(itemStateUsecase: ItemStateUsecaseProtocol, selectedWorkspaceId: UUID) {
         self.itemStateUsecase = itemStateUsecase
         self.selectedWorkspaceId = selectedWorkspaceId
     }
 
+    // MARK: - Deinit
+    deinit {
+        itemStateTask?.cancel()
+        print("ItemStateListViewModel deinit")
+    }
+    
     // 입력 처리
     func action(_ input: Input) {
         switch input {
@@ -249,10 +255,5 @@ final class ItemStateListViewModel {
     // 행 데이터
     func cellForRowAt(index: Int) -> ItemState {
         itemStates[index]
-    }
-
-    // 종료 정리
-    deinit {
-        itemStateTask?.cancel()
     }
 }

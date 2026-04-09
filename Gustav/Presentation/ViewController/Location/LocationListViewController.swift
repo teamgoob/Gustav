@@ -19,12 +19,15 @@ final class LocationListViewController: UIViewController {
         case reordering
     }
 
-    // 초기화
+    // MARK: - Init
     init(viewModel: LocationListViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
     }
 
+    // MARK: - Deinit
+    deinit { print("LocationListViewController deinit") }
+    
     // 첫 진입
     override func viewDidLoad() {
         super.viewDidLoad()

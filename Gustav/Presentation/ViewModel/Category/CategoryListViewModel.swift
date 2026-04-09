@@ -50,12 +50,17 @@ final class CategoryListViewModel {
         case showErrorAlert(String)
     }
 
-    // 초기화
+    // MARK: - Init
     init(categoryUsecase: CategoryUsecaseProtocol, selectedWorkspaceId: UUID) {
         self.categoryUsecase = categoryUsecase
         self.selectedWorkspaceId = selectedWorkspaceId
     }
-
+    
+    // MARK: - Deinit
+    deinit {
+        categoryTask?.cancel()
+        print("CategoryListViewModel deinit")
+    }
     // 입력 처리
     func action(_ input: Input) {
         switch input {
@@ -275,10 +280,5 @@ final class CategoryListViewModel {
     func getChildCategoriesTitle(categoryId: UUID) -> String? {
         guard let title = childCategoriesTitle[categoryId], !title.isEmpty else { return nil }
         return title
-    }
-
-    // 종료 정리
-    deinit {
-        categoryTask?.cancel()
     }
 }

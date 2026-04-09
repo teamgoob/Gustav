@@ -47,12 +47,18 @@ final class LocationListViewModel {
         case showErrorAlert(String)
     }
 
-    // 초기화
+    // MARK: - Deinit
     init(locationUsecase: LocationUsecaseProtocol, selectedWorkspaceId: UUID) {
         self.locationUsecase = locationUsecase
         self.selectedWorkspaceId = selectedWorkspaceId
     }
 
+    // MARK: - Deinit
+    deinit {
+        locationTask?.cancel()
+        print("LoacationListViewModel deinit")
+    }
+    
     // 입력 처리
     func action(_ input: Input) {
         switch input {
@@ -252,10 +258,5 @@ final class LocationListViewModel {
     // 행 데이터
     func cellForRowAt(index: Int) -> Location {
         locations[index]
-    }
-
-    // 종료 정리
-    deinit {
-        locationTask?.cancel()
     }
 }

@@ -19,12 +19,14 @@ final class ItemStateListViewController: UIViewController {
         case reordering
     }
 
-    // 초기화
+    // MARK: - Init
     init(viewModel: ItemStateListViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
     }
 
+    // MARK: - Deinit
+    deinit { print("ItemStateListViewController deinit") }
     // 첫 진입
     override func viewDidLoad() {
         super.viewDidLoad()

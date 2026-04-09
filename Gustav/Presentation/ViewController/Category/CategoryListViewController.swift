@@ -19,13 +19,16 @@ final class CategoryListViewController: UIViewController {
         case reordering
     }
 
-    // 초기화
+    // MARK: - Init
     init(viewModel: CategoryListViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
     }
-
-    // 첫 진입
+    
+    // MARK: - Deinit
+    deinit { print("CategoryListViewController deinit") }
+    
+    // MARK: - ViewDidLoad
     override func viewDidLoad() {
         super.viewDidLoad()
         
