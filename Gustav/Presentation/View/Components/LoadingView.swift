@@ -11,6 +11,12 @@ import SnapKit
 // MARK: - LoadingView
 // 로딩 중 화면
 final class LoadingView: UIView {
+    // MARK: - Properties
+    // 로딩 표시 지연 작업을 위한 WorkItem
+    private var showWorkItem: DispatchWorkItem?
+    // 로딩 표시까지 대기할 시간
+    private let showDelay: TimeInterval = 0.2
+    
     // MARK: - UI Components
     // Loading Indicator
     let loadingIndicator: UIActivityIndicatorView = {
@@ -67,11 +73,28 @@ final class LoadingView: UIView {
         if let text = text {
             descriptionLabel.text = text
         }
-        isHidden = false
-        loadingIndicator.startAnimating()
+        // 이미 예약된 작업이 있다면 취소
+        showWorkItem?.cancel()
+        
+        // 새로운 작업 생성
+        let workItem = DispatchWorkItem { [weak self] in
+            // 로딩 화면 표시
+            self?.isHidden = false
+            // 로딩 인디케이터 활성화
+            self?.loadingIndicator.startAnimating()
+        }
+        
+        // 작업 교체
+        showWorkItem = workItem
+        // showDelay만큼 대기 후 작업 실행
+        DispatchQueue.main.asyncAfter(deadline: .now() + showDelay, execute: workItem)
     }
     
     func stopLoading() {
+        // 로딩 표시 대기 중 로딩이 끝난 경우 표시하지 않음
+        showWorkItem?.cancel()
+        showWorkItem = nil
+        
         loadingIndicator.stopAnimating()
         isHidden = true
     }
