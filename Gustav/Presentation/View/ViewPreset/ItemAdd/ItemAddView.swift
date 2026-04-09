@@ -66,17 +66,6 @@ final class ItemAddView: UIView {
     let itemStateRowView = OptionRowView()
     let locationRowView = OptionRowView()
 
-    // MARK: - Callback
-
-    // 카테고리 행 탭 이벤트를 외부로 전달합니다.
-    var onTapCategory: (() -> Void)?
-
-    // 물품 상태 행 탭 이벤트를 외부로 전달합니다.
-    var onTapItemState: (() -> Void)?
-
-    // 위치 행 탭 이벤트를 외부로 전달합니다.
-    var onTapLocation: (() -> Void)?
-
     // MARK: - Init
 
     // 뷰 초기 생성 시 UI, 레이아웃, 기본값을 순서대로 설정합니다.
@@ -116,7 +105,6 @@ final class ItemAddView: UIView {
         setupOptionSectionStackView()
         setupInputKeyboardTypes()
         setupMemoPlaceholder()
-        setupOptionRowActions()
 
         // 스크롤 구조 구성
         addSubview(scrollView)
@@ -165,33 +153,9 @@ final class ItemAddView: UIView {
         memoCardView.setPlaceholder("memo")
     }
 
-    // 선택형 옵션 행의 탭 액션을 연결합니다.
-    private func setupOptionRowActions() {
-        categoryRowView.addTarget(self, action: #selector(didTapCategoryRow), for: .touchUpInside)
-        itemStateRowView.addTarget(self, action: #selector(didTapItemStateRow), for: .touchUpInside)
-        locationRowView.addTarget(self, action: #selector(didTapLocationRow), for: .touchUpInside)
-    }
-
     // 옵션 행의 초기 표시값을 기본 상태로 설정합니다.
     private func configureDefaultValues() {
         configureOptionValues(category: nil, itemState: nil, location: nil)
-    }
-
-    // MARK: - Actions
-
-    // 카테고리 행이 탭되면 외부 콜백을 실행합니다.
-    @objc private func didTapCategoryRow() {
-        onTapCategory?()
-    }
-
-    // 물품 상태 행이 탭되면 외부 콜백을 실행합니다.
-    @objc private func didTapItemStateRow() {
-        onTapItemState?()
-    }
-
-    // 위치 행이 탭되면 외부 콜백을 실행합니다.
-    @objc private func didTapLocationRow() {
-        onTapLocation?()
     }
 
     // MARK: - Layout

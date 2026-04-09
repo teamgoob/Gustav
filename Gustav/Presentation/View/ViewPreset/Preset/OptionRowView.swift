@@ -8,19 +8,17 @@
 import UIKit
 import SnapKit
 
-class OptionRowView: UIButton {
+class OptionRowView: UIView {
     
     // MARK: - UI
     
     private let titleTextLabel = UILabel()
     private let valueLabel = UILabel()
     private let chevronImageView = UIImageView()
+    private let actionButton = UIButton(type: .system)
     
     private let rightStack = UIStackView()
     private let containerStack = UIStackView()
-    
-    // MARK: - Callback
-    var onTap: (() -> Void)?
     
     // MARK: - Init
     
@@ -65,10 +63,12 @@ class OptionRowView: UIButton {
         containerStack.addArrangedSubview(UIView()) // spacer
         containerStack.addArrangedSubview(rightStack)
         
-        containerStack.isUserInteractionEnabled = false
-
         addSubview(containerStack)
-        addTarget(self, action: #selector(didTapRow), for: .touchUpInside)
+        
+        actionButton.backgroundColor = .clear
+        actionButton.showsMenuAsPrimaryAction = false
+        actionButton.changesSelectionAsPrimaryAction = false
+        rightStack.addSubview(actionButton)
     }
     
     private func setupLayout() {
@@ -79,6 +79,10 @@ class OptionRowView: UIButton {
         
         chevronImageView.snp.makeConstraints { make in
             make.width.height.equalTo(16)
+        }
+        
+        actionButton.snp.makeConstraints { make in
+            make.edges.equalToSuperview()
         }
         
 //        사용하려는 상위 뷰에서 높이 조절하기 위해 남겨놓음
@@ -99,9 +103,19 @@ class OptionRowView: UIButton {
         titleTextLabel.text = title
         valueLabel.text = value
     }
+
+    func setValue(_ value: String?) {
+        valueLabel.text = value
+    }
+
+    func setMenuEnabled(_ isEnabled: Bool) {
+        actionButton.showsMenuAsPrimaryAction = isEnabled
+        chevronImageView.isHidden = !isEnabled
+    }
     
-    @objc private func didTapRow() {
-        onTap?()
+    var menu: UIMenu? {
+        get { actionButton.menu }
+        set { actionButton.menu = newValue }
     }
 }
 

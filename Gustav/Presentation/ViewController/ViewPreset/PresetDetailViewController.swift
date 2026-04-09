@@ -13,7 +13,6 @@ final class PresetDetailViewController: UIViewController {
     // MARK: - Properties
     private let rootView = PresetDetailView()
     private let viewModel: PresetDetailViewModel
-    private lazy var dropdownManager = DropdownOverlayManager(hostViewController: self)
     
     // Coordinator 연결용
     var onRoute: ((PresetDetailViewModel.Route) -> Void)?
@@ -37,7 +36,6 @@ final class PresetDetailViewController: UIViewController {
         super.viewDidLoad()
         setupNavigation()
         bindViewModel()
-        bindActions()
         viewModel.action(.viewDidLoad)
     }
 }
@@ -72,18 +70,13 @@ private extension PresetDetailViewController {
             self?.apply(output)
         }
         
+        viewModel.onFilterMenuChanged = { [weak self] menuInfo in
+            self?.updateFilterMenu(menuInfo)
+        }
+        
         viewModel.onNavigation = { [weak self] route in
             self?.handleRoute(route)
         }
-    }
-    
-    func bindActions() {
-        rootView.viewTypeRow.addTarget(self, action: #selector(didTapViewType), for: .touchUpInside)
-        rootView.sortByRow.addTarget(self, action: #selector(didTapSortBy), for: .touchUpInside)
-        rootView.sortOrderRow.addTarget(self, action: #selector(didTapSortOrder), for: .touchUpInside)
-        rootView.categoryRow.addTarget(self, action: #selector(didTapCategory), for: .touchUpInside)
-        rootView.locationRow.addTarget(self, action: #selector(didTapLocation), for: .touchUpInside)
-        rootView.itemStatusRow.addTarget(self, action: #selector(didTapItemStatus), for: .touchUpInside)
     }
 }
 
@@ -102,19 +95,34 @@ private extension PresetDetailViewController {
             itemStatus: output.itemStatus
         )
     }
+    
+    func updateFilterMenu(_ menuInfo: PresetDetailViewModel.FilterMenuInfo) {
+        rootView.viewTypeRow.setMenuEnabled(true)
+        rootView.viewTypeRow.menu = makeViewTypeMenu(menuInfo)
+        
+        rootView.sortByRow.setMenuEnabled(true)
+        rootView.sortByRow.menu = makeSortByMenu(menuInfo)
+        
+        rootView.sortOrderRow.setMenuEnabled(true)
+        rootView.sortOrderRow.menu = makeSortOrderMenu(menuInfo)
+        
+        rootView.categoryRow.setMenuEnabled(true)
+        rootView.categoryRow.menu = makeCategoryMenu(menuInfo)
+        
+        rootView.locationRow.setMenuEnabled(true)
+        rootView.locationRow.menu = makeLocationMenu(menuInfo)
+        
+        rootView.itemStatusRow.setMenuEnabled(true)
+        rootView.itemStatusRow.menu = makeItemStatusMenu(menuInfo)
+    }
 
     func handleRoute(_ route: PresetDetailViewModel.Route) {
         switch route {
-        case .showOptionPopup(let popupRoute):
-            showOptionPopup(popupRoute)
         case .showMoreMenu:
-            dropdownManager.dismiss(animated: false)
             onRoute?(route)
         case .pop:
-            dropdownManager.dismiss(animated: false)
-            navigationController?.popViewController(animated: true)
+            onRoute?(route)
         case .showSaveFailureAlert(let message):
-            dropdownManager.dismiss(animated: false)
             let alert = UIAlertController(
                 title: "Error",
                 message: message,
@@ -124,110 +132,135 @@ private extension PresetDetailViewController {
             present(alert, animated: true)
         }
     }
-    
-    func showOptionPopup(_ route: PresetDetailViewModel.OptionPopupRoute) {
-        let popupView = OptionPopupView(
-            items: route.items,
-            selectedItemID: route.selectedID
-        )
-        
-        popupView.onSelectItem = { [weak self] selectedItem in
-            guard let self else { return }
-            self.dropdownManager.dismiss(animated: true)
-            
-            switch route.title {
-            case "View Type":
-                self.viewModel.action(.didSelectViewType(selectedItem.id))
-                
-            case "Sort By":
-                self.viewModel.action(.didSelectSortBy(selectedItem.id))
-                
-            case "Sort Order":
-                self.viewModel.action(.didSelectSortOrder(selectedItem.id))
-                
-            case "Category":
-                guard let id = UUID(uuidString: selectedItem.id) else { return }
-                self.viewModel.action(.didSelectCategory(id))
-                
-            case "Location":
-                guard let id = UUID(uuidString: selectedItem.id) else { return }
-                self.viewModel.action(.didSelectLocation(id))
-                
-            case "Item State":
-                guard let id = UUID(uuidString: selectedItem.id) else { return }
-                self.viewModel.action(.didSelectItemStatus(id))
-                
-            default:
-                break
-            }
-        }
-        
-        dropdownManager.present(
-            contentView: popupView,
-            from: anchorView(for: route.title),
-            preferredSize: preferredPopupSize(for: route.items.count)
-        )
-    }
-    
-    func anchorView(for title: String) -> UIView {
-        switch title {
-        case "View Type":
-            return rootView.viewTypeRow
-        case "Sort By":
-            return rootView.sortByRow
-        case "Sort Order":
-            return rootView.sortOrderRow
-        case "Category":
-            return rootView.categoryRow
-        case "Location":
-            return rootView.locationRow
-        case "Item State":
-            return rootView.itemStatusRow
-        default:
-            return rootView.viewTypeRow
-        }
-    }
-    
-    func preferredPopupSize(for itemCount: Int) -> CGSize {
-        let rowHeight: CGFloat = 56
-        let verticalPadding: CGFloat = 16
-        let maxVisibleRows = min(max(itemCount, 1), 5)
-        let height = CGFloat(maxVisibleRows) * rowHeight + verticalPadding
-        return CGSize(width: rootView.bounds.width - 40, height: height)
-    }
 }
 
 // MARK: - Actions
 private extension PresetDetailViewController {
+    func makeViewTypeMenu(_ menuInfo: PresetDetailViewModel.FilterMenuInfo) -> UIMenu {
+        let actions = menuInfo.viewTypeOptions.map { option in
+            UIAction(
+                title: option.title,
+                state: menuInfo.currentViewType == option.id ? .on : .off
+            ) { [weak self] _ in
+                self?.viewModel.action(.selectViewType(option.id))
+            }
+        }
+        
+        return UIMenu(children: actions)
+    }
+    
+    func makeSortByMenu(_ menuInfo: PresetDetailViewModel.FilterMenuInfo) -> UIMenu {
+        let actions = menuInfo.sortOptions.map { option in
+            UIAction(
+                title: option.toText(),
+                state: option.sortingOptionCase == menuInfo.currentSortOption?.sortingOptionCase ? .on : .off
+            ) { [weak self] _ in
+                self?.viewModel.action(.selectSortOption(option))
+            }
+        }
+        
+        return UIMenu(children: actions)
+    }
+    
+    func makeSortOrderMenu(_ menuInfo: PresetDetailViewModel.FilterMenuInfo) -> UIMenu {
+        let referenceSortOption = menuInfo.currentSortOption ?? .indexKey(order: .ascending)
+        let ascending = UIAction(
+            title: referenceSortOption.orderToText(isAscending: true),
+            state: menuInfo.currentSortOption?.order == .ascending ? .on : .off
+        ) { [weak self] _ in
+            self?.viewModel.action(.selectSortOrder(.ascending))
+        }
+        let descending = UIAction(
+            title: referenceSortOption.orderToText(isAscending: false),
+            state: menuInfo.currentSortOption?.order == .descending ? .on : .off
+        ) { [weak self] _ in
+            self?.viewModel.action(.selectSortOrder(.descending))
+        }
+        
+        return UIMenu(children: [ascending, descending])
+    }
+    
+    func makeCategoryMenu(_ menuInfo: PresetDetailViewModel.FilterMenuInfo) -> UIMenu {
+        var actions = menuInfo.categoryFilters.map { option in
+            UIAction(
+                title: option.title,
+                state: menuInfo.currentCategoryID == option.id ? .on : .off
+            ) { [weak self] _ in
+                self?.viewModel.action(.selectCategoryFilter(option.id))
+            }
+        }
+        
+        if actions.isEmpty {
+            actions = [UIAction(title: "There's no category.", attributes: .disabled) { _ in }]
+        }
+        
+        let clearAction = UIAction(
+            title: "Clear Category",
+            attributes: menuInfo.currentCategoryID == nil ? [.disabled] : [.destructive]
+        ) { [weak self] _ in
+            self?.viewModel.action(.selectCategoryFilter(nil))
+        }
+        
+        return UIMenu(children: [
+            UIMenu(options: .displayInline, children: actions),
+            UIMenu(options: .displayInline, children: [clearAction])
+        ])
+    }
+    
+    func makeLocationMenu(_ menuInfo: PresetDetailViewModel.FilterMenuInfo) -> UIMenu {
+        var actions = menuInfo.locationFilters.map { option in
+            UIAction(
+                title: option.title,
+                state: menuInfo.currentLocationID == option.id ? .on : .off
+            ) { [weak self] _ in
+                self?.viewModel.action(.selectLocationFilter(option.id))
+            }
+        }
+        
+        if actions.isEmpty {
+            actions = [UIAction(title: "There's no location.", attributes: .disabled) { _ in }]
+        }
+        
+        let clearAction = UIAction(
+            title: "Clear Location",
+            attributes: menuInfo.currentLocationID == nil ? [.disabled] : [.destructive]
+        ) { [weak self] _ in
+            self?.viewModel.action(.selectLocationFilter(nil))
+        }
+        
+        return UIMenu(children: [
+            UIMenu(options: .displayInline, children: actions),
+            UIMenu(options: .displayInline, children: [clearAction])
+        ])
+    }
+    
+    func makeItemStatusMenu(_ menuInfo: PresetDetailViewModel.FilterMenuInfo) -> UIMenu {
+        var actions = menuInfo.itemStateFilters.map { option in
+            UIAction(
+                title: option.title,
+                state: menuInfo.currentItemStateID == option.id ? .on : .off
+            ) { [weak self] _ in
+                self?.viewModel.action(.selectItemStateFilter(option.id))
+            }
+        }
+        
+        if actions.isEmpty {
+            actions = [UIAction(title: "There's no Item State.", attributes: .disabled) { _ in }]
+        }
+        
+        let clearAction = UIAction(
+            title: "Clear Item State",
+            attributes: menuInfo.currentItemStateID == nil ? [.disabled] : [.destructive]
+        ) { [weak self] _ in
+            self?.viewModel.action(.selectItemStateFilter(nil))
+        }
+        
+        return UIMenu(children: [
+            UIMenu(options: .displayInline, children: actions),
+            UIMenu(options: .displayInline, children: [clearAction])
+        ])
+    }
 
-    @objc func didTapDropdownOverlay() {
-        dropdownManager.dismiss(animated: true)
-    }
-    
-    @objc func didTapViewType() {
-        viewModel.action(.didTapViewType)
-    }
-    
-    @objc func didTapSortBy() {
-        viewModel.action(.didTapSortBy)
-    }
-    
-    @objc func didTapSortOrder() {
-        viewModel.action(.didTapSortOrder)
-    }
-    
-    @objc func didTapCategory() {
-        viewModel.action(.didTapCategory)
-    }
-    
-    @objc func didTapLocation() {
-        viewModel.action(.didTapLocation)
-    }
-    
-    @objc func didTapItemStatus() {
-        viewModel.action(.didTapItemStatus)
-    }
-    
     @objc func didTapBack() {
         viewModel.action(.didTapBack)
     }

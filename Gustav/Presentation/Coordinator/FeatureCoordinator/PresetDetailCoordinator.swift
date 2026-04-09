@@ -52,8 +52,7 @@ private extension PresetDetailCoordinator {
             case .showMoreMenu:
                 self?.showMoreMenu()
                 
-            case .showOptionPopup,
-                 .showSaveFailureAlert:
+            case .showSaveFailureAlert:
                 break
                 
             case .pop:

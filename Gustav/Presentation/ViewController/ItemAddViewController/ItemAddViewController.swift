@@ -18,27 +18,6 @@ final class ItemAddViewController: UIViewController {
     /// 비즈니스 로직 및 상태를 관리하는 ViewModel
     private let viewModel: ItemAddViewModel
     
-    /// row 기준 custom dropdown 표시를 담당하는 재사용 가능한 UI 헬퍼 객체
-    private lazy var dropdownManager = DropdownOverlayManager(hostViewController: self)
-
-    /// dropdown popup에 표시할 카테고리 목록
-    private var categories: [Category] = []
-
-    /// dropdown popup에 표시할 아이템 상태 목록
-    private var itemStates: [ItemState] = []
-
-    /// dropdown popup에 표시할 위치 목록
-    private var locations: [Location] = []
-
-    /// 현재 선택된 카테고리 ID
-    private var selectedCategoryID: UUID?
-
-    /// 현재 선택된 아이템 상태 ID
-    private var selectedItemStateID: UUID?
-
-    /// 현재 선택된 위치 ID
-    private var selectedLocationID: UUID?
-    
     /// Coordinator로 화면 전환 이벤트를 전달하기 위한 클로저
     /// dismiss / dismissAfterSave / showErrorAlert 같은 내비게이션성 이벤트만 전달합니다.
     var onRoute: ((ItemAddViewModel.Route) -> Void)?
@@ -69,7 +48,6 @@ final class ItemAddViewController: UIViewController {
 //        setupNavigation()
         setupGesture()
         bindViewModel()
-        bindActions()
         bindInputs()
         viewModel.action(.viewDidLoad)
     }
@@ -136,25 +114,6 @@ private extension ItemAddViewController {
         
         viewModel.onNavigation = { [weak self] route in
             self?.handleRoute(route)
-        }
-    }
-}
-
-// MARK: - Bind View Actions
-
-private extension ItemAddViewController {
-    /// View 내부 탭 이벤트 → ViewModel 전달
-    func bindActions() {
-        rootView.onTapCategory = { [weak self] in
-            self?.viewModel.action(.tapCategory)
-        }
-        
-        rootView.onTapItemState = { [weak self] in
-            self?.viewModel.action(.tapItemState)
-        }
-        
-        rootView.onTapLocation = { [weak self] in
-            self?.viewModel.action(.tapLocation)
         }
     }
 }
@@ -244,9 +203,6 @@ private extension ItemAddViewController {
 private extension ItemAddViewController {
     /// ViewModel Output을 UI에 반영
     func apply(_ output: ItemAddViewModel.Output) {
-        categories = output.availableCategories.sorted { $0.indexKey < $1.indexKey }
-        itemStates = output.availableItemStates.sorted { $0.indexKey < $1.indexKey }
-        locations = output.availableLocations.sorted { $0.indexKey < $1.indexKey }
         navigationItem.rightBarButtonItem?.isEnabled = output.saveButtonEnabled
         
         if output.isSaving {
@@ -258,10 +214,7 @@ private extension ItemAddViewController {
             itemState: output.selectedItemStateName,
             location: output.selectedLocationName
         )
-
-        selectedCategoryID = output.selectedCategoryID
-        selectedItemStateID = output.selectedItemStateID
-        selectedLocationID = output.selectedLocationID
+        updateOptionMenus(output)
         
         rootView.purchaseDateCardView.setSwitchOn(output.isPurchaseDateEnabled, animated: false)
         rootView.expireDateCardView.setSwitchOn(output.isExpireDateEnabled, animated: false)
@@ -272,165 +225,113 @@ private extension ItemAddViewController {
     /// 내비게이션성 이벤트만 Coordinator로 전달합니다.
     func handleRoute(_ route: ItemAddViewModel.Route) {
         switch route {
-        case .showCategoryPicker:
-            showCategoryDropdown(from: rootView.categoryRowView)
-            
-        case .showItemStatePicker:
-            showItemStateDropdown(from: rootView.itemStateRowView)
-            
-        case .showLocationPicker:
-            showLocationDropdown(from: rootView.locationRowView)
-            
         case .dismiss, .dismissAfterSave, .showErrorAlert:
-            dropdownManager.dismiss(animated: false)
             onRoute?(route)
         }
     }
-
-    /// category row를 anchor로 삼아 dropdown popup을 표시합니다.
-    func showCategoryDropdown(from anchorView: UIView) {
-        let popupView = makeCategoryDropdownView()
-        dropdownManager.present(
-            contentView: popupView,
-            from: anchorView,
-            preferredSize: preferredDropdownSize(for: anchorView, itemCount: max(categories.count, 1))
-        )
-    }
-
-    /// item state row를 anchor로 삼아 dropdown popup을 표시합니다.
-    func showItemStateDropdown(from anchorView: UIView) {
-        let popupView = makeItemStateDropdownView()
-        dropdownManager.present(
-            contentView: popupView,
-            from: anchorView,
-            preferredSize: preferredDropdownSize(for: anchorView, itemCount: max(itemStates.count, 1))
-        )
-    }
-
-    /// location row를 anchor로 삼아 dropdown popup을 표시합니다.
-    func showLocationDropdown(from anchorView: UIView) {
-        let popupView = makeLocationDropdownView()
-        dropdownManager.present(
-            contentView: popupView,
-            from: anchorView,
-            preferredSize: preferredDropdownSize(for: anchorView, itemCount: max(locations.count, 1))
-        )
-    }
-
-    /// anchor row의 폭과 옵션 개수를 기준으로 dropdown popup의 기본 크기를 계산합니다.
-    func preferredDropdownSize(for anchorView: UIView, itemCount: Int) -> CGSize {
-        let rowHeight: CGFloat = 56
-        let verticalPadding: CGFloat = 16
-        let maxVisibleRows = min(itemCount, 5)
-        let height = CGFloat(maxVisibleRows) * rowHeight + verticalPadding
-        return CGSize(width: anchorView.bounds.width, height: height)
+    
+    func updateOptionMenus(_ output: ItemAddViewModel.Output) {
+        rootView.categoryRowView.setMenuEnabled(true)
+        rootView.categoryRowView.menu = makeCategoryMenu(output)
+        
+        rootView.itemStateRowView.setMenuEnabled(true)
+        rootView.itemStateRowView.menu = makeItemStateMenu(output)
+        
+        rootView.locationRowView.setMenuEnabled(true)
+        rootView.locationRowView.menu = makeLocationMenu(output)
     }
     
-    /// category 도메인 모델을 OptionPopupItem으로 매핑하여 dropdown view를 생성합니다.
-    func makeCategoryDropdownView() -> UIView {
-        let items = categories.map {
-            OptionPopupItem(id: $0.id.uuidString, title: $0.name)
-        }
-        
-        let popupView = OptionPopupView(
-            items: items,
-            selectedItemID: selectedCategoryID?.uuidString
-        )
-        
-        popupView.onSelectItem = { [weak self] selectedItem in
-            guard let self else { return }
-            self.dropdownManager.dismiss(animated: true)
-            
-            guard
-                let selectedCategory = self.categories.first(where: {
-                    $0.id.uuidString == selectedItem.id
-                })
-            else {
-                return
+    func makeCategoryMenu(_ output: ItemAddViewModel.Output) -> UIMenu {
+        var actions = output.availableCategories
+            .sorted { $0.indexKey < $1.indexKey }
+            .map { category in
+                UIAction(
+                    title: category.name,
+                    state: output.selectedCategoryID == category.id ? .on : .off
+                ) { [weak self] _ in
+                    self?.viewModel.action(.selectCategory(id: category.id, name: category.name))
+                }
             }
-            
-            self.selectedCategoryID = selectedCategory.id
-            self.viewModel.action(
-                .selectCategory(id: selectedCategory.id, name: selectedCategory.name)
-            )
+        
+        if actions.isEmpty {
+            actions = [UIAction(title: "There's no category.", attributes: .disabled) { _ in }]
         }
         
-        return popupView
+        let clearAction = UIAction(
+            title: "Clear Category",
+            attributes: output.selectedCategoryID == nil ? [.disabled] : [.destructive]
+        ) { [weak self] _ in
+            self?.viewModel.action(.selectCategory(id: nil, name: nil))
+        }
+        
+        return UIMenu(children: [
+            UIMenu(options: .displayInline, children: actions),
+            UIMenu(options: .displayInline, children: [clearAction])
+        ])
     }
-
-    /// item state 도메인 모델을 OptionPopupItem으로 매핑하여 dropdown view를 생성합니다.
-    func makeItemStateDropdownView() -> UIView {
-        let items = itemStates.map {
-            OptionPopupItem(id: $0.id.uuidString, title: $0.name)
-        }
-        
-        let popupView = OptionPopupView(
-            items: items,
-            selectedItemID: selectedItemStateID?.uuidString
-        )
-        
-        popupView.onSelectItem = { [weak self] selectedItem in
-            guard let self else { return }
-            self.dropdownManager.dismiss(animated: true)
-            
-            guard
-                let selectedState = self.itemStates.first(where: {
-                    $0.id.uuidString == selectedItem.id
-                })
-            else {
-                return
+    
+    func makeItemStateMenu(_ output: ItemAddViewModel.Output) -> UIMenu {
+        var actions = output.availableItemStates
+            .sorted { $0.indexKey < $1.indexKey }
+            .map { itemState in
+                UIAction(
+                    title: itemState.name,
+                    state: output.selectedItemStateID == itemState.id ? .on : .off
+                ) { [weak self] _ in
+                    self?.viewModel.action(.selectItemState(id: itemState.id, name: itemState.name))
+                }
             }
-            
-            self.selectedItemStateID = selectedState.id
-            self.viewModel.action(
-                .selectItemState(id: selectedState.id, name: selectedState.name)
-            )
+        
+        if actions.isEmpty {
+            actions = [UIAction(title: "There's no Item State.", attributes: .disabled) { _ in }]
         }
         
-        return popupView
+        let clearAction = UIAction(
+            title: "Clear Item State",
+            attributes: output.selectedItemStateID == nil ? [.disabled] : [.destructive]
+        ) { [weak self] _ in
+            self?.viewModel.action(.selectItemState(id: nil, name: nil))
+        }
+        
+        return UIMenu(children: [
+            UIMenu(options: .displayInline, children: actions),
+            UIMenu(options: .displayInline, children: [clearAction])
+        ])
     }
-
-    /// location 도메인 모델을 OptionPopupItem으로 매핑하여 dropdown view를 생성합니다.
-    func makeLocationDropdownView() -> UIView {
-        let items = locations.map {
-            OptionPopupItem(id: $0.id.uuidString, title: $0.name)
-        }
-        
-        let popupView = OptionPopupView(
-            items: items,
-            selectedItemID: selectedLocationID?.uuidString
-        )
-        
-        popupView.onSelectItem = { [weak self] selectedItem in
-            guard let self else { return }
-            self.dropdownManager.dismiss(animated: true)
-            
-            guard
-                let selectedLocation = self.locations.first(where: {
-                    $0.id.uuidString == selectedItem.id
-                })
-            else {
-                return
+    
+    func makeLocationMenu(_ output: ItemAddViewModel.Output) -> UIMenu {
+        var actions = output.availableLocations
+            .sorted { $0.indexKey < $1.indexKey }
+            .map { location in
+                UIAction(
+                    title: location.name,
+                    state: output.selectedLocationID == location.id ? .on : .off
+                ) { [weak self] _ in
+                    self?.viewModel.action(.selectLocation(id: location.id, name: location.name))
+                }
             }
-            
-            self.selectedLocationID = selectedLocation.id
-            self.viewModel.action(
-                .selectLocation(id: selectedLocation.id, name: selectedLocation.name)
-            )
+        
+        if actions.isEmpty {
+            actions = [UIAction(title: "There's no location.", attributes: .disabled) { _ in }]
         }
         
-        return popupView
+        let clearAction = UIAction(
+            title: "Clear Location",
+            attributes: output.selectedLocationID == nil ? [.disabled] : [.destructive]
+        ) { [weak self] _ in
+            self?.viewModel.action(.selectLocation(id: nil, name: nil))
+        }
+        
+        return UIMenu(children: [
+            UIMenu(options: .displayInline, children: actions),
+            UIMenu(options: .displayInline, children: [clearAction])
+        ])
     }
 }
 
 // MARK: - Navigation Bar Actions
 
 private extension ItemAddViewController {
-    /// overlay 영역 탭 시 dropdown popup을 닫습니다.
-    @objc func didTapDropdownOverlay() {
-        dropdownManager.dismiss(animated: true)
-    }
-    
     /// 저장 버튼 탭 → ViewModel 전달
     @objc func didTapSave() {
         viewModel.action(.tapSave)

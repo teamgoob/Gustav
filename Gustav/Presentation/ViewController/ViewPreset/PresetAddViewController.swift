@@ -12,7 +12,6 @@ final class PresetAddViewController: UIViewController {
     // MARK: - Callback
     var onBack: (() -> Void)?
     var onSaveSuccess: (() -> Void)?
-    var onShowOptionPopup: ((PresetAddViewModel.OptionPopupRoute, @escaping (OptionPopupItem) -> Void) -> Void)?
     
     // MARK: - Properties
     private let contentView = PresetAddView()
@@ -73,13 +72,14 @@ private extension PresetAddViewController {
             self.navigationItem.rightBarButtonItem?.isEnabled = output.isSaveEnabled
         }
         
+        viewModel.onFilterMenuChanged = { [weak self] menuInfo in
+            self?.updateFilterMenu(menuInfo)
+        }
+        
         viewModel.onNavigation = { [weak self] route in
             guard let self else { return }
             
             switch route {
-            case .showOptionPopup(let popupRoute):
-                self.handleOptionPopupRoute(popupRoute)
-                
             case .pop:
                 self.onBack?()
                 
@@ -97,7 +97,6 @@ private extension PresetAddViewController {
     
     func bindActions() {
         bindNameInput()
-        bindRowActions()
     }
     
     func bindNameInput() {
@@ -106,79 +105,184 @@ private extension PresetAddViewController {
         }
     }
     
-    func bindRowActions() {
-        contentView.viewTypeRow.addTapAction { [weak self] in
-            self?.viewModel.action(.didTapViewType)
+    func updateFilterMenu(_ menuInfo: PresetAddViewModel.FilterMenuInfo) {
+        contentView.viewTypeRow.setMenuEnabled(true)
+        contentView.viewTypeRow.menu = makeViewTypeMenu(menuInfo)
+
+        contentView.sortByRow.setMenuEnabled(true)
+        contentView.sortByRow.menu = makeSortByMenu(menuInfo)
+
+        contentView.sortOrderRow.setMenuEnabled(true)
+        contentView.sortOrderRow.menu = makeSortOrderMenu(menuInfo)
+
+        contentView.categoryRow.setMenuEnabled(true)
+        contentView.categoryRow.menu = makeCategoryMenu(menuInfo)
+
+        contentView.locationRow.setMenuEnabled(true)
+        contentView.locationRow.menu = makeLocationMenu(menuInfo)
+
+        contentView.itemStatusRow.setMenuEnabled(true)
+        contentView.itemStatusRow.menu = makeItemStatusMenu(menuInfo)
+    }
+    
+    func makeCategoryMenu(_ menuInfo: PresetAddViewModel.FilterMenuInfo) -> UIMenu {
+        var actions = menuInfo.categoryFilters.map { option in
+            UIAction(
+                title: option.title,
+                state: menuInfo.currentCategoryID == option.id ? .on : .off
+            ) { [weak self] _ in
+                self?.viewModel.action(.selectCategoryFilter(option.id))
+            }
         }
-        
-        contentView.sortByRow.addTapAction { [weak self] in
-            self?.viewModel.action(.didTapSortBy)
+
+        if actions.isEmpty {
+            actions = [
+                UIAction(
+                    title: "There's no category.",
+                    attributes: .disabled
+                ) { _ in }
+            ]
         }
-        
-        contentView.sortOrderRow.addTapAction { [weak self] in
-            self?.viewModel.action(.didTapSortOrder)
+
+        let clearAction = UIAction(
+            title: "Clear Category",
+            attributes: menuInfo.currentCategoryID == nil ? [.disabled] : [.destructive]
+        ) { [weak self] _ in
+            self?.clearCategorySelection()
         }
-        
-        contentView.categoryRow.addTapAction { [weak self] in
-            self?.viewModel.action(.didTapCategory)
+
+        let categoryGroup = UIMenu(options: .displayInline, children: actions)
+        let clearGroup = UIMenu(options: .displayInline, children: [clearAction])
+        return UIMenu(children: [categoryGroup, clearGroup])
+    }
+
+    func makeLocationMenu(_ menuInfo: PresetAddViewModel.FilterMenuInfo) -> UIMenu {
+        var actions = menuInfo.locationFilters.map { option in
+            UIAction(
+                title: option.title,
+                state: menuInfo.currentLocationID == option.id ? .on : .off
+            ) { [weak self] _ in
+                self?.viewModel.action(.selectLocationFilter(option.id))
+            }
         }
-        
-        contentView.locationRow.addTapAction { [weak self] in
-            self?.viewModel.action(.didTapLocation)
+
+        if actions.isEmpty {
+            actions = [
+                UIAction(
+                    title: "There's no location.",
+                    attributes: .disabled
+                ) { _ in }
+            ]
         }
-        
-        contentView.itemStatusRow.addTapAction { [weak self] in
-            self?.viewModel.action(.didTapItemStatus)
+
+        let clearAction = UIAction(
+            title: "Clear Location",
+            attributes: menuInfo.currentLocationID == nil ? [.disabled] : [.destructive]
+        ) { [weak self] _ in
+            self?.clearLocationSelection()
         }
+
+        let locationGroup = UIMenu(options: .displayInline, children: actions)
+        let clearGroup = UIMenu(options: .displayInline, children: [clearAction])
+        return UIMenu(children: [locationGroup, clearGroup])
+    }
+
+    func makeItemStatusMenu(_ menuInfo: PresetAddViewModel.FilterMenuInfo) -> UIMenu {
+        var actions = menuInfo.itemStateFilters.map { option in
+            UIAction(
+                title: option.title,
+                state: menuInfo.currentItemStateID == option.id ? .on : .off
+            ) { [weak self] _ in
+                self?.viewModel.action(.selectItemStateFilter(option.id))
+            }
+        }
+
+        if actions.isEmpty {
+            actions = [
+                UIAction(
+                    title: "There's no Item State.",
+                    attributes: .disabled
+                ) { _ in }
+            ]
+        }
+
+        let clearAction = UIAction(
+            title: "Clear Item State",
+            attributes: menuInfo.currentItemStateID == nil ? [.disabled] : [.destructive]
+        ) { [weak self] _ in
+            self?.clearItemStatusSelection()
+        }
+
+        let itemStateGroup = UIMenu(options: .displayInline, children: actions)
+        let clearGroup = UIMenu(options: .displayInline, children: [clearAction])
+        return UIMenu(children: [itemStateGroup, clearGroup])
+    }
+
+    func clearCategorySelection() {
+        viewModel.action(.selectCategoryFilter(nil))
+    }
+
+    func clearLocationSelection() {
+        viewModel.action(.selectLocationFilter(nil))
+    }
+
+    func clearItemStatusSelection() {
+        viewModel.action(.selectItemStateFilter(nil))
     }
 }
 
 // MARK: - Action
 private extension PresetAddViewController {
+    func makeViewTypeMenu(_ menuInfo: PresetAddViewModel.FilterMenuInfo) -> UIMenu {
+        let actions = menuInfo.viewTypeOptions.map { option in
+            UIAction(
+                title: option.title,
+                state: menuInfo.currentViewType == option.id ? .on : .off
+            ) { [weak self] _ in
+                self?.viewModel.action(.selectViewType(option.id))
+            }
+        }
+
+        return UIMenu(children: actions)
+    }
+
+    func makeSortByMenu(_ menuInfo: PresetAddViewModel.FilterMenuInfo) -> UIMenu {
+        let actions = menuInfo.sortOptions.map { option in
+            UIAction(
+                title: option.toText(),
+                state: option.sortingOptionCase == menuInfo.currentSortOption?.sortingOptionCase ? .on : .off
+            ) { [weak self] _ in
+                self?.viewModel.action(.selectSortOption(option))
+            }
+        }
+
+        return UIMenu(children: actions)
+    }
+
+    func makeSortOrderMenu(_ menuInfo: PresetAddViewModel.FilterMenuInfo) -> UIMenu {
+        let referenceSortOption = menuInfo.currentSortOption ?? .indexKey(order: .ascending)
+        let ascending = UIAction(
+            title: referenceSortOption.orderToText(isAscending: true),
+            state: menuInfo.currentSortOption?.order == .ascending ? .on : .off
+        ) { [weak self] _ in
+            self?.viewModel.action(.selectSortOrder(.ascending))
+        }
+        let descending = UIAction(
+            title: referenceSortOption.orderToText(isAscending: false),
+            state: menuInfo.currentSortOption?.order == .descending ? .on : .off
+        ) { [weak self] _ in
+            self?.viewModel.action(.selectSortOrder(.descending))
+        }
+
+        return UIMenu(children: [ascending, descending])
+    }
+
     @objc func didTapBackButton() {
         viewModel.action(.didTapBack)
     }
     
     @objc func didTapSaveButton() {
         viewModel.action(.didTapSave)
-    }
-}
-
-// MARK: - Route Handling
-private extension PresetAddViewController {
-    func handleOptionPopupRoute(_ route: PresetAddViewModel.OptionPopupRoute) {
-        onShowOptionPopup?(route) { [weak self] selectedItem in
-            guard let self else { return }
-            self.handleSelectedItem(selectedItem, title: route.title)
-        }
-    }
-    
-    func handleSelectedItem(_ item: OptionPopupItem, title: String) {
-        switch title {
-        case "View Type":
-            viewModel.action(.didSelectViewType(item.id))
-            
-        case "Sort By":
-            viewModel.action(.didSelectSortBy(item.id))
-            
-        case "Sort Order":
-            viewModel.action(.didSelectSortOrder(item.id))
-            
-        case "Category":
-            guard let id = UUID(uuidString: item.id) else { return }
-            viewModel.action(.didSelectCategory(id))
-            
-        case "Location":
-            guard let id = UUID(uuidString: item.id) else { return }
-            viewModel.action(.didSelectLocation(id))
-            
-        case "Item State":
-            guard let id = UUID(uuidString: item.id) else { return }
-            viewModel.action(.didSelectItemStatus(id))
-            
-        default:
-            break
-        }
     }
 }
 
@@ -193,29 +297,5 @@ private extension PresetAddViewController {
         
         alert.addAction(UIAlertAction(title: "OK", style: .default))
         present(alert, animated: true)
-    }
-}
-
-// MARK: - Local UI Binding Helpers
-private final class TapGestureTarget: NSObject {
-    private let action: () -> Void
-    
-    init(action: @escaping () -> Void) {
-        self.action = action
-    }
-    
-    @objc func didTap() {
-        action()
-    }
-}
-private var tapGestureTargetKey: UInt8 = 0
-
-private extension UIView {
-    func addTapAction(_ action: @escaping () -> Void) {
-        let target = TapGestureTarget(action: action)
-        let gesture = UITapGestureRecognizer(target: target, action: #selector(TapGestureTarget.didTap))
-        isUserInteractionEnabled = true
-        addGestureRecognizer(gesture)
-        objc_setAssociatedObject(self, &tapGestureTargetKey, target, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
     }
 }

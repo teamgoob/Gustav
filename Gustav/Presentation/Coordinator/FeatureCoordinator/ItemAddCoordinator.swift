@@ -62,11 +62,6 @@ private extension ItemAddCoordinator {
 
         viewController.onRoute = { [weak self] route in
             switch route {
-            case .showCategoryPicker,
-                 .showItemStatePicker,
-                 .showLocationPicker:
-                break
-
             case .dismiss:
                 self?.finish()
 

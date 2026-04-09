@@ -107,13 +107,9 @@ final class ItemAddViewModel {
         case changeExpireDate(Date)
         case changeExpireTime(Date)
         
-        case tapCategory
-        case tapItemState
-        case tapLocation
-        
-        case selectCategory(id: UUID, name: String)
-        case selectItemState(id: UUID, name: String)
-        case selectLocation(id: UUID, name: String)
+        case selectCategory(id: UUID?, name: String?)
+        case selectItemState(id: UUID?, name: String?)
+        case selectLocation(id: UUID?, name: String?)
         
         case tapSave
     }
@@ -142,9 +138,6 @@ final class ItemAddViewModel {
     // MARK: Route
     /// Coordinator 또는 ViewController가 처리할 화면 이동 / 알럿 이벤트
     enum Route {
-        case showCategoryPicker
-        case showItemStatePicker
-        case showLocationPicker
         case dismiss
         case dismissAfterSave
         case showErrorAlert(String)
@@ -232,15 +225,6 @@ extension ItemAddViewModel {
         case .changeExpireTime(let time):
             formState.expireTimePart = time
             notifyOutput()
-            
-        case .tapCategory:
-            onNavigation?(.showCategoryPicker)
-            
-        case .tapItemState:
-            onNavigation?(.showItemStatePicker)
-            
-        case .tapLocation:
-            onNavigation?(.showLocationPicker)
             
         case .selectCategory(let id, let name):
             formState.selectedCategoryId = id
