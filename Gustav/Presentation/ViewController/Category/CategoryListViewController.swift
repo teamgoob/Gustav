@@ -106,6 +106,8 @@ final class CategoryListViewController: UIViewController {
                 self.applyLoading(isLoading)
             case .subTitle(let subtitle):
                 self.applySubtitle(subtitle)
+            case .childCategoriesLoaded:
+                self.refreshInterface()
             case .categoriesChanged:
                 self.refreshInterface()
             }

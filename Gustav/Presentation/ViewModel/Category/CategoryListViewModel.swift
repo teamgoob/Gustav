@@ -17,8 +17,8 @@ final class CategoryListViewModel {
 
     private(set) var categories: [Category] = [] {
         didSet {
-            rebuildChildCategoriesTitle()
             emit(.subTitle(categoryCountText()))
+            rebuildChildCategoriesTitle()
         }
     }
 
@@ -28,6 +28,7 @@ final class CategoryListViewModel {
     enum State {
         case loading(Bool)
         case categoriesChanged
+        case childCategoriesLoaded
         case subTitle(String)
     }
 
@@ -107,6 +108,7 @@ final class CategoryListViewModel {
 
     // 자식 타이틀 구성
     private func rebuildChildCategoriesTitle() {
+        childCategoriesTitle.removeAll()
         childCategoriesTitle = Dictionary(
             uniqueKeysWithValues: categories.map { parentCategory in
                 let titles = categories
@@ -116,6 +118,7 @@ final class CategoryListViewModel {
                 return (parentCategory.id, titles)
             }
         )
+        emit(.childCategoriesLoaded)
     }
 
     // 목록 조회

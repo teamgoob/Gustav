@@ -31,7 +31,7 @@ class CategoryListTableViewBasicCell: UITableViewCell {
         return l
     }()
     
-    private let childCategoriesLable: UILabel = {
+    private let childCategoriesLabel: UILabel = {
         let l = UILabel()
         l.font = .systemFont(ofSize: 14, weight: .regular)
         l.textColor = Colors.Text.additionalInfo
@@ -71,7 +71,7 @@ class CategoryListTableViewBasicCell: UITableViewCell {
         self.contentView.addSubview(circlefill)
         self.contentView.addSubview(titleLabel)
         self.contentView.addSubview(chevronImageView)
-        self.contentView.addSubview(childCategoriesLable)
+        self.contentView.addSubview(childCategoriesLabel)
         
         circlefill.snp.makeConstraints {
             $0.height.width.equalTo(20)
@@ -82,11 +82,11 @@ class CategoryListTableViewBasicCell: UITableViewCell {
         titleLabel.snp.makeConstraints {
             $0.height.equalTo(48)
             $0.leading.equalTo(self.circlefill.snp.trailing).offset(spacing)
-            $0.trailing.equalTo(self.childCategoriesLable.snp.leading).offset(-spacing) // 변경
+            $0.trailing.equalTo(self.childCategoriesLabel.snp.leading).offset(-spacing) // 변경
             $0.centerY.equalTo(self.contentView)
         }
         
-        childCategoriesLable.snp.makeConstraints {
+        childCategoriesLabel.snp.makeConstraints {
             $0.trailing.equalTo(self.chevronImageView.snp.leading).offset(-spacing)
             $0.centerY.equalTo(self.contentView)
         }
@@ -101,7 +101,7 @@ class CategoryListTableViewBasicCell: UITableViewCell {
         chevronImageView.setContentCompressionResistancePriority(.required, for: .horizontal)
 
         // child label은 줄어들 수 있음
-        childCategoriesLable.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        childCategoriesLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
 
         // title도 상황에 따라 줄어들 수 있게
         titleLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
@@ -114,15 +114,20 @@ class CategoryListTableViewBasicCell: UITableViewCell {
         circlefill.tintColor = tagColor.uiColor
         
         if let childCategories {
-            self.childCategoriesLable.text = childCategories
-        } 
+            self.childCategoriesLabel.text = childCategories
+            self.childCategoriesLabel.isHidden = false
+        } else {
+            self.childCategoriesLabel.text = nil
+            self.childCategoriesLabel.isHidden = true
+        }
         
     }
     
     // 재사용 이슈 방지
     override func prepareForReuse() {
         super.prepareForReuse()
-        titleLabel.text = nil
+        self.titleLabel.text = nil
+        self.childCategoriesLabel.text = nil
     }
     
 }
