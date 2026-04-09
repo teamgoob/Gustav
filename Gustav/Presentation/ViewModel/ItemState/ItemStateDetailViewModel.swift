@@ -135,6 +135,8 @@ final class ItemStateDetailViewModel {
     
     // MARK: - Deinit
     deinit {
+        self.taskRemote?.cancel()
+        self.taskRemote = nil
         print("ItemStateDetailViewModel deinit")
     }
     

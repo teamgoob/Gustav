@@ -135,6 +135,8 @@ final class LocationDetailViewModel {
     
     // MARK: - Deinit
     deinit {
+        self.taskRemote?.cancel()
+        self.taskRemote = nil
         print("LocationDetailViewModel deinit")
     }
     

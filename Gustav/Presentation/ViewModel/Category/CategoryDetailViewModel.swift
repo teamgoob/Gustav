@@ -183,6 +183,8 @@ final class CategoryDetailViewModel {
     
     // MARK: - Deinit
     deinit {
+        self.taskRemote?.cancel()
+        self.taskRemote = nil
         print("CategoryDetailViewModel deinit")
     }
     
