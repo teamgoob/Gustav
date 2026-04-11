@@ -54,6 +54,10 @@ final class WorkSpaceListViewController: UIViewController {
     private func configureView() {
         view = contentView
         view.addSubview(loadingView)
+        // 다음 화면의 뒤로 가기 목록에 표시할 타이틀 설정
+        navigationItem.backButtonTitle = "Home"
+        // 뒤로 가기 버튼 자체에 타이틀이 표시되지는 않도록 설정
+        navigationItem.backButtonDisplayMode = .minimal
 
         loadingView.snp.makeConstraints {
             $0.edges.equalToSuperview()

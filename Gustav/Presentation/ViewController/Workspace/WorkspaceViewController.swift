@@ -183,13 +183,13 @@ private extension WorkspaceViewController {
         case .loading(for: let text):
             // 전달 받은 로딩 메세지를 반영하여 로딩 뷰 표시
             customView.loadingView.startLoading(with: text)
-            UIView.animate(withDuration: 0.1) { [weak self] in
+            UIView.animate(withDuration: 0.2) { [weak self] in
                 self?.customView.tableView.alpha = 0
             }
             return
         case .notLoading:
             customView.loadingView.stopLoading()
-            UIView.animate(withDuration: 0.1) { [weak self] in
+            UIView.animate(withDuration: 0.2) { [weak self] in
                 self?.customView.tableView.alpha = 1
             }
         }
