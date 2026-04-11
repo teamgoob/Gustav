@@ -314,6 +314,8 @@ private extension WorkspaceViewModel {
             switch result {
             // 워크스페이스가 존재하는 경우, 정상 동작
             case true:
+                // 저장된 아이템 검색 조건 초기화
+                self.query = ItemQuery(sortOption: .updatedAt(order: .descending), filters: [], searchText: nil)
                 // Workspace Context 불러오기
                 await fetchWorkspaceContext()
                 // 현재 쿼리의 강조 및 일반 속성 정보 계산
