@@ -145,12 +145,7 @@ extension WorkspaceViewModel {
             break
         case .viewDidAppear:
             Task {
-                // Workspace Context 불러오기
-                await fetchWorkspaceContext()
-                // 현재 쿼리의 강조 및 일반 속성 정보 계산
-                self.queryProperties = getQueryProperties(from: self.query)
-                // 아이템 목록 불러오기
-                await fetchItems()
+                await handleViewDidAppear()
             }
         case .selectSortOption(let option):
             Task {
@@ -311,6 +306,31 @@ private extension WorkspaceViewModel {
         // 추후 구현
     }
     // MARK: - Workspace Cotext
+    // ViewDidAppear 이벤트 처리 메서드, 워크스페이스 존재 여부에 따라 처리
+    func handleViewDidAppear() async {
+        let contextResult = await workspaceContextUsecase.isWorkspaceExist(workspaceId: workspace.id)
+        switch contextResult {
+        case .success (let result):
+            switch result {
+            // 워크스페이스가 존재하는 경우, 정상 동작
+            case true:
+                // 저장된 아이템 검색 조건 초기화
+                self.query = ItemQuery(sortOption: .updatedAt(order: .descending), filters: [], searchText: nil)
+                // Workspace Context 불러오기
+                await fetchWorkspaceContext()
+                // 현재 쿼리의 강조 및 일반 속성 정보 계산
+                self.queryProperties = getQueryProperties(from: self.query)
+                // 아이템 목록 불러오기
+                await fetchItems()
+            // 워크스페이스가 삭제된 경우
+            case false:
+                break
+            }
+        // 확인할 수 없는 경우 에러 얼럿 창 표시
+        case .failure:
+            onNavigation?(.showAlertForFetchWorkspaceContextFailure)
+        }
+    }
     // Workspace Context와 ViewPreset 목록을 불러오는 메서드
     func fetchWorkspaceContext() async {
         var successFlag = true

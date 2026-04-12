@@ -9,16 +9,26 @@ import UIKit
 extension TagColor {
     var uiColor: UIColor {
         switch self {
-        case .darkGray: return .systemGray2
-        case .lightGray: return .systemGray
-        case .brown: return .systemBrown
-        case .red: return .systemRed
-        case .orange: return .systemOrange
-        case .yellow: return .systemYellow
-        case .green: return .systemGreen
-        case .blue: return .systemBlue
-        case .pink: return .systemPink
-        case .purple: return .systemPurple
+        case .darkGray:
+            return Colors.Tag.Background.darkGray
+        case .lightGray:
+            return Colors.Tag.Background.lightGray
+        case .brown:
+            return Colors.Tag.Background.brown
+        case .red:
+            return Colors.Tag.Background.red
+        case .orange:
+            return Colors.Tag.Background.orange
+        case .yellow:
+            return Colors.Tag.Background.yellow
+        case .green:
+            return Colors.Tag.Background.green
+        case .blue:
+            return Colors.Tag.Background.blue
+        case .pink:
+            return Colors.Tag.Background.pink
+        case .purple:
+            return Colors.Tag.Background.purple
         }
     }
 }
