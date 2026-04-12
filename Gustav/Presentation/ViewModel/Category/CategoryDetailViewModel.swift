@@ -143,17 +143,41 @@ final class CategoryDetailViewModel {
     }
     
     
-    // Categories Array(self.category & self.category를 부모카테고리로 지정한 카테고리 제외)
+    // 상위 카테고리로 지정 가능한 카테고리 목록 반환
     func getAllCategories() -> [Category] {
-        var allCategories = self.allCategories
+        allCategories.filter { candidate in
+            candidate.id != self.category.id &&
+            !isDescendant(candidateId: candidate.id, of: self.category.id, categories: allCategories)
+        }
+    }
+    
+    // 하위 카테고리를 노드로 연결하고 현제 카테고리의 하위 노드인지 판단하는 메서드
+    private func isDescendant(candidateId: UUID, of currentId: UUID, categories: [Category] ) -> Bool {
+        var childrenMap: [UUID: [UUID]] = [:]
         
-        // 해당 워크스페이스의 카테고리 중 지금 소유하고 있는 카테고리는 제거
-        allCategories.removeAll { $0.id == self.category.id }
-        
-        // 지금 소유하고 있는 카테고리를 상위 카테고리로 지정한 카테고리는 제거
-        allCategories.removeAll { $0.parentId == self.category.id }
-        
-        return allCategories
+        // 전체 카테고리를 순회하면서 parent(key): children(value) 구조로 변환
+        for category in categories {
+            if let parentId = category.parentId {                       // 부모카테고리가 존재하면
+                childrenMap[parentId, default: []].append(category.id)  // parentId를 key로, 자식 Id를 배열에 추가
+            }
+        }
+
+        // 현재 카테고리의 직접 자식부터 작업 스택에 추가
+        var stack: [UUID] = childrenMap[currentId] ?? []
+
+        // 탐색할 노드가 남아있는 동안 반복
+        while !stack.isEmpty {
+            let node = stack.removeLast()   // 스택 배열에 마지막 요소 변수에 복사 후 삭제
+
+            // candidateId가 current의 하위 노드라면 true
+            if node == candidateId {
+                return true
+            }
+
+            stack.append(contentsOf: childrenMap[node] ?? [])   // 현재 탐색 중인 node의 하위 카테고리들을 stack 배열에 추가
+        }
+
+        return false    // 하위 노드 아님
     }
     
     // TableView DataSource: 사용할 아이템 갯수
@@ -299,10 +323,7 @@ private extension CategoryDetailViewModel {
     private func fetchCategories() async {
         let result = await categoryUseCase.fetchCategories(workspaceId: category.workspaceId)
         switch result {
-        case .success(var categories):
-            if let myIndex = categories.firstIndex(where: { $0.id == self.category.id }) {
-                categories.remove(at: myIndex)
-            }
+        case .success(let categories):
             self.allCategories = categories
         case .failure:
             onNavigation?(.showErrorAlert("Failed to get Parent category"))
