@@ -126,7 +126,10 @@ final class AppDIContainer: AppDIContainerProtocol  {
     // MARK: - Repository
     // Auth Flow Repository
     private lazy var authFlowRepository: AuthFlowRepositoryProtocol = {
-        AuthFlowRepository(authDataSource: authSupabase)
+        AuthFlowRepository(
+            authDataSource: authSupabase,
+            profileDataSource: profileSupabase
+        )
     }()
     // Auth Session Repository
     private lazy var authSessionRepository: AuthSessionRepositoryProtocol = {

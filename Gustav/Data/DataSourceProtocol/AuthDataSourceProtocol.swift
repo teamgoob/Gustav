@@ -30,9 +30,9 @@ protocol AuthDataSourceProtocol {
     func currentAuthProvider() -> AuthProvider
 
     func currentUserId() -> UUID?
+    func currentUserEmail() -> String?
 
 }
-
 
 
 

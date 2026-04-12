@@ -143,6 +143,40 @@ final class GustavTests: XCTestCase {
         XCTAssertEqual(appleLinkDataSource.withdrawCallCount, 2)
     }
 
+    func testRestoreSessionUpsertsProfileWithCurrentEmail() async {
+        let userId = UUID()
+        let authDataSource = AuthDataSourceStub()
+        authDataSource.validSessionResult = .success(
+            AuthDTO(
+                accessToken: "access",
+                refreshToken: "refresh",
+                userId: userId,
+                expiresAt: nil,
+                provider: "email"
+            )
+        )
+        authDataSource.currentUserEmailValue = "gustav@example.com"
+
+        let profileDataSource = ProfileDataSourceStub()
+
+        let repository = AuthFlowRepository(
+            authDataSource: authDataSource,
+            profileDataSource: profileDataSource
+        )
+
+        let result = await repository.restoreSession()
+
+        switch result {
+        case .success(let session):
+            XCTAssertEqual(session?.userId, userId)
+        case .failure(let error):
+            XCTFail("Expected restoreSession to succeed, got \(error)")
+        }
+
+        XCTAssertEqual(profileDataSource.upsertedUserId, userId)
+        XCTAssertEqual(profileDataSource.upsertedEmail, "gustav@example.com")
+    }
+
     func testPerformanceExample() throws {
         // This is an example of a performance test case.
         self.measure {
@@ -155,6 +189,8 @@ final class GustavTests: XCTestCase {
 private final class AuthDataSourceStub: AuthDataSourceProtocol {
     var provider: AuthProvider = .unknown
     var authenticateWithAppleResult: RepositoryResult<AuthDTO> = .failure(.unknown)
+    var validSessionResult: RepositoryResult<AuthDTO?> = .success(nil)
+    var currentUserEmailValue: String?
 
     func authenticateWithApple(idToken: String, nonce: String) async -> RepositoryResult<AuthDTO> {
         authenticateWithAppleResult
@@ -169,7 +205,7 @@ private final class AuthDataSourceStub: AuthDataSourceProtocol {
     }
 
     func validSession() async -> RepositoryResult<AuthDTO?> {
-        .success(nil)
+        validSessionResult
     }
 
     func signUpWithEmail(email: String, password: String) async -> RepositoryResult<EmailSignUpOutcomeDTO> {
@@ -194,6 +230,10 @@ private final class AuthDataSourceStub: AuthDataSourceProtocol {
 
     func currentUserId() -> UUID? {
         nil
+    }
+
+    func currentUserEmail() -> String? {
+        currentUserEmailValue
     }
 }
 
@@ -230,6 +270,9 @@ private final class AppleAccountLinkDataSourceStub: AppleAccountLinkDataSourcePr
 }
 
 private final class ProfileDataSourceStub: ProfileDataSourceProtocol {
+    var upsertedUserId: UUID?
+    var upsertedEmail: String?
+
     func fetchProfile(userId: UUID) async -> RepositoryResult<ProfileDTO> {
         .failure(.notFound)
     }
@@ -243,6 +286,8 @@ private final class ProfileDataSourceStub: ProfileDataSourceProtocol {
         email: String?,
         displayName: String?
     ) async -> RepositoryResult<Void> {
+        upsertedUserId = userId
+        upsertedEmail = email
         .success(())
     }
 }

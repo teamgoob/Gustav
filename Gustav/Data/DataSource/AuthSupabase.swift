@@ -150,6 +150,11 @@ final class AuthSupabase: AuthDataSourceProtocol {
     func currentUserId() -> UUID? {
         client.auth.currentSession?.user.id
     }
+
+    // MARK: - 현재 유저 이메일
+    func currentUserEmail() -> String? {
+        client.auth.currentSession?.user.email
+    }
     
     // MARK: - 현재 인증 Provider
     /// 현재 세션 기준으로 로그인 Provider를 반환합니다.

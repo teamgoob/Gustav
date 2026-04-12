@@ -25,9 +25,14 @@ final class AuthFlowRepository: AuthFlowRepositoryProtocol {
 
     /// Supabase 세션 관련 호출을 담당하는 DataSource
     private let authDataSource: AuthDataSourceProtocol
+    private let profileDataSource: ProfileDataSourceProtocol
 
-    init(authDataSource: AuthDataSourceProtocol) {
+    init(
+        authDataSource: AuthDataSourceProtocol,
+        profileDataSource: ProfileDataSourceProtocol
+    ) {
         self.authDataSource = authDataSource
+        self.profileDataSource = profileDataSource
     }
 
     /// 앱 시작 시 호출되는 세션 복구 함수
@@ -39,8 +44,21 @@ final class AuthFlowRepository: AuthFlowRepositoryProtocol {
 
         switch result {
         case .success(let dto):
+            guard let session = dto else {
+                return .success(nil)
+            }
 
-            return .success(dto?.toDomain())
+            let upsert = await profileDataSource.upsertProfile(
+                userId: session.userId,
+                email: authDataSource.currentUserEmail(),
+                displayName: nil
+            )
+
+            if case .failure(let e) = upsert {
+                return .failure(e.mapToDomainError())
+            }
+
+            return .success(session.toDomain())
             
         case .failure(let e):
 

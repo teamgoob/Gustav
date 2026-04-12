@@ -97,7 +97,11 @@ private extension SceneDelegate {
         Task { @MainActor in
             do {
                 try await appDIContainer.handleAuthCallback(url)
-                NotificationCenter.default.post(name: .login, object: nil)
+                let restoreResult = await appDIContainer.authUsecase.restoreSession()
+
+                if case .success(let session) = restoreResult, session != nil {
+                    NotificationCenter.default.post(name: .login, object: nil)
+                }
             } catch {
                 print("Failed to handle auth callback URL:", error)
             }
