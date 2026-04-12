@@ -50,6 +50,61 @@ struct Colors {
         private init() {}
     }
     
+    // 태그에 사용되는 색상
+    struct Tag {
+        // 태그 배경 색상
+        struct Background {
+            // Dark Gray
+            static let darkGray: UIColor = UIColor(named: "DarkGrayTagBackgroundColor")!
+            // Light Gray
+            static let lightGray: UIColor = UIColor(named: "LightGrayTagBackgroundColor")!
+            // Brown
+            static let brown: UIColor = UIColor(named: "BrownTagBackgroundColor")!
+            // Red
+            static let red: UIColor = UIColor(named: "RedTagBackgroundColor")!
+            // Orange
+            static let orange: UIColor = UIColor(named: "OrangeTagBackgroundColor")!
+            // Yellow
+            static let yellow: UIColor = UIColor(named: "YellowTagBackgroundColor")!
+            // Green
+            static let green: UIColor = UIColor(named: "GreenTagBackgroundColor")!
+            // Blue
+            static let blue: UIColor = UIColor(named: "BlueTagBackgroundColor")!
+            // Pink
+            static let pink: UIColor = UIColor(named: "PinkTagBackgroundColor")!
+            // Purple
+            static let purple: UIColor = UIColor(named: "PurpleTagBackgroundColor")!
+            
+            private init() {}
+        }
+        // 태그 텍스트 색상
+        struct Text {
+            // Dark Gray
+            static let darkGray: UIColor = UIColor(named: "DarkGrayTagTextColor")!
+            // Light Gray
+            static let lightGray: UIColor = UIColor(named: "LightGrayTagTextColor")!
+            // Brown
+            static let brown: UIColor = UIColor(named: "BrownTagTextColor")!
+            // Red
+            static let red: UIColor = UIColor(named: "RedTagTextColor")!
+            // Orange
+            static let orange: UIColor = UIColor(named: "OrangeTagTextColor")!
+            // Yellow
+            static let yellow: UIColor = UIColor(named: "YellowTagTextColor")!
+            // Green
+            static let green: UIColor = UIColor(named: "GreenTagTextColor")!
+            // Blue
+            static let blue: UIColor = UIColor(named: "BlueTagTextColor")!
+            // Pink
+            static let pink: UIColor = UIColor(named: "PinkTagTextColor")!
+            // Purple
+            static let purple: UIColor = UIColor(named: "PurpleTagTextColor")!
+            
+            private init() {}
+        }
+        private init() {}
+    }
+    
     private init() {}
 }
 
@@ -59,50 +114,50 @@ extension TagColor {
     func toUIColor() -> UIColor {
         switch self {
         case .darkGray:
-            return UIColor.darkGray.withAlphaComponent(0.3)
+            return Colors.Tag.Background.darkGray.withAlphaComponent(0.6)
         case .lightGray:
-            return UIColor.lightGray.withAlphaComponent(0.3)
+            return Colors.Tag.Background.lightGray.withAlphaComponent(0.6)
         case .brown:
-            return UIColor.brown.withAlphaComponent(0.3)
+            return Colors.Tag.Background.brown.withAlphaComponent(0.6)
         case .red:
-            return UIColor.red.withAlphaComponent(0.3)
+            return Colors.Tag.Background.red.withAlphaComponent(0.6)
         case .orange:
-            return UIColor.orange.withAlphaComponent(0.3)
+            return Colors.Tag.Background.orange.withAlphaComponent(0.6)
         case .yellow:
-            return UIColor.yellow.withAlphaComponent(0.3)
+            return Colors.Tag.Background.yellow.withAlphaComponent(0.6)
         case .green:
-            return UIColor.green.withAlphaComponent(0.3)
+            return Colors.Tag.Background.green.withAlphaComponent(0.6)
         case .blue:
-            return UIColor.blue.withAlphaComponent(0.3)
+            return Colors.Tag.Background.blue.withAlphaComponent(0.6)
         case .pink:
-            return UIColor.systemPink.withAlphaComponent(0.3)
+            return Colors.Tag.Background.pink.withAlphaComponent(0.6)
         case .purple:
-            return UIColor.purple.withAlphaComponent(0.3)
+            return Colors.Tag.Background.purple.withAlphaComponent(0.6)
         }
     }
     // 배경에 따른 텍스트 색상 반환
     func getTextColor() -> UIColor {
         switch self {
         case .darkGray:
-            return UIColor.darkGray
+            return Colors.Tag.Text.darkGray
         case .lightGray:
-            return UIColor.lightGray
+            return Colors.Tag.Text.lightGray
         case .brown:
-            return UIColor.brown
+            return Colors.Tag.Text.brown
         case .red:
-            return UIColor.red
+            return Colors.Tag.Text.red
         case .orange:
-            return UIColor.orange
+            return Colors.Tag.Text.orange
         case .yellow:
-            return UIColor.yellow
+            return Colors.Tag.Text.yellow
         case .green:
-            return UIColor.green
+            return Colors.Tag.Text.green
         case .blue:
-            return UIColor.blue
+            return Colors.Tag.Text.blue
         case .pink:
-            return UIColor.systemPink
+            return Colors.Tag.Text.pink
         case .purple:
-            return UIColor.purple
+            return Colors.Tag.Text.purple
         }
     }
 }
