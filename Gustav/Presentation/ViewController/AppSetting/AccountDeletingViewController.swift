@@ -83,6 +83,11 @@ private extension AccountDeletingViewController {
             action: #selector(didTapDeleteButton),
             for: .touchUpInside
         )
+        customView.appleReauthButton.addTarget(
+            self,
+            action: #selector(didTapAppleReauthButton),
+            for: .touchUpInside
+        )
     }
     
     // 빈 화면 탭 제스처 설정
@@ -124,6 +129,13 @@ private extension AccountDeletingViewController {
         viewModel.action(.deleteButtonTapped)
     }
     
+    // Apple 재인증 버튼 선택 시 호출
+    @objc func didTapAppleReauthButton() {
+        Task {
+            await viewModel.handleAppleReauthenticationButtonTapped()
+        }
+    }
+    
     // 키보드 내리기
     @objc func dismissKeyboard() {
         view.endEditing(true)
@@ -140,6 +152,8 @@ private extension AccountDeletingViewController {
             customView.loadingView.stopLoading()
         }
         
+        customView.applyVerificationPolicy(output.verificationPolicy)
+        
         // UI 업데이트
         // 이메일 검사 텍스트 업데이트
         switch output.emailVaildateResult {
@@ -154,6 +168,8 @@ private extension AccountDeletingViewController {
         customView.setAgreeButtonSelection(to: output.isAgreed)
         // 삭제 버튼 상태 업데이트
         customView.setDeleteButtonAvailability(to: output.isDeleteButtonEnabled)
+        customView.appleReauthButton.isEnabled = output.isAgreed
+        customView.appleReauthButton.alpha = output.isAgreed ? 1.0 : 0.5
     }
 }
 

@@ -26,4 +26,8 @@ protocol AuthSessionRepositoryProtocol {
     
     // 회원탈퇴
     func withdraw() async -> DomainResult<Void>
+    
+    // 현재 인증 provider 조회
+    func currentAuthProvider() -> AuthProvider
+
 }

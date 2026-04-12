@@ -257,7 +257,7 @@ private extension EmailSignUpViewModel {
 
         // 약관 동의 안 되어 있으면 서버 요청 안 보냄
         guard state.isTermsAgreed, state.isPrivacyAgreed else {
-            onEvent?(.showError(agreementErrorMessageIfNeeded() ?? "약관 동의가 필요합니다."))
+            onEvent?(.showError(agreementErrorMessageIfNeeded() ?? "You must agree to the required terms."))
             return
         }
 
@@ -274,13 +274,17 @@ private extension EmailSignUpViewModel {
         
         // 결과 처리
         switch result {
-        case .success:
-            // 회원가입 성공
-            // 현재 문구상 이메일 인증 필요 안내를 띄움
+        case .success(let outcome):
             updateState {
                 state.isLoading = false
             }
-            onEvent?(.showSuccess("Check your email to confirm your account."))
+
+            switch outcome {
+            case .authenticated:
+                NotificationCenter.default.post(name: .login, object: nil)
+            case .emailVerificationRequired:
+                onEvent?(.showSuccess("Check your email to confirm your account."))
+            }
 
         case .failure(let error):
             // 회원가입 실패
@@ -296,7 +300,7 @@ private extension EmailSignUpViewModel {
     // 약관 미동의 시 보여줄 일반 에러 메시지
     func agreementErrorMessageIfNeeded() -> String? {
         if !state.isTermsAgreed || !state.isPrivacyAgreed {
-            return "약관 동의가 필요합니다."
+            return "You must agree to the required terms."
         }
         return nil
     }
@@ -320,8 +324,8 @@ private extension EmailSignUpViewModel {
         case .passwordTooShort(let minLength):
             return "Password must be \(minLength) or more characters."
             
-        case .passwordMissingSpecialCharacter:
-            return "Password must include a special character."
+        case .passwordMissingLetterOrDigit:
+            return "Password must include both letters and digits."
             
         case .passwordMismatch:
             return "Passwords do not match."

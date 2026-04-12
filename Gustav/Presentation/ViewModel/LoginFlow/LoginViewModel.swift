@@ -249,18 +249,22 @@ private extension LoginViewModel {
     func mapDomainErrorToMessage(_ error: DomainError) -> String {
         switch error {
         case .cancelled:
-            return "취소하였습니다."
+            return "Sign-in was cancelled."
 
         case .temporarilyUnavailable:
-            return "잠시 후 다시 시도해주세요."
+            return "The service is temporarily unavailable. Please try again later."
 
-        case .authenticationRequired,
-             .entityNotFound,
-             .unknown:
-            return "아이디 또는 비밀번호가 틀렸습니다."
+        case .authenticationRequired:
+            return "Authentication is required. Please sign in again."
+            
+        case .entityNotFound:
+            return "No account was found with the provided credentials."
+            
+        case .unknown:
+            return "An unexpected error occurred. Please try again."
 
         default:
-            return "아이디 또는 비밀번호가 틀렸습니다."
+            return "Unable to sign in. Please check your credentials and try again."
         }
     }
     

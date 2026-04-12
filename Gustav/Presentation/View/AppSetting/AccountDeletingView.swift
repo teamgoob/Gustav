@@ -7,6 +7,7 @@
 
 import UIKit
 import SnapKit
+import SwiftUI
 
 // MARK: - AccountDeletingView
 // 회원 탈퇴 화면
@@ -102,6 +103,43 @@ final class AccountDeletingView: UIView {
         return textField
     }()
     
+    // MARK: - Apple Container
+    // Apple 재인증 버튼
+    let appleReauthButton: UIButton = {
+//        var config = UIButton.Configuration.filled()
+//        var attributedTitle = AttributedString("Verify with Apple")
+//        attributedTitle.font = Fonts.accent
+//        attributedTitle.foregroundColor = Colors.Text.main
+//        config.attributedTitle = attributedTitle
+//        config.baseBackgroundColor = Colors.Theme.textBackground
+//        
+//        let button = UIButton(configuration: config)
+//        button.layer.cornerRadius = 14
+//        button.isHidden = true
+//        return button
+        let b = UIButton(type: .system)
+        
+        // 아이콘 + 텍스트
+        b.setTitle(" Verify with Apple", for: .normal)
+        b.setImage(UIImage(systemName: "applelogo"), for: .normal)
+        
+        // 색상 (Apple 가이드)
+        b.backgroundColor = .black
+        b.tintColor = .white
+        b.setTitleColor(.white, for: .normal)
+        
+        // 폰트
+        b.titleLabel?.font = Fonts.headline
+        
+        // 모서리
+        b.layer.cornerRadius = 14
+        b.layer.masksToBounds = true
+
+
+        return b
+    }()
+    
+    
     // MARK: - UIButton
     // Agree Button
     let agreeButton: UIButton = {
@@ -192,6 +230,7 @@ final class AccountDeletingView: UIView {
         cardView.addSubview(descriptionLabel)
         cardView.addSubview(cautionLabel)
         cardView.addSubview(emailContainer)
+        cardView.addSubview(appleReauthButton)
         cardView.addSubview(validationLabel)
         cardView.addSubview(agreeButton)
         cardView.addSubview(deleteButton)
@@ -232,6 +271,12 @@ final class AccountDeletingView: UIView {
             $0.height.equalTo(52)
         }
         
+        appleReauthButton.snp.makeConstraints {
+            $0.bottom.equalTo(cardView).offset(-48)
+            $0.leading.trailing.equalToSuperview().inset(16)
+            $0.height.equalTo(52)
+        }
+        
         emailIconView.snp.makeConstraints {
             $0.centerY.equalTo(emailContainer)
             $0.leading.equalTo(emailContainer).offset(16)
@@ -244,7 +289,7 @@ final class AccountDeletingView: UIView {
             $0.trailing.equalTo(emailContainer).offset(-12)
         }
         
-        validationLabel.snp.makeConstraints {
+        validationLabel.snp.remakeConstraints {
             $0.top.equalTo(emailContainer.snp.bottom).offset(8)
             $0.leading.trailing.equalTo(emailContainer).inset(16)
         }
@@ -297,4 +342,58 @@ extension AccountDeletingView {
     func setDeleteButtonAvailability(to isEnabled: Bool) {
         deleteButton.isEnabled = isEnabled
     }
+    
+    // MARK: - Verification Policy UI
+    func applyVerificationPolicy(_ policy: AccountDeletingViewModel.DeletionVerificationPolicy) {
+        switch policy {
+        case .reenterEmail:
+            descriptionLabel.text = "Please enter your registered email address for verification."
+            emailContainer.isHidden = false
+            validationLabel.isHidden = false
+            appleReauthButton.isHidden = true
+            deleteButton.isHidden = false
+
+        case .reauthenticateWithApple:
+            descriptionLabel.text = "Verify with Apple to delete your account."
+            emailContainer.isHidden = true
+            validationLabel.isHidden = true
+            appleReauthButton.isHidden = false
+            deleteButton.isHidden = true
+
+        case .confirmOnly:
+            descriptionLabel.text = "Review the notice below and confirm to delete your account."
+            emailContainer.isHidden = true
+            validationLabel.isHidden = true
+            appleReauthButton.isHidden = true
+            deleteButton.isHidden = false
+        }
+    }
 }
+
+
+// MARK: - Preview
+#if DEBUG
+struct AccountDeletingViewPreview: UIViewRepresentable {
+    let policy: AccountDeletingViewModel.DeletionVerificationPolicy
+    
+    func makeUIView(context: Context) -> AccountDeletingView {
+        let view = AccountDeletingView()
+        view.applyVerificationPolicy(policy)
+        if case .reauthenticateWithApple = policy {
+            view.appleReauthButton.isEnabled = false
+        }
+        view.setAgreeButtonSelection(to: false)
+        view.setDeleteButtonAvailability(to: false)
+        return view
+    }
+    
+    func updateUIView(_ uiView: AccountDeletingView, context: Context) {
+        uiView.applyVerificationPolicy(policy)
+    }
+}
+
+#Preview("Apple Reauthentication") {
+    AccountDeletingViewPreview(policy: .reauthenticateWithApple(email: nil))
+        .ignoresSafeArea()
+}
+#endif

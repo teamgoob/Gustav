@@ -11,7 +11,7 @@ import CryptoKit
 
 /// AppleAuthProvider의 역할
 /// 1) Apple 로그인 UI를 띄웁니다.
-/// 2) 성공하면 idToken + raw nonce + (email/fullName)을 반환합니다.
+/// 2) 성공하면 idToken + raw nonce + authorizationCode + (email/fullName)을 반환합니다.
 /// 3) 실패하면 AppleAuthError로 통일해서 던집니다.
 ///
 /// nonce가 왜 필요하냐?
@@ -110,6 +110,12 @@ extension AppleAuthProvider: ASAuthorizationControllerDelegate {
             return
         }
 
+        // authorizationCode(Data -> String) 변환
+        let authorizationCode: String? = {
+            guard let codeData = credential.authorizationCode else { return nil }
+            return String(data: codeData, encoding: .utf8)
+        }()
+
         // 최초 로그인 시에만 내려올 수 있음
         let email = credential.email
 
@@ -125,6 +131,7 @@ extension AppleAuthProvider: ASAuthorizationControllerDelegate {
         let result = AppleIDTokenResult(
             idToken: idToken,
             nonce: nonce,
+            authorizationCode: authorizationCode,
             email: email,
             fullName: fullName
         )

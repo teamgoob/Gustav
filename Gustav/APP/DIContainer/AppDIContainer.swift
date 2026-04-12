@@ -32,6 +32,10 @@ final class AppDIContainer: AppDIContainerProtocol  {
         self.presentationAnchorProvider = presentationAnchorProvider
     }
     
+    func handleAuthCallback(_ url: URL) async throws {
+        try await supabaseClient.auth.session(from: url)
+    }
+    
     
     
     // MARK: - App Flow Factory
@@ -60,6 +64,13 @@ final class AppDIContainer: AppDIContainerProtocol  {
     // Auth Supabase
     private lazy var authSupabase: AuthDataSourceProtocol = {
         AuthSupabase(client: supabaseClient)
+    }()
+    // Apple account link datasource
+    private lazy var appleAccountLinkDataSource: AppleAccountLinkDataSourceProtocol = {
+        AppleAccountLinkDataSource(
+            client: supabaseClient,
+            baseURL: AppEnvironment.supabaseFunctionsURL
+        )
     }()
     // Profile Supabase
     private lazy var profileSupabase: ProfileDataSourceProtocol = {
@@ -119,7 +130,13 @@ final class AppDIContainer: AppDIContainerProtocol  {
     }()
     // Auth Session Repository
     private lazy var authSessionRepository: AuthSessionRepositoryProtocol = {
-        AuthSessionRepository(appleAuthProvider: appleAuthProvider, authDataSource: authSupabase, profileDataSource: profileSupabase, presentationAnchorProvider: presentationAnchorProvider)
+        AuthSessionRepository(
+            appleAuthProvider: appleAuthProvider,
+            authDataSource: authSupabase,
+            appleAccountLinkDataSource: appleAccountLinkDataSource,
+            profileDataSource: profileSupabase,
+            presentationAnchorProvider: presentationAnchorProvider
+        )
     }()
     // Profile Repository
     private lazy var profileRepository: ProfileRepositoryProtocol = {

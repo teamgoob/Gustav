@@ -12,6 +12,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
     // 테스트용 Coordinator 강한 참조
     var coordinator: AppCoordinator?
+    // 딥링크 인증 콜백 처리용 컨테이너 참조
+    var appDIContainer: AppDIContainer?
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         // Use this method to optionally configure and attach the UIWindow `window` to the provided UIWindowScene `scene`.
@@ -27,6 +29,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         
         // AppDIContainer 생성
         let appDIContainer = AppDIContainer(presentationAnchorProvider: { window })
+        self.appDIContainer = appDIContainer
         // AppCoordinator 생성
         let appCoordinator = AppCoordinator(navigationController: navigationController, container: appDIContainer)
         // Coordinator 생명 주기 보장
@@ -40,6 +43,15 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // 화면 표시
         self.window = window
         window.makeKeyAndVisible()
+        
+        if let url = connectionOptions.urlContexts.first?.url {
+            handleIncomingURL(url)
+        }
+    }
+
+    func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
+        guard let url = URLContexts.first?.url else { return }
+        handleIncomingURL(url)
     }
 
     func sceneDidDisconnect(_ scene: UIScene) {
@@ -73,3 +85,22 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
 }
 
+private extension SceneDelegate {
+    func handleIncomingURL(_ url: URL) {
+        guard url.scheme == "gustav",
+              url.host == "auth",
+              url.path == "/callback",
+              let appDIContainer else {
+            return
+        }
+
+        Task { @MainActor in
+            do {
+                try await appDIContainer.handleAuthCallback(url)
+                NotificationCenter.default.post(name: .login, object: nil)
+            } catch {
+                print("Failed to handle auth callback URL:", error)
+            }
+        }
+    }
+}

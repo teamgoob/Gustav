@@ -27,7 +27,7 @@ enum AuthInputError: Equatable {
     case emptyEmail                         // 빈 이메일
     case emptyPassword                      // 빈 비밀번호
     case passwordTooShort(minLength: Int)   // 비밀번호 최소 길이
-    case passwordMissingSpecialCharacter    // 비밀번호 특수문자
+    case passwordMissingLetterOrDigit       // 비밀번호 영문/숫자 조합
     case emptyRepeatPassword
     case passwordMismatch
 }

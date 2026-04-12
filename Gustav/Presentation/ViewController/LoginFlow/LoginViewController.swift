@@ -97,9 +97,9 @@ private extension LoginViewController {
         
         let isLoading: Bool
         switch output.isLoading {
-        case .loading:
+        case .loading(let text):
             isLoading = true
-            rootView.loadingView.startLoading(with: "Signing In...")
+            rootView.loadingView.startLoading(with: text)
         case .notLoading:
             isLoading = false
             rootView.loadingView.stopLoading()

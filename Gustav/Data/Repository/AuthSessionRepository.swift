@@ -25,6 +25,8 @@ import AuthenticationServices
 /// - 화면 전환 / UI 업데이트 : ViewModel / Coordinator가 한다
 final class AuthSessionRepository: AuthSessionRepositoryProtocol {
 
+    
+
     /// Apple 로그인 UI를 띄우고 결과(idToken/nonce/email/fullName)를 받아오는 역할
     /// - 구현체는 AppleAuthProvider
     private let appleAuthProvider: AppleAuthProviding
@@ -32,6 +34,9 @@ final class AuthSessionRepository: AuthSessionRepositoryProtocol {
     /// Supabase Auth를 호출해서 실제 “세션 발급”을 받는 역할
     /// - 구현체는 AuthSupabase
     private let authDataSource: AuthDataSourceProtocol
+
+    /// Apple 계정 연결/탈퇴용 서버 엔드포인트 호출
+    private let appleAccountLinkDataSource: AppleAccountLinkDataSourceProtocol
 
     /// profiles 테이블을 읽고/쓰는 역할(프로필 upsert 포함)
     /// - 구현체는 ProfileSupabase
@@ -45,11 +50,13 @@ final class AuthSessionRepository: AuthSessionRepositoryProtocol {
     init(
         appleAuthProvider: AppleAuthProviding,
         authDataSource: AuthDataSourceProtocol,
+        appleAccountLinkDataSource: AppleAccountLinkDataSourceProtocol,
         profileDataSource: ProfileDataSourceProtocol,
         presentationAnchorProvider: @escaping () -> ASPresentationAnchor
     ) {
         self.appleAuthProvider = appleAuthProvider
         self.authDataSource = authDataSource
+        self.appleAccountLinkDataSource = appleAccountLinkDataSource
         self.profileDataSource = profileDataSource
         self.presentationAnchorProvider = presentationAnchorProvider
     }
@@ -79,10 +86,7 @@ final class AuthSessionRepository: AuthSessionRepositoryProtocol {
         case .success(let token):
 
             // 3) Apple에서 받은 idToken + nonce를 Supabase로 보내서 세션을 발급받습니다.
-            let authResult = await authDataSource.authenticateWithApple(
-                idToken: token.idToken,
-                nonce: token.nonce
-            )
+            let authResult = await authenticateApple(token, requiresLinkRegistration: true)
 
             switch authResult {
             case .failure(let e):
@@ -206,16 +210,144 @@ final class AuthSessionRepository: AuthSessionRepositoryProtocol {
     // MARK: - 회원탈퇴
     /// Edge Function 등으로 “현재 로그인한 유저”를 서버에서 삭제합니다.
     func withdraw() async -> DomainResult<Void> {
-        let result = await authDataSource.withdrawCurrentUser()
+        switch authDataSource.currentAuthProvider() {
+        case .apple:
+            return await withdrawAppleAccount()
+        case .email, .unknown:
+            let result = await authDataSource.withdrawCurrentUser()
 
-        switch result {
-        case .success:
-            return .success(())
-
-        case .failure(let e):
-            return .failure(e.mapToDomainError())
+            switch result {
+            case .success:
+                return .success(())
+            case .failure(let e):
+                return .failure(e.mapToDomainError())
+            }
         }
     }
+
+    // MARK: - Apple 회원탈퇴
+    /// 1) 서버에 저장된 Apple refresh token으로 revoke를 먼저 시도하고
+    /// 2) revoke가 불가능한 상태일 때만 Apple 재인증 후 한 번 더 시도한다.
+    private func withdrawAppleAccount() async -> DomainResult<Void> {
+        let initialResult = await appleAccountLinkDataSource.withdrawCurrentAccount()
+
+        switch initialResult {
+        case .success:
+            return .success(())
+        case .failure(let error):
+            guard shouldRetryAppleWithdrawalAfterReauthentication(error) else {
+                return .failure(error.mapToDomainError())
+            }
+        }
+
+        let reauthentication = await reauthenticateWithApple()
+        switch reauthentication {
+        case .success:
+            break
+        case .failure(let error):
+            return .failure(error)
+        }
+
+        let retryResult = await appleAccountLinkDataSource.withdrawCurrentAccount()
+        switch retryResult {
+        case .success:
+            return .success(())
+        case .failure(let error):
+            return .failure(error.mapToDomainError())
+        }
+    }
+
+    private func shouldRetryAppleWithdrawalAfterReauthentication(_ error: RepositoryError) -> Bool {
+        switch error {
+        case .unauthorized,
+             .notFound,
+             .conflict,
+             .sessionNotFound,
+             .invalidCredentials,
+             .unknown:
+            return true
+
+        case .forbidden,
+             .network,
+             .decoding,
+             .misconfigured,
+             .cancelled,
+             .rateLimited,
+             .emailNotVerified:
+            return false
+        }
+    }
+    
+    // MARK: - Apple 재인증
+    /// 현재 로그인 Provider가 Apple인 경우,
+    /// 탈퇴 전에 Apple 로그인을 다시 수행해 인증 상태를 갱신한다.
+    private func reauthenticateWithApple() async -> DomainResult<Void> {
+        let tokenResult = await appleAuthProvider.signIn(
+            presentationAnchor: presentationAnchorProvider()
+        )
+
+        switch tokenResult {
+        case .failure(let appleError):
+            return .failure(appleError.mapToRepositoryError().mapToDomainError())
+
+        case .success(let token):
+            let authResult = await authenticateApple(token, requiresLinkRegistration: true)
+
+            switch authResult {
+            case .success:
+                return .success(())
+            case .failure(let error):
+                return .failure(error.mapToDomainError())
+            }
+        }
+    }
+    
+    func currentAuthProvider() -> AuthProvider {
+        return authDataSource.currentAuthProvider()
+    }
+
+    private func authenticateApple(
+        _ token: AppleIDTokenResult,
+        requiresLinkRegistration: Bool
+    ) async -> RepositoryResult<AuthDTO> {
+        let authResult = await authDataSource.authenticateWithApple(
+            idToken: token.idToken,
+            nonce: token.nonce
+        )
+
+        switch authResult {
+        case .failure:
+            return authResult
+        case .success(let authDTO):
+            let linkResult = await registerAppleAuthorizationCodeIfNeeded(
+                token,
+                required: requiresLinkRegistration
+            )
+
+            switch linkResult {
+            case .success:
+                return .success(authDTO)
+            case .failure(let error):
+                return .failure(error)
+            }
+        }
+    }
+
+    private func registerAppleAuthorizationCodeIfNeeded(
+        _ token: AppleIDTokenResult,
+        required: Bool
+    ) async -> RepositoryResult<Void> {
+        guard let authorizationCode = token.authorizationCode,
+              authorizationCode.isEmpty == false else {
+            return required ? .failure(.invalidCredentials) : .success(())
+        }
+
+        return await appleAccountLinkDataSource.registerAppleAuthorizationCode(
+            authorizationCode: authorizationCode,
+            identityToken: token.idToken
+        )
+    }
+
 }
 
 /*

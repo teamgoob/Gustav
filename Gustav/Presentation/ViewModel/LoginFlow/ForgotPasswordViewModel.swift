@@ -155,7 +155,7 @@ private extension ForgotPasswordViewModel {
         case .emptyPassword,
              .emptyRepeatPassword,
              .passwordTooShort,
-             .passwordMissingSpecialCharacter,
+             .passwordMissingLetterOrDigit,
              .passwordMismatch:
             return nil
         }

@@ -21,6 +21,12 @@ enum AppEnvironment {
         return url
     }
     
+    static var supabaseFunctionsURL: URL {
+        supabaseURL
+            .appendingPathComponent("functions")
+            .appendingPathComponent("v1")
+    }
+    
     
     
     static var supabaseKey: String {

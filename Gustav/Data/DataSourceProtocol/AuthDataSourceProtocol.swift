@@ -27,6 +27,7 @@ protocol AuthDataSourceProtocol {
 
     func signOut() async -> RepositoryResult<Void>
     func withdrawCurrentUser() async -> RepositoryResult<Void>
+    func currentAuthProvider() -> AuthProvider
 
     func currentUserId() -> UUID?
 

@@ -47,6 +47,17 @@ struct DefaultAuthValidator: AuthValidatorProtocol {
             return .passwordTooShort(minLength: minLength)
         }
 
+        let hasLetter = password.unicodeScalars.contains {
+            CharacterSet.letters.contains($0)
+        }
+        let hasDigit = password.unicodeScalars.contains {
+            CharacterSet.decimalDigits.contains($0)
+        }
+
+        if !hasLetter || !hasDigit {
+            return .passwordMissingLetterOrDigit
+        }
+
         return nil
     }
 

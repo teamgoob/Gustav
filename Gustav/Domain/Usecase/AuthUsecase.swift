@@ -51,6 +51,9 @@ protocol AuthUseCaseProtocol {
 
     // 회원탈퇴
     func withdraw() async -> DomainResult<Void>
+    
+    // 현재 인증 provider 조회
+    func currentAuthProvider() -> AuthProvider
 
     // 현재 로그인 유저 id 조회 (동기)
     func currentUserId() -> UUID?
@@ -121,6 +124,11 @@ final class AuthUseCase: AuthUseCaseProtocol {
         await sessionRepository.withdraw()
     }
 
+    
+    func currentAuthProvider() -> AuthProvider {
+        sessionRepository.currentAuthProvider()
+    }
+    
     // MARK: - 현재 로그인 유저 id 조회
     /// - 현재 세션 기반으로 동기적으로 userId를 반환한다.
     func currentUserId() -> UUID? {

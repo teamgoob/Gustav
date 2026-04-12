@@ -183,26 +183,22 @@ private extension AppSettingViewModel {
     
     // 로그아웃 처리
     func handleSignOut() async {
-        // 로딩 중 처리
         isLoading = .loading(for: "Signing Out...")
         notifyOutput()
-        
+
         let result = await authUsecase.signOut()
         switch result {
         case .success:
-            // 로딩 완료 처리
             isLoading = .notLoading
-            // NotificationCenter를 통해 AppCoordinator에 로그아웃 완료 전달
+            notifyOutput()
             NotificationCenter.default.post(name: .logout, object: nil)
         case .failure:
-            // 로딩 완료 처리
             isLoading = .notLoading
-            // 화면 표시
             notifyOutput()
-            // Coordinator에 로그아웃 실패 전달
             onNavigation?(.showAlertToNoticeSignOutFailure)
         }
     }
+
     
     // 현재 상태를 VC에 전달하는 메서드
     func notifyOutput() {
