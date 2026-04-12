@@ -79,28 +79,23 @@ private extension ViewPresetListCoordinator {
     
     func showPresetDetail(presetID: UUID) {
         let presetDetailDIContainer = container.makePresetDetailDIContainer()
+        let context = PresetDetailContext(
+            workspaceId: selectedWorkspaceId,
+            presetId: presetID
+        )
 
-        Task { [weak self] in
-            guard let self else { return }
+        let coordinator = PresetDetailCoordinator(
+            navigationController: navigationController,
+            container: presetDetailDIContainer,
+            context: context
+        )
 
-            let context = await presetDetailDIContainer.makePresetDetailContext(
-                workspaceId: selectedWorkspaceId,
-                presetId: presetID
-            )
-
-            let coordinator = PresetDetailCoordinator(
-                navigationController: navigationController,
-                container: presetDetailDIContainer,
-                context: context
-            )
-
-            coordinator.onFinish = { [weak self] coordinator in
-                self?.removeChild(coordinator)
-            }
-
-            childCoordinators.append(coordinator)
-            coordinator.start()
+        coordinator.onFinish = { [weak self] coordinator in
+            self?.removeChild(coordinator)
         }
+
+        childCoordinators.append(coordinator)
+        coordinator.start()
     }
 
     func showErrorAlert(_ message: String) {

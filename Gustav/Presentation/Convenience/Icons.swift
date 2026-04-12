@@ -82,5 +82,10 @@ struct Icons {
     // Color Circle Icon
     static let colorCircle: UIImage? = UIImage(systemName: "circle.fill")
 
+    static func tagColorCircle(_ color: TagColor?) -> UIImage? {
+        guard let color else { return nil }
+        return colorCircle?.withTintColor(color.toUIColor(), renderingMode: .alwaysOriginal)
+    }
+
     private init() {}
 }

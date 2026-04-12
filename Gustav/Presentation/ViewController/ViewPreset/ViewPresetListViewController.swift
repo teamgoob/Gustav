@@ -53,19 +53,7 @@ private extension ViewPresetListViewController {
         navigationItem.largeTitleDisplayMode = .always
         
         applySubtitle("0 presets")
-        configureNavigationButtons()
         configureToolbar()
-    }
-    
-    func configureNavigationButtons() {
-        let backButton = UIBarButtonItem(
-            image: UIImage(systemName: "chevron.left"),
-            style: .plain,
-            target: self,
-            action: #selector(didTapBack)
-        )
-        navigationItem.leftBarButtonItem = backButton
-        
     }
     
     func configureToolbar() {

@@ -58,6 +58,7 @@ final class PresetAddViewModel {
         struct NamedFilterOption {
             let id: UUID
             let title: String
+            let color: TagColor?
         }
         
         let viewTypeOptions: [ViewTypeOption]
@@ -99,6 +100,8 @@ final class PresetAddViewModel {
     private var categoryNameByID: [UUID: String] = [:]
     private var locationNameByID: [UUID: String] = [:]
     private var itemStateNameByID: [UUID: String] = [:]
+    private var locationColorByID: [UUID: TagColor] = [:]
+    private var itemStateColorByID: [UUID: TagColor] = [:]
     private var hasLoadedWorkspaceContext = false
     
     private var currentName: String = ""
@@ -220,8 +223,14 @@ private extension PresetAddViewModel {
             locationNameByID = Dictionary(
                 uniqueKeysWithValues: workspaceContext.locations.map { ($0.id, $0.name) }
             )
+            locationColorByID = Dictionary(
+                uniqueKeysWithValues: workspaceContext.locations.map { ($0.id, $0.color) }
+            )
             itemStateNameByID = Dictionary(
                 uniqueKeysWithValues: workspaceContext.states.map { ($0.id, $0.name) }
+            )
+            itemStateColorByID = Dictionary(
+                uniqueKeysWithValues: workspaceContext.states.map { ($0.id, $0.color) }
             )
             notifyOutput()
             notifyFilterMenu()
@@ -256,8 +265,8 @@ private extension PresetAddViewModel {
             sortOptions: makeSortOptions(),
             parentCategoryFilters: makeCategoryFilterOptions(from: parentCategories),
             childCategoryFilters: makeCategoryFilterOptions(from: currentChildCategories),
-            locationFilters: makeNamedFilterOptions(from: locationNameByID),
-            itemStateFilters: makeNamedFilterOptions(from: itemStateNameByID),
+            locationFilters: makeNamedFilterOptions(from: locationNameByID, colorByID: locationColorByID),
+            itemStateFilters: makeNamedFilterOptions(from: itemStateNameByID, colorByID: itemStateColorByID),
             currentViewType: currentViewType,
             currentSortOption: currentSortingOption,
             currentParentCategoryID: selectedParentCategoryID,
@@ -416,17 +425,26 @@ private extension PresetAddViewModel {
         categories
             .sorted { $0.indexKey < $1.indexKey }
             .map { category in
-                FilterMenuInfo.NamedFilterOption(id: category.id, title: category.name)
+                FilterMenuInfo.NamedFilterOption(
+                    id: category.id,
+                    title: category.name,
+                    color: category.color
+                )
             }
     }
 
     func makeNamedFilterOptions(
-        from nameByID: [UUID: String]
+        from nameByID: [UUID: String],
+        colorByID: [UUID: TagColor]
     ) -> [FilterMenuInfo.NamedFilterOption] {
         nameByID
             .sorted { $0.value < $1.value }
             .map { key, value in
-                FilterMenuInfo.NamedFilterOption(id: key, title: value)
+                FilterMenuInfo.NamedFilterOption(
+                    id: key,
+                    title: value,
+                    color: colorByID[key]
+                )
             }
     }
     

@@ -47,9 +47,16 @@ final class PresetAddViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupNavigationBar()
+        setupGesture()
         bindViewModel()
         bindActions()
         viewModel.action(.viewDidLoad)
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        // navigationBar 전체 높이 재계산, push 애니메이션 중 inline 형태로 보이는 현상을 줄임
+        navigationController?.navigationBar.sizeToFit()
     }
 }
 
@@ -59,6 +66,7 @@ private extension PresetAddViewController {
     func setupNavigationBar() {
         title = "Add Preset"
         navigationItem.largeTitleDisplayMode = .always
+        // Subtitle 공간 계산을 위해 임시 값으로 Large Subtitle 영역 확보
         applySubtitle("Workspace Name")
         navigationItem.rightBarButtonItem = saveButton
     }
@@ -169,6 +177,7 @@ private extension PresetAddViewController {
         var actions = menuInfo.parentCategoryFilters.map { option in
             UIAction(
                 title: option.title,
+                image: Icons.tagColorCircle(option.color),
                 state: menuInfo.currentParentCategoryID == option.id ? .on : .off
             ) { [weak self] _ in
                 self?.viewModel.action(.selectParentCategoryFilter(option.id))
@@ -201,6 +210,7 @@ private extension PresetAddViewController {
         var actions = menuInfo.childCategoryFilters.map { option in
             UIAction(
                 title: option.title,
+                image: Icons.tagColorCircle(option.color),
                 state: menuInfo.currentChildCategoryID == option.id ? .on : .off
             ) { [weak self] _ in
                 self?.viewModel.action(.selectChildCategoryFilter(option.id))
@@ -233,6 +243,7 @@ private extension PresetAddViewController {
         var actions = menuInfo.locationFilters.map { option in
             UIAction(
                 title: option.title,
+                image: Icons.tagColorCircle(option.color),
                 state: menuInfo.currentLocationID == option.id ? .on : .off
             ) { [weak self] _ in
                 self?.viewModel.action(.selectLocationFilter(option.id))
@@ -265,6 +276,7 @@ private extension PresetAddViewController {
         var actions = menuInfo.itemStateFilters.map { option in
             UIAction(
                 title: option.title,
+                image: Icons.tagColorCircle(option.color),
                 state: menuInfo.currentItemStateID == option.id ? .on : .off
             ) { [weak self] _ in
                 self?.viewModel.action(.selectItemStateFilter(option.id))
@@ -376,7 +388,21 @@ private extension PresetAddViewController {
             UIMenu(options: .displayInline, children: [clearAction])
         ])
     }
-
+    
+    // 키보드 내리기
+    func setupGesture() {
+        let tapGesture = UITapGestureRecognizer(
+            target: self,
+            action: #selector(dismissKeyboard)
+        )
+        tapGesture.cancelsTouchesInView = false
+        view.addGestureRecognizer(tapGesture)
+    }
+    // 키보드 내리기
+    @objc func dismissKeyboard() {
+        view.endEditing(true)
+    }
+    
     // 뒤로 가기 버튼 탭 처리
     @objc func didTapBackButton() {
         viewModel.action(.didTapBack)

@@ -49,10 +49,7 @@ private extension PresetDetailCoordinator {
         
         viewController.onRoute = { [weak self] route in
             switch route {
-            case .showMoreMenu:
-                self?.showMoreMenu()
-                
-            case .showSaveFailureAlert:
+            case .showErrorAlert:
                 break
                 
             case .pop:
@@ -62,27 +59,5 @@ private extension PresetDetailCoordinator {
         }
         
         navigationController.pushViewController(viewController, animated: true)
-    }
-    
-    // More Menu
-    private func showMoreMenu() {
-        let alert = UIAlertController(
-            title: nil,
-            message: nil,
-            preferredStyle: .actionSheet
-        )
-        
-        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel)
-        alert.addAction(cancelAction)
-        
-        if let popoverPresentationController = alert.popoverPresentationController {
-            popoverPresentationController.barButtonItem = currentViewController?.navigationItem.rightBarButtonItem
-        }
-        
-        currentViewController?.present(alert, animated: true)
-    }
-    
-    var currentViewController: UIViewController? {
-        navigationController.topViewController
     }
 }

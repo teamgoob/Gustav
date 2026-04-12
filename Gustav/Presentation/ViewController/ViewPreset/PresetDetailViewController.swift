@@ -48,22 +48,7 @@ private extension PresetDetailViewController {
         navigationItem.largeTitleDisplayMode = .always
         navigationItem.title = ""
         applySubtitle("Workspace Name")
-
-        // 이전 버튼
-        navigationItem.leftBarButtonItem = UIBarButtonItem(
-            image: UIImage(systemName: "chevron.left"),
-            style: .plain,
-            target: self,
-            action: #selector(didTapBack)
-        )
-
-        // ellipsis 버튼
-        navigationItem.rightBarButtonItem = UIBarButtonItem(
-            image: UIImage(systemName: "ellipsis"),
-            style: .plain,
-            target: self,
-            action: #selector(didTapMore)
-        )
+        navigationItem.rightBarButtonItem = makeMenuButton()
     }
 
     func applySubtitle(_ text: String) {
@@ -138,11 +123,9 @@ private extension PresetDetailViewController {
 
     func handleRoute(_ route: PresetDetailViewModel.Route) {
         switch route {
-        case .showMoreMenu:
-            onRoute?(route)
         case .pop:
             onRoute?(route)
-        case .showSaveFailureAlert(let message):
+        case .showErrorAlert(let message):
             let alert = UIAlertController(
                 title: "Error",
                 message: message,
@@ -156,6 +139,35 @@ private extension PresetDetailViewController {
 
 // MARK: - Actions
 private extension PresetDetailViewController {
+    func makeMenuButton() -> UIBarButtonItem {
+        let menuButton = UIBarButtonItem(
+            image: UIImage(systemName: "ellipsis"),
+            style: .plain,
+            target: nil,
+            action: nil
+        )
+        menuButton.menu = makeMoreMenu()
+        return menuButton
+    }
+
+    func makeMoreMenu() -> UIMenu {
+        UIMenu(children: [
+            UIAction(
+                title: "Change Name",
+                image: UIImage(systemName: "square.and.pencil")
+            ) { [weak self] _ in
+                self?.presentChangeNameAlert()
+            },
+            UIAction(
+                title: "Delete Preset",
+                image: UIImage(systemName: "trash"),
+                attributes: .destructive
+            ) { [weak self] _ in
+                self?.presentDeletePresetAlert()
+            }
+        ])
+    }
+
     func makeViewTypeMenu(_ menuInfo: PresetDetailViewModel.FilterMenuInfo) -> UIMenu {
         let actions = menuInfo.viewTypeOptions.map { option in
             UIAction(
@@ -226,6 +238,7 @@ private extension PresetDetailViewController {
         var actions = menuInfo.parentCategoryFilters.map { option in
             UIAction(
                 title: option.title,
+                image: Icons.tagColorCircle(option.color),
                 state: menuInfo.currentParentCategoryID == option.id ? .on : .off
             ) { [weak self] _ in
                 self?.viewModel.action(.selectParentCategoryFilter(option.id))
@@ -253,6 +266,7 @@ private extension PresetDetailViewController {
         var actions = menuInfo.childCategoryFilters.map { option in
             UIAction(
                 title: option.title,
+                image: Icons.tagColorCircle(option.color),
                 state: menuInfo.currentChildCategoryID == option.id ? .on : .off
             ) { [weak self] _ in
                 self?.viewModel.action(.selectChildCategoryFilter(option.id))
@@ -280,6 +294,7 @@ private extension PresetDetailViewController {
         var actions = menuInfo.locationFilters.map { option in
             UIAction(
                 title: option.title,
+                image: Icons.tagColorCircle(option.color),
                 state: menuInfo.currentLocationID == option.id ? .on : .off
             ) { [weak self] _ in
                 self?.viewModel.action(.selectLocationFilter(option.id))
@@ -307,6 +322,7 @@ private extension PresetDetailViewController {
         var actions = menuInfo.itemStateFilters.map { option in
             UIAction(
                 title: option.title,
+                image: Icons.tagColorCircle(option.color),
                 state: menuInfo.currentItemStateID == option.id ? .on : .off
             ) { [weak self] _ in
                 self?.viewModel.action(.selectItemStateFilter(option.id))
@@ -334,7 +350,41 @@ private extension PresetDetailViewController {
         viewModel.action(.didTapBack)
     }
 
-    @objc func didTapMore() {
-        viewModel.action(.didTapMore)
+    func presentChangeNameAlert() {
+        let alert = UIAlertController(
+            title: "Edit Preset Name",
+            message: "Enter a new preset name.",
+            preferredStyle: .alert
+        )
+
+        alert.addTextField { [weak self] textField in
+            textField.placeholder = "Preset name"
+            textField.clearButtonMode = .whileEditing
+            textField.returnKeyType = .done
+            textField.text = self?.navigationItem.title
+        }
+
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        alert.addAction(UIAlertAction(title: "Save", style: .default) { [weak self, weak alert] _ in
+            let newName = alert?.textFields?.first?.text ?? ""
+            self?.viewModel.action(.changeName(newName))
+        })
+
+        present(alert, animated: true)
+    }
+
+    func presentDeletePresetAlert() {
+        let alert = UIAlertController(
+            title: "Delete Preset",
+            message: "Are you sure you want to delete this preset?",
+            preferredStyle: .alert
+        )
+
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        alert.addAction(UIAlertAction(title: "Delete", style: .destructive) { [weak self] _ in
+            self?.viewModel.action(.deletePreset)
+        })
+
+        present(alert, animated: true)
     }
 }

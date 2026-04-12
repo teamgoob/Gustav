@@ -217,11 +217,11 @@ final class ItemAddTextFieldCardView: UIView {
 // MARK: - UITextFieldDelegate
 extension ItemAddTextFieldCardView: UITextFieldDelegate {
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        // 첫 번째 텍스트필드에서 return을 누르면 두 번째 텍스트필드로 포커스 이동
-        if textField == firstTextField {
+        // double 스타일일 때만 첫 번째 텍스트필드에서 두 번째로 포커스를 이동합니다.
+        if style == .double, textField == firstTextField {
             secondTextField.becomeFirstResponder()
         } else {
-            // 두 번째 텍스트필드이거나 single 스타일이면 키보드를 내립니다.
+            // single 스타일이거나 마지막 필드면 키보드를 내립니다.
             textField.resignFirstResponder()
         }
         return true
