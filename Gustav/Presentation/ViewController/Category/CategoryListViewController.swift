@@ -229,7 +229,7 @@ final class CategoryListViewController: UIViewController {
             for: indexPath
         ) as! CategoryListTableViewBasicCell
 
-        let childCategories = viewModel.getChildCategoriesTitle(categoryId: category.id)
+        let childCategories = viewModel.getParentCategoryRouteTitle(categoryId: category.id)
         cell.configure(
             title: category.name,
             tagColor: category.color,

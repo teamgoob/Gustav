@@ -24,7 +24,7 @@ class CategoryListTableViewBasicCell: UITableViewCell {
     
     private let titleLabel: UILabel = {
         let l = UILabel()
-        l.font = .systemFont(ofSize: 16, weight: .semibold)
+        l.font = Fonts.body
         l.textColor = Colors.Text.main
         l.textAlignment = .left
         l.numberOfLines = 1
@@ -33,7 +33,7 @@ class CategoryListTableViewBasicCell: UITableViewCell {
     
     private let childCategoriesLabel: UILabel = {
         let l = UILabel()
-        l.font = .systemFont(ofSize: 14, weight: .regular)
+        l.font = Fonts.caption
         l.textColor = Colors.Text.additionalInfo
         l.textAlignment = .right
         l.numberOfLines = 1
@@ -114,9 +114,11 @@ class CategoryListTableViewBasicCell: UITableViewCell {
         circlefill.tintColor = tagColor.uiColor
         
         if let childCategories {
+            self.titleLabel.font = Fonts.body
             self.childCategoriesLabel.text = childCategories
             self.childCategoriesLabel.isHidden = false
         } else {
+            self.titleLabel.font = Fonts.accent
             self.childCategoriesLabel.text = nil
             self.childCategoriesLabel.isHidden = true
         }
@@ -126,6 +128,7 @@ class CategoryListTableViewBasicCell: UITableViewCell {
     // 재사용 이슈 방지
     override func prepareForReuse() {
         super.prepareForReuse()
+        self.titleLabel.font = Fonts.body
         self.titleLabel.text = nil
         self.childCategoriesLabel.text = nil
     }

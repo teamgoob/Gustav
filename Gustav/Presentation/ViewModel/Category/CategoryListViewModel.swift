@@ -18,11 +18,11 @@ final class CategoryListViewModel {
     private(set) var categories: [Category] = [] {
         didSet {
             emit(.subTitle(categoryCountText()))
-            rebuildChildCategoriesTitle()
+            rebuildParentCategoryRouteTitle()
         }
     }
 
-    private var childCategoriesTitle: [UUID: String] = [:]
+    private var parentCategoriesTitle: [UUID: String] = [:]
     private(set) var editingOrderCategories: [Category] = []
 
     enum State {
@@ -111,16 +111,15 @@ final class CategoryListViewModel {
         "\(categories.count) Categories"
     }
 
-    // 자식 타이틀 구성
-    private func rebuildChildCategoriesTitle() {
-        childCategoriesTitle.removeAll()
-        childCategoriesTitle = Dictionary(
-            uniqueKeysWithValues: categories.map { parentCategory in
-                let titles = categories
-                    .filter { $0.parentId == parentCategory.id }
-                    .map(\.name)
-                    .joined(separator: "/")
-                return (parentCategory.id, titles)
+    // 상윜카테고리 경로 타이틀 생성
+    private func rebuildParentCategoryRouteTitle() {
+        parentCategoriesTitle.removeAll()
+        parentCategoriesTitle = Dictionary(
+            uniqueKeysWithValues: categories.compactMap { category in
+                guard let parent = categories.first(where: { $0.id == category.parentId }) else {
+                    return nil
+                }
+                return (category.id, "\(parent.name) / \(category.name)")
             }
         )
         emit(.childCategoriesLoaded)
@@ -277,8 +276,8 @@ final class CategoryListViewModel {
     }
 
     // 자식 타이틀 조회
-    func getChildCategoriesTitle(categoryId: UUID) -> String? {
-        guard let title = childCategoriesTitle[categoryId], !title.isEmpty else { return nil }
+    func getParentCategoryRouteTitle(categoryId: UUID) -> String? {
+        guard let title = parentCategoriesTitle[categoryId], !title.isEmpty else { return nil }
         return title
     }
 }

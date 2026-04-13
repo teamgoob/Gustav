@@ -145,39 +145,15 @@ final class CategoryDetailViewModel {
     
     // 상위 카테고리로 지정 가능한 카테고리 목록 반환
     func getAllCategories() -> [Category] {
-        allCategories.filter { candidate in
-            candidate.id != self.category.id &&
-            !isDescendant(candidateId: candidate.id, of: self.category.id, categories: allCategories)
-        }
-    }
-    
-    // 하위 카테고리를 노드로 연결하고 현제 카테고리의 하위 노드인지 판단하는 메서드
-    private func isDescendant(candidateId: UUID, of currentId: UUID, categories: [Category] ) -> Bool {
-        var childrenMap: [UUID: [UUID]] = [:]
+        var allCategories = self.allCategories
         
-        // 전체 카테고리를 순회하면서 parent(key): children(value) 구조로 변환
-        for category in categories {
-            if let parentId = category.parentId {                       // 부모카테고리가 존재하면
-                childrenMap[parentId, default: []].append(category.id)  // parentId를 key로, 자식 Id를 배열에 추가
-            }
-        }
-
-        // 현재 카테고리의 직접 자식부터 작업 스택에 추가
-        var stack: [UUID] = childrenMap[currentId] ?? []
-
-        // 탐색할 노드가 남아있는 동안 반복
-        while !stack.isEmpty {
-            let node = stack.removeLast()   // 스택 배열에 마지막 요소 변수에 복사 후 삭제
-
-            // candidateId가 current의 하위 노드라면 true
-            if node == candidateId {
-                return true
-            }
-
-            stack.append(contentsOf: childrenMap[node] ?? [])   // 현재 탐색 중인 node의 하위 카테고리들을 stack 배열에 추가
-        }
-
-        return false    // 하위 노드 아님
+        // 본인 제거
+        allCategories.removeAll { $0.id == self.category.id }
+        
+        // 하위 카테고리 제거 (상위 카테고리를 가지고 있는 카테고리 제거)
+        allCategories.removeAll { $0.parentId != nil }
+        
+        return allCategories
     }
     
     // TableView DataSource: 사용할 아이템 갯수
