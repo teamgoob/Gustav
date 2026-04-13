@@ -333,4 +333,9 @@ extension CategoryListViewController: UITableViewDelegate {
         guard editorMode == .viewing, editingStyle == .delete else { return }
         viewModel.action(.deleteCategory(at: indexPath.row))
     }
+    
+    // editing mode에서 왼쪽 insert/delete 버튼 공간 제거
+    func tableView(_ tableView: UITableView, shouldIndentWhileEditingRowAt indexPath: IndexPath) -> Bool {
+        false
+    }
 }
