@@ -147,6 +147,10 @@ final class CategoryDetailViewModel {
     func getAllCategories() -> [Category] {
         var allCategories = self.allCategories
         
+        // 하위 카테고리가 존재할 경우 상위 카테고리 선택 불가능
+        guard hasChildren(categories: allCategories) else {
+            return []
+        }
         // 본인 제거
         allCategories.removeAll { $0.id == self.category.id }
         
@@ -154,6 +158,14 @@ final class CategoryDetailViewModel {
         allCategories.removeAll { $0.parentId != nil }
         
         return allCategories
+    }
+    
+    // 하위 카테고리가 존재하는지 체크
+    private func hasChildren(categories: [Category]) -> Bool {
+        if !categories.filter({$0.parentId == self.category.id}).isEmpty {
+            return false
+        }
+        return true
     }
     
     // TableView DataSource: 사용할 아이템 갯수
