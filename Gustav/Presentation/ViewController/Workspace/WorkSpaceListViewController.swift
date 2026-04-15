@@ -76,6 +76,7 @@ final class WorkSpaceListViewController: UIViewController {
     private func configureTableView() {
         contentView.tableView.dataSource = self
         contentView.tableView.delegate = self
+        contentView.tableView.keyboardDismissMode = .onDrag
         contentView.tableView.register(
             WorkSpaceTableViewBasicCell.self,
             forCellReuseIdentifier: WorkSpaceTableViewBasicCell.reuseID
