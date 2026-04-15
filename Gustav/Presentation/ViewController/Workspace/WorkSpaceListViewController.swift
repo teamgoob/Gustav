@@ -13,7 +13,8 @@ final class WorkSpaceListViewController: UIViewController {
     private let loadingView = LoadingView()
     private let viewModel: WorkSpaceListViewModel
     private var editorMode: EditorMode = .viewing
-
+    private var activeTextField: UITextField?   // 현재 작업중인 텍스트필드 추적
+    
     private enum EditorMode {
         case viewing
         case renaming
@@ -29,13 +30,20 @@ final class WorkSpaceListViewController: UIViewController {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
     }
-
+    
+    // Deinit
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+        print("WorkSpaceListViewController deinit")
+    }
+    
     // 첫 진입
     override func viewDidLoad() {
         super.viewDidLoad()
         configureView()
         configureTableView()
         bindViewModel()
+        setupKeyboardObservers()
         viewModel.action(.viewDidLoad)
     }
 
@@ -252,7 +260,7 @@ final class WorkSpaceListViewController: UIViewController {
             withIdentifier: WorkspaceNameEditingCell.reuseID,
             for: indexPath
         ) as! WorkspaceNameEditingCell
-
+        cell.nameTextField.delegate = self
         cell.configure(title: workspace.name, updatedAt: workspace.updatedAt)
         cell.onTextChanged = { [weak self, weak tableView, weak cell] newText in
             guard let self,
@@ -281,6 +289,15 @@ final class WorkSpaceListViewController: UIViewController {
         cell.configure(title: workspace.name)
         return cell
     }
+    
+//    private func setupKeyboardDismissGesture() {
+//        let tapGesture = UITapGestureRecognizer(
+//            target: self,
+//            action: #selector(dismissKeyboard)
+//        )
+//        tapGesture.cancelsTouchesInView = false
+//        contentView.tableView.addGestureRecognizer(tapGesture)
+//    }
 }
 
 // MARK: - OBJC 메서드
@@ -309,6 +326,10 @@ extension WorkSpaceListViewController {
             updateEditorMode(.viewing)
         }
     }
+//    
+//    @objc private func dismissKeyboard() {
+//        view.endEditing(true)
+//    }
 }
 
 // MARK: - UITableViewDataSource
@@ -369,5 +390,76 @@ extension WorkSpaceListViewController: UITableViewDelegate {
         editingStyleForRowAt indexPath: IndexPath
     ) -> UITableViewCell.EditingStyle {
         .none
+    }
+}
+
+extension WorkSpaceListViewController: UITextFieldDelegate {
+    
+    func textFieldDidBeginEditing(_ textField: UITextField) {
+        activeTextField = textField
+    }
+    
+    func textFieldDidEndEditing(_ textField: UITextField) {
+        if activeTextField === textField {
+            activeTextField = nil
+        }
+    }
+    
+    func setupKeyboardObservers() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(keyboardWillShow),
+            name: UIResponder.keyboardWillShowNotification,
+            object: nil
+        )
+        
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(keyboardWillHide),
+            name: UIResponder.keyboardWillHideNotification,
+            object: nil
+        )
+    }
+    
+    @objc func keyboardWillShow(_ notification: Notification) {
+        guard
+            let userInfo = notification.userInfo,
+            let keyboardFrame = userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect,
+            let duration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double
+        else { return }
+        
+        let keyboardFrameInView = view.convert(keyboardFrame, from: nil)
+        let bottomInset = keyboardFrameInView.height - view.safeAreaInsets.bottom
+        
+        UIView.animate(withDuration: duration) {
+            self.contentView.tableView.contentInset.bottom = bottomInset
+            self.contentView.tableView.verticalScrollIndicatorInsets.bottom = bottomInset
+        }
+        
+        scrollActiveFieldIfNeeded(keyboardFrameInView: keyboardFrameInView)
+    }
+    
+    @objc func keyboardWillHide(_ notification: Notification) {
+        guard
+            let userInfo = notification.userInfo,
+            let duration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double
+        else { return }
+        
+        UIView.animate(withDuration: duration) {
+            self.contentView.tableView.contentInset.bottom = 0
+            self.contentView.tableView.verticalScrollIndicatorInsets.bottom = 0
+        }
+    }
+    
+    func scrollActiveFieldIfNeeded(keyboardFrameInView: CGRect) {
+        guard let activeTextField else { return }
+        
+        // textField의 bounds를 tableView 좌표계로 변환
+        let textFieldFrameInTableView = activeTextField.convert(activeTextField.bounds, to: contentView.tableView)
+        
+        // 조금 여유 공간을 주기 위해 inset 추가
+        let targetRect = textFieldFrameInTableView.insetBy(dx: 0, dy: -20)
+        
+        contentView.tableView.scrollRectToVisible(targetRect, animated: true)
     }
 }
