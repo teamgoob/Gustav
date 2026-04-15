@@ -199,12 +199,12 @@ extension PresetDetailViewModel {
             notifyFilterMenu()
 
         case .clearSortOption:
-            currentSortingOption = nil
+            currentSortingOption = .updatedAt(order: .descending)
             notifyOutput()
             notifyFilterMenu()
 
         case .clearSortOrder:
-            currentSortingOption = nil
+            currentSortingOption = .updatedAt(order: .descending)
             notifyOutput()
             notifyFilterMenu()
 
@@ -320,8 +320,8 @@ private extension PresetDetailViewModel {
             title: preset.name,
             workspaceName: workspaceName,
             viewType: mapViewTypeToText(currentViewType),
-            sortingOption: mapSortingOptionToText(currentSortingOption),
-            sortingOrder: mapSortingOrderToText(currentSortingOption),
+            sortingOption: mapSortingOptionToText(currentSortingOption ?? .updatedAt(order: .descending)),
+            sortingOrder: mapSortingOrderToText(currentSortingOption ?? .updatedAt(order: .descending)),
             category: selectedParentCategoryID.flatMap { categoryNameByID[$0] },
             subcategory: selectedChildCategoryID.flatMap { categoryNameByID[$0] },
             showsSubcategory: currentChildCategories.isEmpty == false,
@@ -345,7 +345,7 @@ private extension PresetDetailViewModel {
             locationFilters: makeNamedFilterOptions(from: locationNameByID, colorByID: locationColorByID),
             itemStateFilters: makeNamedFilterOptions(from: itemStateNameByID, colorByID: itemStateColorByID),
             currentViewType: currentViewType,
-            currentSortOption: currentSortingOption,
+            currentSortOption: currentSortingOption ?? .updatedAt(order: .descending),
             currentParentCategoryID: selectedParentCategoryID,
             currentChildCategoryID: selectedChildCategoryID,
             currentLocationID: selectedLocationID,
@@ -556,7 +556,7 @@ private extension PresetDetailViewModel {
     }
 
     func updatePreset() async throws {
-        let currentSortingOption = currentSortingOption ?? .indexKey(order: .ascending)
+        let currentSortingOption = currentSortingOption ?? .updatedAt(order: .descending)
 
         let updatedPreset = ViewPreset(
             id: preset.id,
@@ -590,7 +590,7 @@ private extension PresetDetailViewModel {
             workspaceId: workspaceId,
             name: "",
             viewType: 0,
-            sortingOption: .indexKey(order: .ascending),
+            sortingOption: .updatedAt(order: .descending),
             filters: [],
             createdAt: nil,
             updatedAt: nil
@@ -598,7 +598,9 @@ private extension PresetDetailViewModel {
     }
 
     static func normalizedSortingOption(_ sortingOption: SortingOption) -> SortingOption? {
-        guard sortingOption.sortingOptionCase != .indexKey else { return nil }
+        guard sortingOption.sortingOptionCase != .indexKey else {
+            return .updatedAt(order: .descending)
+        }
         return sortingOption
     }
 

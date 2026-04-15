@@ -11,6 +11,8 @@ import Foundation
 extension Notification.Name {
     // 로그인 이벤트
     static let login = Notification.Name("Gustav.Notification.Name.login")
+    // 비밀번호 recovery 링크 진입 이벤트
+    static let passwordRecovery = Notification.Name("Gustav.Notification.Name.passwordRecovery")
     // 로그아웃 이벤트
     static let logout = Notification.Name("Gustav.Notification.Name.logout")
     // 회원 탈퇴 이벤트

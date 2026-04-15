@@ -229,6 +229,7 @@ private extension ItemDetailViewController {
             .map { category in
                 UIAction(
                     title: category.name,
+                    image: Icons.tagColorCircle(category.color),
                     state: output.selectedParentCategoryID == category.id ? .on : .off
                 ) { [weak self] _ in
                     self?.viewModel.action(.selectParentCategory(category.id))
@@ -258,6 +259,7 @@ private extension ItemDetailViewController {
             .map { category in
                 UIAction(
                     title: category.name,
+                    image: Icons.tagColorCircle(category.color),
                     state: output.selectedChildCategoryID == category.id ? .on : .off
                 ) { [weak self] _ in
                     self?.viewModel.action(.selectChildCategory(category.id))
@@ -287,6 +289,7 @@ private extension ItemDetailViewController {
             .map { itemState in
                 UIAction(
                     title: itemState.name,
+                    image: Icons.tagColorCircle(itemState.color),
                     state: output.selectedItemStateID == itemState.id ? .on : .off
                 ) { [weak self] _ in
                     self?.viewModel.action(.selectItemState(id: itemState.id, name: itemState.name))
@@ -316,6 +319,7 @@ private extension ItemDetailViewController {
             .map { location in
                 UIAction(
                     title: location.name,
+                    image: Icons.tagColorCircle(location.color),
                     state: output.selectedLocationID == location.id ? .on : .off
                 ) { [weak self] _ in
                     self?.viewModel.action(.selectLocation(id: location.id, name: location.name))

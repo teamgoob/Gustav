@@ -1,29 +1,26 @@
 //
-//  ForgotPasswordView.swift
+//  ResetPasswordView.swift
 //  Gustav
 //
-//  Created by kaeun on 3/13/26.
+//  Created by Kaeun on 2026/4/15.
 //
-
 
 import UIKit
 import SnapKit
 
-class ForgotPasswordView: UIView {
-    
-    // MARK: - UI
-    
+final class ResetPasswordView: UIView {
+
     private let cardView = UIView()
     private let scrollView = UIScrollView()
     private let headerStack = UIStackView()
     private let formStack = UIStackView()
-    
-    let emailInputView = AuthInputFieldView(kind: .email)
-    
-    // 이메일 보내기 버튼
-    let SendEmailButton: UIButton = {
+
+    let passwordInputView = AuthInputFieldView(kind: .password)
+    let repeatPasswordInputView = AuthInputFieldView(kind: .repeatPassword)
+
+    let submitButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Send verification mail", for: .normal)
+        button.setTitle("Update password", for: .normal)
         button.setTitleColor(.white, for: .normal)
         button.titleLabel?.font = Fonts.headline
         button.backgroundColor = Colors.Theme.primary
@@ -32,33 +29,32 @@ class ForgotPasswordView: UIView {
         return button
     }()
 
-
-    // Title
     private let titleLabel: UILabel = {
-        let lb = UILabel()
-        lb.text = "E-mail Verification"
-        lb.font = Fonts.largeTitle
-        lb.textAlignment = .left
-        lb.textColor = .label
-        lb.numberOfLines = 0
-        return lb
+        let label = UILabel()
+        label.text = "Reset password"
+        label.font = Fonts.largeTitle
+        label.textAlignment = .left
+        label.textColor = .label
+        label.numberOfLines = 0
+        return label
     }()
-    
-    // Description
-    private let DescriptionLabel: UILabel = {
-        let lb = UILabel()
-        lb.text = """
-        Please enter your registered email address.
-        We’ll send a verification mail to the address.
+
+    private let descriptionLabel: UILabel = {
+        let label = UILabel()
+        label.text = """
+        Enter your new password below.
+        Use at least 8 characters with letters and digits.
         """
-        lb.font = Fonts.body
-        lb.textAlignment = .left
-        lb.textColor = .label
-        lb.numberOfLines = 0
-        return lb
+        label.font = Fonts.body
+        label.textAlignment = .left
+        label.textColor = .label
+        label.numberOfLines = 0
+        return label
     }()
-    
-    // MARK: - Init
+
+    var passwordTextField: UITextField { passwordInputView.textField }
+    var repeatPasswordTextField: UITextField { repeatPasswordInputView.textField }
+
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupUI()
@@ -72,20 +68,13 @@ class ForgotPasswordView: UIView {
     }
 }
 
-
-private extension ForgotPasswordView {
-
-    // UI 구성
+private extension ResetPasswordView {
     func setupUI() {
-        
         backgroundColor = Colors.Theme.mainBackground
 
-        // 카드 스타일
         cardView.backgroundColor = Colors.Theme.cardBackground
         cardView.layer.cornerRadius = 24
         cardView.layer.masksToBounds = true
-
-        // 카드 내부 패딩
         cardView.layoutMargins = UIEdgeInsets(top: 100, left: 16, bottom: 16, right: 16)
 
         scrollView.alwaysBounceVertical = false
@@ -94,12 +83,12 @@ private extension ForgotPasswordView {
         headerStack.axis = .vertical
         headerStack.alignment = .fill
         headerStack.distribution = .fill
-        headerStack.spacing = 32
+        headerStack.spacing = 24
 
         formStack.axis = .vertical
         formStack.alignment = .fill
         formStack.distribution = .fill
-        formStack.spacing = 12
+        formStack.spacing = 14
 
         addSubview(cardView)
         cardView.addSubview(scrollView)
@@ -107,15 +96,14 @@ private extension ForgotPasswordView {
         scrollView.addSubview(headerStack)
 
         headerStack.addArrangedSubview(titleLabel)
-        headerStack.addArrangedSubview(DescriptionLabel)
+        headerStack.addArrangedSubview(descriptionLabel)
 
-        formStack.addArrangedSubview(emailInputView)
-        formStack.addArrangedSubview(SendEmailButton)
+        formStack.addArrangedSubview(passwordInputView)
+        formStack.addArrangedSubview(repeatPasswordInputView)
+        formStack.addArrangedSubview(submitButton)
     }
 
-    // Layout 설정
     func setupLayout() {
-
         cardView.snp.makeConstraints {
             $0.top.equalTo(self.safeAreaLayoutGuide)
             $0.bottom.equalTo(self.safeAreaLayoutGuide).inset(10)
@@ -137,9 +125,26 @@ private extension ForgotPasswordView {
             make.bottom.equalTo(keyboardLayoutGuide.snp.top).offset(-60)
         }
 
-        // 버튼 높이 고정
-        SendEmailButton.snp.makeConstraints { make in
+        submitButton.snp.makeConstraints { make in
             make.height.equalTo(56)
         }
+    }
+}
+
+extension ResetPasswordView {
+    func updatePasswordError(_ message: String?) {
+        passwordInputView.updateError(message)
+    }
+
+    func updateRepeatPasswordError(_ message: String?) {
+        repeatPasswordInputView.updateError(message)
+    }
+
+    func updateSubmitButton(isEnabled: Bool, isLoading: Bool) {
+        submitButton.isEnabled = isEnabled
+        submitButton.alpha = isEnabled ? 1.0 : 0.5
+
+        let title = isLoading ? "Updating..." : "Update password"
+        submitButton.setTitle(title, for: .normal)
     }
 }

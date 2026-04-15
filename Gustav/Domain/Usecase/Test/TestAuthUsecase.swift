@@ -18,6 +18,10 @@ final class TestAuthUsecase: AuthUseCaseProtocol {
         return .failure(.unknown)
 
     }
+
+    func updatePassword(newPassword: String) async -> DomainResult<Void> {
+        return .failure(.unknown)
+    }
     
     func restoreSession() async -> DomainResult<AuthSession?> {
         return .failure(.unknown)

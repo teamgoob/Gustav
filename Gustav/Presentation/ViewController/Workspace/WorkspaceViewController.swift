@@ -235,6 +235,8 @@ private extension WorkspaceViewController {
         
         // 테이블 뷰 데이터가 준비된 후 테이블 뷰 표시
         customView.tableView.isHidden = false
+        // 하단 툴바 높이만큼 테이블 뷰 스크롤 범위 추가
+        customView.tableView.contentInset.bottom = bottomToolbar.frame.height + 16
     }
     
     // MARK: - 정렬 / 필터 / 프리셋 적용 메뉴 생성
@@ -539,6 +541,11 @@ private extension WorkspaceViewController {
                 // 키보드 위치 기준으로 설정
                 $0.bottom.equalTo(view.keyboardLayoutGuide.snp.top).offset(-16)
             }
+            // 테이블 뷰 제약 조건 변경
+            customView.tableView.snp.remakeConstraints {
+                $0.top.leading.trailing.equalToSuperview()
+                $0.bottom.equalTo(view.keyboardLayoutGuide.snp.top).offset(-16)
+            }
             // 아이템 추가 버튼의 아이콘 변경
             addItemButton.image = UIImage(systemName: "xmark")
             // 애니메이션 적용
@@ -550,6 +557,11 @@ private extension WorkspaceViewController {
             bottomToolbar.snp.remakeConstraints {
                 $0.leading.trailing.equalToSuperview().inset(8)
                 $0.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom)
+            }
+            // 테이블 뷰 제약 조건 변경
+            // 테이블 뷰 제약 조건 변경
+            customView.tableView.snp.remakeConstraints {
+                $0.edges.equalToSuperview()
             }
             // 텍스트 입력 여부에 따라 아이템 추가 버튼의 아이콘 변경
             if let text = searchBar.searchTextField.text, !text.isEmpty {

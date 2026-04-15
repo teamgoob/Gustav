@@ -45,8 +45,8 @@ enum SortingOption: Codable {
         case .expireDate: return "Expiration Date"
         case .price: return "Price"
         case .quantity: return "Quantity"
-        case .createdAt: return "Created Date"
-        case .updatedAt: return "Last Modified Date"
+        case .createdAt: return "Created at"
+        case .updatedAt: return "Updated at"
         }
     }
     
