@@ -14,7 +14,9 @@ class ForgotPasswordView: UIView {
     // MARK: - UI
     
     private let cardView = UIView()
-    private let contentStack = UIStackView()
+    private let scrollView = UIScrollView()
+    private let headerStack = UIStackView()
+    private let formStack = UIStackView()
     
     let emailInputView = AuthInputFieldView(kind: .email)
     
@@ -86,24 +88,29 @@ private extension ForgotPasswordView {
         // 카드 내부 패딩
         cardView.layoutMargins = UIEdgeInsets(top: 100, left: 16, bottom: 16, right: 16)
 
-        // StackView 설정
-        contentStack.axis = .vertical
-        contentStack.alignment = .fill
-        contentStack.distribution = .fill
-        contentStack.spacing = 16
+        scrollView.alwaysBounceVertical = false
+        scrollView.showsVerticalScrollIndicator = false
+
+        headerStack.axis = .vertical
+        headerStack.alignment = .fill
+        headerStack.distribution = .fill
+        headerStack.spacing = 32
+
+        formStack.axis = .vertical
+        formStack.alignment = .fill
+        formStack.distribution = .fill
+        formStack.spacing = 12
 
         addSubview(cardView)
-        addSubview(contentStack)
+        cardView.addSubview(scrollView)
+        cardView.addSubview(formStack)
+        scrollView.addSubview(headerStack)
 
-        // StackView 내부 구성
-        contentStack.addArrangedSubview(titleLabel)
-        contentStack.addArrangedSubview(DescriptionLabel)
-        
-        // 아래 간격 추가
-        contentStack.setCustomSpacing(300, after: DescriptionLabel)
-        
-        contentStack.addArrangedSubview(emailInputView)
-        contentStack.addArrangedSubview(SendEmailButton)
+        headerStack.addArrangedSubview(titleLabel)
+        headerStack.addArrangedSubview(DescriptionLabel)
+
+        formStack.addArrangedSubview(emailInputView)
+        formStack.addArrangedSubview(SendEmailButton)
     }
 
     // Layout 설정
@@ -115,9 +122,19 @@ private extension ForgotPasswordView {
             $0.horizontalEdges.equalToSuperview().inset(22)
         }
 
-        // 스택은 카드 margin 기준으로 꽉 채움
-        contentStack.snp.makeConstraints { make in
-            make.edges.equalTo(cardView.layoutMarginsGuide)
+        scrollView.snp.makeConstraints { make in
+            make.top.leading.trailing.equalTo(cardView.layoutMarginsGuide)
+            make.bottom.equalTo(formStack.snp.top).offset(-24)
+        }
+
+        headerStack.snp.makeConstraints { make in
+            make.edges.equalTo(scrollView.contentLayoutGuide)
+            make.width.equalTo(scrollView.frameLayoutGuide)
+        }
+
+        formStack.snp.makeConstraints { make in
+            make.leading.trailing.equalTo(cardView.layoutMarginsGuide)
+            make.bottom.equalTo(keyboardLayoutGuide.snp.top).offset(-60)
         }
 
         // 버튼 높이 고정

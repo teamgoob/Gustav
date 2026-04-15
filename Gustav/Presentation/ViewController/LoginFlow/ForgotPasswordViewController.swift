@@ -39,14 +39,12 @@ final class ForgotPasswordViewController: UIViewController {
         super.viewDidLoad()
 
         setupNavigation()
+        setupDelegate()
         bindViewModel()
         bindActions()
         bindInput()
         setupGesture()
-        
-        Task {
-            await viewModel.action(input: .updateEmail(""))
-        }
+        apply(viewModel.getCurrentOutput())
     }
 }
 
@@ -76,6 +74,12 @@ private extension ForgotPasswordViewController {
             action: #selector(didTapSendEmail),
             for: .touchUpInside
         )
+    }
+
+    func setupDelegate() {
+        rootView.emailInputView.textField.delegate = self
+        rootView.emailInputView.textField.returnKeyType = .send
+        rootView.emailInputView.textField.enablesReturnKeyAutomatically = true
     }
 
     // MARK: - Input Binding
@@ -110,6 +114,8 @@ private extension ForgotPasswordViewController {
     // MARK: - Actions
     @objc
     func didTapSendEmail() {
+        view.endEditing(true)
+
         Task {
             await viewModel.action(input: .tapSendVerificationMail)
         }
@@ -162,5 +168,17 @@ private extension ForgotPasswordViewController {
         })
 
         present(alert, animated: true)
+    }
+}
+
+extension ForgotPasswordViewController: UITextFieldDelegate {
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        textField.resignFirstResponder()
+
+        if rootView.SendEmailButton.isEnabled {
+            didTapSendEmail()
+        }
+
+        return true
     }
 }
