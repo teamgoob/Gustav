@@ -77,7 +77,7 @@ final class AuthSupabase: AuthDataSourceProtocol {
             let response = try await client.auth.signUp(
                 email: email,
                 password: password,
-                redirectTo: URL(string: "gustav://auth/callback")!
+                redirectTo: AppEnvironment.authCallbackURL
             )
 
             // 가입 응답에서 session은 있을 수도, 없을 수도 있습니다.
@@ -112,7 +112,22 @@ final class AuthSupabase: AuthDataSourceProtocol {
     // MARK: - 비밀번호 재설정 메일 발송
     func resetPassword(email: String) async -> RepositoryResult<Void> {
         do {
-            try await client.auth.resetPasswordForEmail(email)
+            try await client.auth.resetPasswordForEmail(
+                email,
+                redirectTo: AppEnvironment.passwordResetURL
+            )
+            return .success(())
+        } catch {
+            return .failure(Self.mapError(error))
+        }
+    }
+
+    // MARK: - recovery 세션 비밀번호 갱신
+    func updatePassword(newPassword: String) async -> RepositoryResult<Void> {
+        do {
+            _ = try await client.auth.update(
+                user: UserAttributes(password: newPassword)
+            )
             return .success(())
         } catch {
             return .failure(Self.mapError(error))

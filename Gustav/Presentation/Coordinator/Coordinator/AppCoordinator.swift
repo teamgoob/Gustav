@@ -32,6 +32,7 @@ final class AppCoordinator: BaseCoordinator {
     
     // MARK: - Properties
     private let container: AppDIContainer
+    private var didResolveInitialRouteExternally = false
     
     // MARK: - Initializer
     init(
@@ -57,6 +58,7 @@ private extension AppCoordinator {
     func routeInitialFlow() {
         Task { @MainActor in
             let result = await container.authUsecase.restoreSession()
+            guard !didResolveInitialRouteExternally else { return }
 
             switch result {
             case .success(let session):
@@ -80,6 +82,13 @@ private extension AppCoordinator {
             name: .login,
             object: nil
         )
+
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handlePasswordRecovery),
+            name: .passwordRecovery,
+            object: nil
+        )
         
         NotificationCenter.default.addObserver(
             self,
@@ -99,14 +108,37 @@ private extension AppCoordinator {
     // 로그인 이벤트 처리
     @objc
     func handleLogin() {
+        didResolveInitialRouteExternally = true
         removeAllChildren()
         navigationController.setViewControllers([], animated: false)
         showWorkspaceListFlow()
+    }
+
+    // recovery 링크로 진입한 경우 reset 화면부터 시작
+    @objc
+    func handlePasswordRecovery() {
+        didResolveInitialRouteExternally = true
+        removeAllChildren()
+        navigationController.setViewControllers([], animated: false)
+
+        let coordinator = AuthCoordinator(
+            navigationController: navigationController,
+            container: container.makeAuthDIContainer()
+        )
+
+        coordinator.onFinish = { [weak self] child in
+            self?.removeChild(child)
+        }
+
+        addChild(coordinator)
+        coordinator.start()
+        coordinator.showResetPassword()
     }
     
     // 로그아웃 이벤트 처리
     @objc
     func handleLogout() {
+        didResolveInitialRouteExternally = true
         removeAllChildren()
         navigationController.setViewControllers([], animated: false)
         showAuthFlow()
@@ -115,6 +147,7 @@ private extension AppCoordinator {
     // 회원 탈퇴 이벤트 처리
     @objc
     func handleDeleteAccount() {
+        didResolveInitialRouteExternally = true
         removeAllChildren()
         navigationController.setViewControllers([], animated: false)
         showAuthFlow()

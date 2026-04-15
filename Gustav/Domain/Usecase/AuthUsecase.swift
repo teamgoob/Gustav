@@ -46,6 +46,9 @@ protocol AuthUseCaseProtocol {
     // 비밀번호 재설정 메일 발송
     func resetPassword(email: String) async -> DomainResult<Void>
 
+    // recovery 세션에서 새 비밀번호로 갱신
+    func updatePassword(newPassword: String) async -> DomainResult<Void>
+
     // 로그아웃
     func signOut() async -> DomainResult<Void>
 
@@ -110,6 +113,11 @@ final class AuthUseCase: AuthUseCaseProtocol {
     /// - 인증 상태는 변경하지 않는다.
     func resetPassword(email: String) async -> DomainResult<Void> {
         await sessionRepository.resetPassword(email: email)
+    }
+
+    // MARK: - recovery 세션 비밀번호 갱신
+    func updatePassword(newPassword: String) async -> DomainResult<Void> {
+        await sessionRepository.updatePassword(newPassword: newPassword)
     }
 
     // MARK: - 로그아웃

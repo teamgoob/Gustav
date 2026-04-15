@@ -89,14 +89,24 @@ private extension SceneDelegate {
     func handleIncomingURL(_ url: URL) {
         guard url.scheme == "gustav",
               url.host == "auth",
-              url.path == "/callback",
               let appDIContainer else {
             return
         }
 
+        let isPasswordRecovery = isPasswordRecoveryURL(url)
+        let isSupportedPath = url.path == "/callback" || url.path == "/reset-password"
+
+        guard isSupportedPath || isPasswordRecovery else { return }
+
         Task { @MainActor in
             do {
                 try await appDIContainer.handleAuthCallback(url)
+
+                if isPasswordRecovery {
+                    NotificationCenter.default.post(name: .passwordRecovery, object: nil)
+                    return
+                }
+
                 let restoreResult = await appDIContainer.authUsecase.restoreSession()
 
                 if case .success(let session) = restoreResult, session != nil {
@@ -106,5 +116,29 @@ private extension SceneDelegate {
                 print("Failed to handle auth callback URL:", error)
             }
         }
+    }
+
+    func isPasswordRecoveryURL(_ url: URL) -> Bool {
+        if url.path == "/reset-password" {
+            return true
+        }
+
+        return authType(from: url) == "recovery"
+    }
+
+    func authType(from url: URL) -> String? {
+        guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
+            return nil
+        }
+
+        if let queryValue = components.queryItems?.first(where: { $0.name == "type" })?.value {
+            return queryValue
+        }
+
+        guard let fragment = components.fragment else { return nil }
+
+        var fragmentComponents = URLComponents()
+        fragmentComponents.query = fragment
+        return fragmentComponents.queryItems?.first(where: { $0.name == "type" })?.value
     }
 }

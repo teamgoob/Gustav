@@ -207,6 +207,18 @@ final class AuthSessionRepository: AuthSessionRepositoryProtocol {
         }
     }
 
+    // MARK: - recovery 세션 비밀번호 갱신
+    func updatePassword(newPassword: String) async -> DomainResult<Void> {
+        let result = await authDataSource.updatePassword(newPassword: newPassword)
+
+        switch result {
+        case .success:
+            return .success(())
+        case .failure(let error):
+            return .failure(error.mapToDomainError())
+        }
+    }
+
     // MARK: - 회원탈퇴
     /// Edge Function 등으로 “현재 로그인한 유저”를 서버에서 삭제합니다.
     func withdraw() async -> DomainResult<Void> {

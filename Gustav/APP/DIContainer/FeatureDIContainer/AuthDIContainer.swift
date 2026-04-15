@@ -13,6 +13,7 @@ protocol AuthDIContainerProtocol {
     func makeLoginViewModel() -> LoginViewModel
     func makeEmailSignUpViewModel() -> EmailSignUpViewModel
     func makeForgotPasswordViewModel() -> ForgotPasswordViewModel
+    func makeResetPasswordViewModel() -> ResetPasswordViewModel
 }
 
 // MARK: - AuthDIContainer
@@ -42,6 +43,12 @@ final class AuthDIContainer: AuthDIContainerProtocol {
     
     func makeForgotPasswordViewModel() -> ForgotPasswordViewModel {
         ForgotPasswordViewModel(
+            authUseCase: appDIContainer.authUsecase
+        )
+    }
+
+    func makeResetPasswordViewModel() -> ResetPasswordViewModel {
+        ResetPasswordViewModel(
             authUseCase: appDIContainer.authUsecase
         )
     }

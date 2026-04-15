@@ -15,6 +15,8 @@ protocol AuthCoordinatorProtocol: Coordinator {
     func showEmailSignUp()
     // 비밀번호 찾기 화면 표시
     func showForgotPassword()
+    // recovery 링크 이후 새 비밀번호 입력 화면 표시
+    func showResetPassword()
     // 현재 화면 pop
     func pop()
 }
@@ -76,6 +78,13 @@ final class AuthCoordinator: BaseCoordinator, AuthCoordinatorProtocol {
         
         navigationController.pushViewController(viewController, animated: true)
 
+    }
+
+    func showResetPassword() {
+        let viewModel = container.makeResetPasswordViewModel()
+        let viewController = ResetPasswordViewController(viewModel: viewModel)
+
+        navigationController.pushViewController(viewController, animated: true)
     }
     
     func pop() {
