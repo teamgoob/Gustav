@@ -122,13 +122,22 @@ final class AppDIContainer: AppDIContainerProtocol  {
     private lazy var locationCache: LocationCache = {
         LocationCache()
     }()
+    private lazy var sessionCacheCleaner: SessionCacheCleaning = {
+        SessionCacheCleaner(
+            workspaceCache: workspaceCache,
+            categoryCache: categoryCache,
+            itemStateCache: itemStateCache,
+            locationCache: locationCache
+        )
+    }()
     
     // MARK: - Repository
     // Auth Flow Repository
     private lazy var authFlowRepository: AuthFlowRepositoryProtocol = {
         AuthFlowRepository(
             authDataSource: authSupabase,
-            profileDataSource: profileSupabase
+            profileDataSource: profileSupabase,
+            sessionCacheCleaner: sessionCacheCleaner
         )
     }()
     // Auth Session Repository
@@ -138,7 +147,8 @@ final class AppDIContainer: AppDIContainerProtocol  {
             authDataSource: authSupabase,
             appleAccountLinkDataSource: appleAccountLinkDataSource,
             profileDataSource: profileSupabase,
-            presentationAnchorProvider: presentationAnchorProvider
+            presentationAnchorProvider: presentationAnchorProvider,
+            sessionCacheCleaner: sessionCacheCleaner
         )
     }()
     // Profile Repository

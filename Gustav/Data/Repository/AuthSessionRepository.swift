@@ -46,19 +46,22 @@ final class AuthSessionRepository: AuthSessionRepositoryProtocol {
     /// - Repository가 UIKit을 직접 다루지 않게 하려고
     /// - window(anchor)를 “함수로 주입받는 방식”을 씁니다.
     private let presentationAnchorProvider: () -> ASPresentationAnchor
+    private let sessionCacheCleaner: SessionCacheCleaning
 
     init(
         appleAuthProvider: AppleAuthProviding,
         authDataSource: AuthDataSourceProtocol,
         appleAccountLinkDataSource: AppleAccountLinkDataSourceProtocol,
         profileDataSource: ProfileDataSourceProtocol,
-        presentationAnchorProvider: @escaping () -> ASPresentationAnchor
+        presentationAnchorProvider: @escaping () -> ASPresentationAnchor,
+        sessionCacheCleaner: SessionCacheCleaning
     ) {
         self.appleAuthProvider = appleAuthProvider
         self.authDataSource = authDataSource
         self.appleAccountLinkDataSource = appleAccountLinkDataSource
         self.profileDataSource = profileDataSource
         self.presentationAnchorProvider = presentationAnchorProvider
+        self.sessionCacheCleaner = sessionCacheCleaner
     }
 
     // MARK: - Apple 로그인 (가입/로그인 통합)
@@ -222,19 +225,27 @@ final class AuthSessionRepository: AuthSessionRepositoryProtocol {
     // MARK: - 회원탈퇴
     /// Edge Function 등으로 “현재 로그인한 유저”를 서버에서 삭제합니다.
     func withdraw() async -> DomainResult<Void> {
+        let result: DomainResult<Void>
+
         switch authDataSource.currentAuthProvider() {
         case .apple:
-            return await withdrawAppleAccount()
+            result = await withdrawAppleAccount()
         case .email, .unknown:
-            let result = await authDataSource.withdrawCurrentUser()
+            let withdrawResult = await authDataSource.withdrawCurrentUser()
 
-            switch result {
+            switch withdrawResult {
             case .success:
-                return .success(())
+                result = .success(())
             case .failure(let e):
-                return .failure(e.mapToDomainError())
+                result = .failure(e.mapToDomainError())
             }
         }
+
+        if case .success = result {
+            await sessionCacheCleaner.clearAll()
+        }
+
+        return result
     }
 
     // MARK: - Apple 회원탈퇴

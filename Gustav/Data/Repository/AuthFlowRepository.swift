@@ -7,6 +7,36 @@
 import Foundation
 import Combine
 
+protocol SessionCacheCleaning {
+    func clearAll() async
+}
+
+final class SessionCacheCleaner: SessionCacheCleaning {
+    private let workspaceCache: WorkspaceCache
+    private let categoryCache: CategoryCache
+    private let itemStateCache: ItemStateCache
+    private let locationCache: LocationCache
+
+    init(
+        workspaceCache: WorkspaceCache,
+        categoryCache: CategoryCache,
+        itemStateCache: ItemStateCache,
+        locationCache: LocationCache
+    ) {
+        self.workspaceCache = workspaceCache
+        self.categoryCache = categoryCache
+        self.itemStateCache = itemStateCache
+        self.locationCache = locationCache
+    }
+
+    func clearAll() async {
+        await workspaceCache.clear()
+        await categoryCache.clearAll()
+        await itemStateCache.clearAll()
+        await locationCache.clearAll()
+    }
+}
+
 /// AuthFlowRepository의 역할
 /// - "앱 시작 이후의 인증 상태 흐름"을 관리하는 Repository
 /// - 세션 복구, 로그아웃과 같이
@@ -26,13 +56,16 @@ final class AuthFlowRepository: AuthFlowRepositoryProtocol {
     /// Supabase 세션 관련 호출을 담당하는 DataSource
     private let authDataSource: AuthDataSourceProtocol
     private let profileDataSource: ProfileDataSourceProtocol
+    private let sessionCacheCleaner: SessionCacheCleaning
 
     init(
         authDataSource: AuthDataSourceProtocol,
-        profileDataSource: ProfileDataSourceProtocol
+        profileDataSource: ProfileDataSourceProtocol,
+        sessionCacheCleaner: SessionCacheCleaning
     ) {
         self.authDataSource = authDataSource
         self.profileDataSource = profileDataSource
+        self.sessionCacheCleaner = sessionCacheCleaner
     }
 
     /// 앱 시작 시 호출되는 세션 복구 함수
@@ -79,6 +112,7 @@ final class AuthFlowRepository: AuthFlowRepositoryProtocol {
 
         switch result {
         case .success:
+            await sessionCacheCleaner.clearAll()
             return .success(())
 
         case .failure(let e):
