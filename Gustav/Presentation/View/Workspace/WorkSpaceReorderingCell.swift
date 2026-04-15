@@ -24,8 +24,9 @@ class WorkSpaceReorderingCell: UITableViewCell {
     
     private let titleLabel: UILabel = {
         let l = UILabel()
-        l.font = .systemFont(ofSize: 16, weight: .semibold)
+        l.font = Fonts.body
         l.textColor = Colors.Text.main
+        l.font = Fonts.body
         l.textAlignment = .center
         l.numberOfLines = 1
         return l

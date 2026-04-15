@@ -18,7 +18,6 @@ class WorkSpaceListView: UIView {
         let header = UIView()
         header.backgroundColor = Colors.Theme.mainBackground
 
-//        profileImage.image = UIImage(systemName: "person.crop.circle")
         profileImage.backgroundColor = Colors.Theme.mainBackground
         profileImage.tintColor = Colors.Theme.inactive
         profileImage.contentMode = .scaleAspectFill
@@ -26,7 +25,7 @@ class WorkSpaceListView: UIView {
         profileImage.clipsToBounds = true
 
         nameLabel.text = "Gustav"
-        nameLabel.font = .systemFont(ofSize: 28, weight: .bold)
+        nameLabel.font = Fonts.headline
         nameLabel.textAlignment = .center
         nameLabel.textColor = Colors.Text.main
 

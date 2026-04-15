@@ -27,14 +27,14 @@ class WorkspaceNameEditingCell: UITableViewCell {
     
     let nameTextField: UITextField = {
         let tf = UITextField()
-        tf.font = .systemFont(ofSize: 16, weight: .semibold)
+        tf.font = Fonts.body
         tf.textColor = Colors.Text.main
         tf.textAlignment = .center
         tf.returnKeyType = .done
         return tf
     }()
     
-    let clearButton: UIButton = {
+    private let clearButton: UIButton = {
         let btn = UIButton(type: .system)
         btn.setImage(UIImage(systemName: "xmark.circle.fill"), for: .normal)
         btn.tintColor = Colors.Theme.inactive
@@ -43,7 +43,7 @@ class WorkspaceNameEditingCell: UITableViewCell {
     
     private let updatedLabel: UILabel = {
         let l = UILabel()
-        l.font = .systemFont(ofSize: 12, weight: .regular)
+        l.font = Fonts.caption
         l.textColor = Colors.Text.additionalInfo
         l.textAlignment = .right
         l.numberOfLines = 1

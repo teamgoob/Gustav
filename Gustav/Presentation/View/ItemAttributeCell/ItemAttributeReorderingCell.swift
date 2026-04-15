@@ -25,7 +25,7 @@ class ItemAttributeReorderingCell: UITableViewCell {
     
     private let titleLabel: UILabel = {
         let l = UILabel()
-        l.font = .systemFont(ofSize: 16, weight: .semibold)
+        l.font = Fonts.body
         l.textColor = Colors.Text.main
         l.textAlignment = .left
         l.numberOfLines = 1

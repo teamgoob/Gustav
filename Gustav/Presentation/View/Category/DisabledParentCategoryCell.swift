@@ -17,7 +17,7 @@ class DisabledParentCategoryCell: UITableViewCell {
     
     private let titleLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(ofSize: 14, weight: .semibold)
+        label.font = Fonts.additional
         label.textColor = Colors.Text.additionalInfo
         label.text = "No categories available to select"
         label.textAlignment = .center
