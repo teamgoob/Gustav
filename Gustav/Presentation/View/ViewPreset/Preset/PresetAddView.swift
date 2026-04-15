@@ -125,8 +125,8 @@ final class PresetAddView: UIView {
     ) {
         nameCardView.setFirstText(name)
         viewTypeRow.configure(title: "Display Style", value: viewType)
-        sortByRow.configure(title: "Sort By", value: sortingOption ?? "None")
-        sortOrderRow.configure(title: "Sort Order", value: sortingOrder ?? "None")
+        sortByRow.configure(title: "Sort By", value: sortingOption ?? "Updated at")
+        sortOrderRow.configure(title: "Sort Order", value: sortingOrder ?? "Descending order")
         categoryRow.configure(title: "Category", value: category ?? "None")
         subcategoryRow.configure(title: "Subcategory", value: subcategory ?? "None")
         subcategoryRow.isHidden = !showsSubcategory

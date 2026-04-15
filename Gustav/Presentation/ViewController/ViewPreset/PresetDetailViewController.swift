@@ -182,6 +182,13 @@ private extension PresetDetailViewController {
     }
     
     func makeSortByMenu(_ menuInfo: PresetDetailViewModel.FilterMenuInfo) -> UIMenu {
+        let isDefaultSort: Bool
+        if case .updatedAt(order: .descending)? = menuInfo.currentSortOption {
+            isDefaultSort = true
+        } else {
+            isDefaultSort = false
+        }
+
         let actions = menuInfo.sortOptions.map { option in
             UIAction(
                 title: option.toText(),
@@ -193,7 +200,7 @@ private extension PresetDetailViewController {
         
         let clearAction = UIAction(
             title: "Clear Sort By",
-            attributes: menuInfo.currentSortOption == nil ? [.disabled] : [.destructive]
+            attributes: isDefaultSort ? [.disabled] : [.destructive]
         ) { [weak self] _ in
             self?.viewModel.action(.clearSortOption)
         }
@@ -205,17 +212,22 @@ private extension PresetDetailViewController {
     }
     
     func makeSortOrderMenu(_ menuInfo: PresetDetailViewModel.FilterMenuInfo) -> UIMenu {
-        let referenceSortOption = menuInfo.currentSortOption ?? .name(order: .ascending)
+        let isDefaultSort: Bool
+        if case .updatedAt(order: .descending)? = menuInfo.currentSortOption {
+            isDefaultSort = true
+        } else {
+            isDefaultSort = false
+        }
+
+        let referenceSortOption = menuInfo.currentSortOption ?? .updatedAt(order: .descending)
         let ascending = UIAction(
             title: referenceSortOption.orderToText(isAscending: true),
-            attributes: menuInfo.currentSortOption == nil ? [.disabled] : [],
             state: menuInfo.currentSortOption?.order == .ascending ? .on : .off
         ) { [weak self] _ in
             self?.viewModel.action(.selectSortOrder(.ascending))
         }
         let descending = UIAction(
             title: referenceSortOption.orderToText(isAscending: false),
-            attributes: menuInfo.currentSortOption == nil ? [.disabled] : [],
             state: menuInfo.currentSortOption?.order == .descending ? .on : .off
         ) { [weak self] _ in
             self?.viewModel.action(.selectSortOrder(.descending))
@@ -223,7 +235,7 @@ private extension PresetDetailViewController {
         
         let clearAction = UIAction(
             title: "Clear Sort Order",
-            attributes: menuInfo.currentSortOption == nil ? [.disabled] : [.destructive]
+            attributes: isDefaultSort ? [.disabled] : [.destructive]
         ) { [weak self] _ in
             self?.viewModel.action(.clearSortOrder)
         }

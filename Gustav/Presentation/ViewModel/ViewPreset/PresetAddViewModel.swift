@@ -106,7 +106,7 @@ final class PresetAddViewModel {
     
     private var currentName: String = ""
     private var currentViewType: Int = 0
-    private var currentSortingOption: SortingOption?
+    private var currentSortingOption: SortingOption? = .updatedAt(order: .descending)
     private var selectedParentCategoryID: UUID?
     private var selectedChildCategoryID: UUID?
     private var selectedLocationID: UUID?
@@ -167,12 +167,12 @@ extension PresetAddViewModel {
             notifyFilterMenu()
             
         case .clearSortOption:
-            currentSortingOption = nil
+            currentSortingOption = .updatedAt(order: .descending)
             notifyOutput()
             notifyFilterMenu()
             
         case .clearSortOrder:
-            currentSortingOption = nil
+            currentSortingOption = .updatedAt(order: .descending)
             notifyOutput()
             notifyFilterMenu()
             
@@ -478,9 +478,9 @@ private extension PresetAddViewModel {
         }
         
         // 정렬 옵션을 아직 선택하지 않았다면
-        // 기본값으로 indexKey 오름차순을 사용합니다.
-        let sortingOption = currentSortingOption ?? .indexKey(order: .ascending)
-        
+        // 기본값으로 updatedAt 내림차순을 사용합니다.
+        let sortingOption = currentSortingOption ?? .updatedAt(order: .descending)
+
         // 저장 작업은 비동기로 처리합니다.
         // [weak self]를 사용해서 ViewModel이 해제되어야 할 때
         // Task가 self를 강하게 잡고 있지 않도록 합니다.
