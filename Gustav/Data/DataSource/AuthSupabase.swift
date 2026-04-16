@@ -1,4 +1,3 @@
-
 import Foundation
 import Supabase
 
@@ -25,7 +24,7 @@ final class AuthSupabase: AuthDataSourceProtocol {
         guard let session = client.auth.currentSession else {
             return .failure(.sessionNotFound)
         }
-        return .success(Self.mapAuthDTO(session, provider: ProviderString.unknown))
+        return .success(Self.mapAuthDTO(session, provider: Self.providerString(from: session)))
     }
 
     // MARK: - 세션 조회(검증 + 필요 시 refresh)
@@ -33,7 +32,7 @@ final class AuthSupabase: AuthDataSourceProtocol {
     func validSession() async -> RepositoryResult<AuthDTO?> {
         do {
             let session: Session = try await client.auth.session
-            return .success(Self.mapAuthDTO(session, provider: ProviderString.unknown))
+            return .success(Self.mapAuthDTO(session, provider: Self.providerString(from: session)))
         } catch {
             let repoError = Self.mapError(error)
 
@@ -75,7 +74,11 @@ final class AuthSupabase: AuthDataSourceProtocol {
     // MARK: - 이메일 회원가입
     func signUpWithEmail(email: String, password: String) async -> RepositoryResult<EmailSignUpOutcomeDTO> {
         do {
-            let response = try await client.auth.signUp(email: email, password: password)
+            let response = try await client.auth.signUp(
+                email: email,
+                password: password,
+                redirectTo: AppEnvironment.authCallbackURL
+            )
 
             // 가입 응답에서 session은 있을 수도, 없을 수도 있습니다.
             // - session != nil : 가입과 동시에 로그인 완료
@@ -109,7 +112,22 @@ final class AuthSupabase: AuthDataSourceProtocol {
     // MARK: - 비밀번호 재설정 메일 발송
     func resetPassword(email: String) async -> RepositoryResult<Void> {
         do {
-            try await client.auth.resetPasswordForEmail(email)
+            try await client.auth.resetPasswordForEmail(
+                email,
+                redirectTo: AppEnvironment.passwordResetURL
+            )
+            return .success(())
+        } catch {
+            return .failure(Self.mapError(error))
+        }
+    }
+
+    // MARK: - recovery 세션 비밀번호 갱신
+    func updatePassword(newPassword: String) async -> RepositoryResult<Void> {
+        do {
+            _ = try await client.auth.update(
+                user: UserAttributes(password: newPassword)
+            )
             return .success(())
         } catch {
             return .failure(Self.mapError(error))
@@ -126,6 +144,8 @@ final class AuthSupabase: AuthDataSourceProtocol {
         }
     }
 
+
+
     // MARK: - 회원탈퇴 (Edge Function)
     /// Edge Function을 호출해서 "현재 로그인 유저"를 삭제합니다.
     /// - 클라이언트는 service_role을 절대 가지면 안 되므로
@@ -133,20 +153,70 @@ final class AuthSupabase: AuthDataSourceProtocol {
     func withdrawCurrentUser() async -> RepositoryResult<Void> {
         do {
             _ = try await client.functions.invoke("delete-user")
+            try await client.auth.signOut()
             return .success(())
         } catch {
             return .failure(Self.mapError(error))
         }
     }
+
     
     // MARK: - 현재 유저 아이디
     func currentUserId() -> UUID? {
         client.auth.currentSession?.user.id
     }
+
+    // MARK: - 현재 유저 이메일
+    func currentUserEmail() -> String? {
+        client.auth.currentSession?.user.email
+    }
+    
+    // MARK: - 현재 인증 Provider
+    /// 현재 세션 기준으로 로그인 Provider를 반환합니다.
+    /// - Apple 로그인: .apple
+    /// - 이메일 로그인: .email
+    /// - 세션이 없거나 판별 불가: .unknown
+    func currentAuthProvider() -> AuthProvider {
+        guard let session = client.auth.currentSession else {
+            return .unknown
+        }
+        
+        return Self.mapAuthProvider(from: session)
+    }
 }
 
 // MARK: - Mapping / Error Parsing
 private extension AuthSupabase {
+    
+    static func mapAuthProvider(from session: Session) -> AuthProvider {
+        switch providerString(from: session) {
+        case ProviderString.apple:
+            return .apple
+        case ProviderString.email:
+            return .email
+        default:
+            return .unknown
+        }
+    }
+    
+    static func providerString(from session: Session) -> String {
+        guard let rawProvider = session.user.appMetadata["provider"] else {
+            return ProviderString.unknown
+        }
+        
+        let provider = String(describing: rawProvider)
+            .replacingOccurrences(of: "\"", with: "")
+            .lowercased()
+        
+        switch provider {
+        case ProviderString.apple:
+            return ProviderString.apple
+        case ProviderString.email:
+            return ProviderString.email
+        default:
+            return ProviderString.unknown
+        }
+    }
 
     /// Supabase Session -> AuthDTO 변환
     static func mapAuthDTO(_ session: Session, provider: String) -> AuthDTO {

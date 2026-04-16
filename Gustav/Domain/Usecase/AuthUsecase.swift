@@ -46,18 +46,25 @@ protocol AuthUseCaseProtocol {
     // 비밀번호 재설정 메일 발송
     func resetPassword(email: String) async -> DomainResult<Void>
 
+    // recovery 세션에서 새 비밀번호로 갱신
+    func updatePassword(newPassword: String) async -> DomainResult<Void>
+
     // 로그아웃
     func signOut() async -> DomainResult<Void>
 
     // 회원탈퇴
     func withdraw() async -> DomainResult<Void>
+    
+    // 현재 인증 provider 조회
+    func currentAuthProvider() -> AuthProvider
 
     // 현재 로그인 유저 id 조회 (동기)
     func currentUserId() -> UUID?
+
 }
 
 final class AuthUseCase: AuthUseCaseProtocol {
-
+    
     /// 세션 복구 / 로그아웃 / 현재 userId 조회를 담당하는 Repository
     /// - “이미 존재하는 세션 기반 흐름” 담당
     private let flowRepository: AuthFlowRepositoryProtocol
@@ -108,6 +115,11 @@ final class AuthUseCase: AuthUseCaseProtocol {
         await sessionRepository.resetPassword(email: email)
     }
 
+    // MARK: - recovery 세션 비밀번호 갱신
+    func updatePassword(newPassword: String) async -> DomainResult<Void> {
+        await sessionRepository.updatePassword(newPassword: newPassword)
+    }
+
     // MARK: - 로그아웃
     /// - 서버 세션 제거 후 전역 로그아웃 Notification을 발행한다.
     func signOut() async -> DomainResult<Void> {
@@ -120,6 +132,11 @@ final class AuthUseCase: AuthUseCaseProtocol {
         await sessionRepository.withdraw()
     }
 
+    
+    func currentAuthProvider() -> AuthProvider {
+        sessionRepository.currentAuthProvider()
+    }
+    
     // MARK: - 현재 로그인 유저 id 조회
     /// - 현재 세션 기반으로 동기적으로 userId를 반환한다.
     func currentUserId() -> UUID? {

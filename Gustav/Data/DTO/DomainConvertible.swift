@@ -104,18 +104,26 @@ extension LocationDTO: DomainConvertible {
 }
 
 // ViewPresetDTO -> ViewPreset 변환 메서드 정의
+//extension ViewPresetDTO: DomainConvertible {
+//    typealias Domain = ViewPreset
+//    func toDomain() -> ViewPreset {
+//        return ViewPreset(
+//            id: self.id,
+//            workspaceId: self.workspaceId,
+//            indexKey: self.indexKey,
+//            name: self.name,
+//            viewType: self.viewType,
+//            sortingOption: self.sortingOption,
+//            filters: self.filters,
+//            createdAt: self.createdAt,
+//            updatedAt: self.updatedAt)
+//    }
+//}
 extension ViewPresetDTO: DomainConvertible {
-    typealias Domain = ViewPreset
+    typealias DomainType = ViewPreset
+
     func toDomain() -> ViewPreset {
-        return ViewPreset(
-            id: self.id,
-            workspaceId: self.workspaceId,
-            name: self.name,
-            viewType: self.viewType,
-            sortingOption: self.sortingOption,
-            filters: self.filters,
-            createdAt: self.createdAt,
-            updatedAt: self.updatedAt)
+        ViewPresetMapper.toEntity(from: self)
     }
 }
 
@@ -137,7 +145,6 @@ extension AuthDTO: DomainConvertible {
     }
 }
 
-
 extension ProfileDTO: DomainConvertible {
     typealias DomainType = Profile
 
@@ -148,7 +155,19 @@ extension ProfileDTO: DomainConvertible {
             email: email,
             isPrivateEmail: isPrivateEmail,
             createdAt: createdAt,
-            updatedAt: updatedAt
+            updatedAt: updatedAt,
+            profileImageUrl: profileImageUrl
+        )
+    }
+}
+
+extension ProfileImageDTO: DomainConvertible {
+    typealias DomainType = ProfileImage
+    
+    func toDomain() -> ProfileImage {
+        ProfileImage(
+            data: data,
+            url: url
         )
     }
 }

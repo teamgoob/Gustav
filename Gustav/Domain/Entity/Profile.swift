@@ -18,4 +18,7 @@ struct Profile: Equatable {
     
     let createdAt: Date // 계정 생성일
     let updatedAt: Date // 사용자 이름 업데이트 시 기준
+    
+    // 프로필 이미지 URL
+    let profileImageUrl: String?
 }

@@ -75,8 +75,7 @@ final class WorkspaceSupabase: WorkspaceDataSourceProtocol {
             // 현재 워크스페이스 목록의 마지막 인덱스 조회
             let lastValue: [WorkspaceDTO] = try await client
                 .from(table)
-                .select("index_key")
-                .eq("user_id", value: userId)
+                .select()
                 .order("index_key", ascending: false)
                 .limit(1)
                 .execute()

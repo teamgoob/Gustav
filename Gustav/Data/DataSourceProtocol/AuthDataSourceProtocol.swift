@@ -24,14 +24,15 @@ protocol AuthDataSourceProtocol {
 
     // 비밀번호 재설정 메일 발송
     func resetPassword(email: String) async -> RepositoryResult<Void>
+    func updatePassword(newPassword: String) async -> RepositoryResult<Void>
 
     func signOut() async -> RepositoryResult<Void>
     func withdrawCurrentUser() async -> RepositoryResult<Void>
+    func currentAuthProvider() -> AuthProvider
 
     func currentUserId() -> UUID?
+    func currentUserEmail() -> String?
 
 }
-
-
 
 

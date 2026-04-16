@@ -11,6 +11,7 @@ import Foundation
 struct ViewPreset {
     let id: UUID                     // 프리셋 ID
     let workspaceId: UUID            // 소속 워크스페이스 ID
+//    let indexKey: Int                // 정렬 순서
     let name: String                 // 프리셋 이름
     let viewType: Int                // 뷰 타입
     let sortingOption: SortingOption // 정렬 기준
@@ -19,18 +20,18 @@ struct ViewPreset {
     let updatedAt: Date?             // 수정 시각
 }
 
-
-extension ViewPreset {
-    func toDTO() -> ViewPresetDTO {
-        return ViewPresetDTO(
-            id: self.id,
-            workspaceId: self.workspaceId,
-            name: self.name,
-            viewType: self.viewType,
-            sortingOption: self.sortingOption,
-            filters: self.filters,
-            createdAt: self.createdAt,
-            updatedAt: self.updatedAt
-        )
-    }
-}
+//
+//extension ViewPreset {
+//    func toDTO() -> ViewPresetDTO {
+//        return ViewPresetDTO(
+//            id: self.id,
+//            workspaceId: self.workspaceId,
+//            name: self.name,
+//            viewType: self.viewType,
+//            sortingOption: self.sortingOption,
+//            filters: self.filters,
+//            createdAt: self.createdAt,
+//            updatedAt: self.updatedAt
+//        )
+//    }
+//}

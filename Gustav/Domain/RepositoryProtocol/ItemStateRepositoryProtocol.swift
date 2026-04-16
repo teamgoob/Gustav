@@ -13,7 +13,7 @@ protocol ItemStateRepositoryProtocol {
     func fetchItemStates(workspaceId: UUID) async -> DomainResult<[ItemState]>
 
     // 워크스페이스 내 단일 아이템 상태 조회
-    func fetchItemState(id: UUID) async -> DomainResult<ItemState>
+    func fetchItemState(id: UUID, workspaceId: UUID) async -> DomainResult<ItemState>
     
     // 아이템 상태 생성
     func createItemState(itemState: ItemState) async -> DomainResult<ItemState>
@@ -22,7 +22,7 @@ protocol ItemStateRepositoryProtocol {
     func updateItemState(id: UUID, itemState: ItemState) async -> DomainResult<Void>
 
     // 아이템 상태 삭제
-    func deleteItemState(id: UUID) async -> DomainResult<Void>
+    func deleteItemState(id: UUID, workspaceId: UUID) async -> DomainResult<Void>
 
     // 아이템 상태 순서 변경
     func reorderItemStates(workspaceId: UUID, order: [UUID]) async -> DomainResult<Void>

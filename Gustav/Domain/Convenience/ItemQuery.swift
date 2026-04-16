@@ -10,9 +10,9 @@ import Foundation
 // MARK: - 아이템 조회 조건
 struct ItemQuery {
     // 정렬 옵션
-    let sortOption: SortingOption?
+    var sortOption: SortingOption?
     // 필터 옵션들
-    let filters: [FilterOption]
+    var filters: [FilterOption]
     // 검색 텍스트
-    let searchText: String?
+    var searchText: String?
 }

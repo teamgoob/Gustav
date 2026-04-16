@@ -1,0 +1,402 @@
+//
+//  PresetDetailViewController.swift
+//  Gustav
+//
+//  Created by kaeun on 3/20/26.
+//
+
+import UIKit
+
+// MARK: - PresetDetailViewController
+final class PresetDetailViewController: UIViewController {
+    
+    // MARK: - Properties
+    private let rootView = PresetDetailView()
+    private let viewModel: PresetDetailViewModel
+    
+    // Coordinator 연결용
+    var onRoute: ((PresetDetailViewModel.Route) -> Void)?
+    
+    // MARK: - Init
+    init(viewModel: PresetDetailViewModel) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    // MARK: - Life Cycle
+    override func loadView() {
+        view = rootView
+    }
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        setupNavigation()
+        bindViewModel()
+        viewModel.action(.viewDidLoad)
+    }
+}
+
+// MARK: - Setup
+private extension PresetDetailViewController {
+    
+    func setupNavigation() {
+        navigationController?.navigationBar.prefersLargeTitles = true
+        navigationItem.largeTitleDisplayMode = .always
+        navigationItem.title = ""
+        applySubtitle("Workspace Name")
+        navigationItem.rightBarButtonItem = makeMenuButton()
+    }
+
+    func applySubtitle(_ text: String) {
+        var largeSubtitle = AttributedString(text)
+        largeSubtitle.font = Fonts.accent
+        largeSubtitle.foregroundColor = Colors.Text.additionalInfo
+        navigationItem.largeAttributedSubtitle = largeSubtitle
+
+        var compactSubtitle = AttributedString(text)
+        compactSubtitle.font = Fonts.additional
+        compactSubtitle.foregroundColor = Colors.Text.additionalInfo
+        navigationItem.attributedSubtitle = compactSubtitle
+    }
+    
+    func bindViewModel() {
+        viewModel.onDisplay = { [weak self] output in
+            self?.apply(output)
+        }
+        
+        viewModel.onFilterMenuChanged = { [weak self] menuInfo in
+            self?.updateFilterMenu(menuInfo)
+        }
+        
+        viewModel.onNavigation = { [weak self] route in
+            self?.handleRoute(route)
+        }
+    }
+}
+
+// MARK: - Render
+private extension PresetDetailViewController {
+    
+    func apply(_ output: PresetDetailViewModel.Output) {
+        navigationItem.title = output.title
+        applySubtitle(output.workspaceName)
+
+        rootView.configure(
+            viewType: output.viewType,
+            sortingOption: output.sortingOption,
+            sortingOrder: output.sortingOrder,
+            category: output.category,
+            subcategory: output.subcategory,
+            showsSubcategory: output.showsSubcategory,
+            location: output.location,
+            itemStatus: output.itemStatus
+        )
+    }
+    
+    func updateFilterMenu(_ menuInfo: PresetDetailViewModel.FilterMenuInfo) {
+        rootView.viewTypeRow.setMenuEnabled(true)
+        rootView.viewTypeRow.menu = makeViewTypeMenu(menuInfo)
+        
+        rootView.sortByRow.setMenuEnabled(true)
+        rootView.sortByRow.menu = makeSortByMenu(menuInfo)
+        
+        rootView.sortOrderRow.setMenuEnabled(true)
+        rootView.sortOrderRow.menu = makeSortOrderMenu(menuInfo)
+        
+        rootView.categoryRow.setMenuEnabled(true)
+        rootView.categoryRow.menu = makeCategoryMenu(menuInfo)
+
+        rootView.subcategoryRow.isHidden = menuInfo.childCategoryFilters.isEmpty
+        rootView.subcategoryRow.setMenuEnabled(menuInfo.childCategoryFilters.isEmpty == false)
+        rootView.subcategoryRow.menu = menuInfo.childCategoryFilters.isEmpty ? nil : makeSubcategoryMenu(menuInfo)
+        
+        rootView.locationRow.setMenuEnabled(true)
+        rootView.locationRow.menu = makeLocationMenu(menuInfo)
+        
+        rootView.itemStatusRow.setMenuEnabled(true)
+        rootView.itemStatusRow.menu = makeItemStatusMenu(menuInfo)
+    }
+
+    func handleRoute(_ route: PresetDetailViewModel.Route) {
+        switch route {
+        case .pop:
+            onRoute?(route)
+        case .showErrorAlert(let message):
+            let alert = UIAlertController(
+                title: "Error",
+                message: message,
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            present(alert, animated: true)
+        }
+    }
+}
+
+// MARK: - Actions
+private extension PresetDetailViewController {
+    func makeMenuButton() -> UIBarButtonItem {
+        let menuButton = UIBarButtonItem(
+            image: UIImage(systemName: "ellipsis"),
+            style: .plain,
+            target: nil,
+            action: nil
+        )
+        menuButton.menu = makeMoreMenu()
+        return menuButton
+    }
+
+    func makeMoreMenu() -> UIMenu {
+        UIMenu(children: [
+            UIAction(
+                title: "Change Name",
+                image: UIImage(systemName: "square.and.pencil")
+            ) { [weak self] _ in
+                self?.presentChangeNameAlert()
+            },
+            UIAction(
+                title: "Delete Preset",
+                image: UIImage(systemName: "trash"),
+                attributes: .destructive
+            ) { [weak self] _ in
+                self?.presentDeletePresetAlert()
+            }
+        ])
+    }
+
+    func makeViewTypeMenu(_ menuInfo: PresetDetailViewModel.FilterMenuInfo) -> UIMenu {
+        let actions = menuInfo.viewTypeOptions.map { option in
+            UIAction(
+                title: option.title,
+                state: menuInfo.currentViewType == option.id ? .on : .off
+            ) { [weak self] _ in
+                self?.viewModel.action(.selectViewType(option.id))
+            }
+        }
+        
+        return UIMenu(children: actions)
+    }
+    
+    func makeSortByMenu(_ menuInfo: PresetDetailViewModel.FilterMenuInfo) -> UIMenu {
+        let isDefaultSort: Bool
+        if case .updatedAt(order: .descending)? = menuInfo.currentSortOption {
+            isDefaultSort = true
+        } else {
+            isDefaultSort = false
+        }
+
+        let actions = menuInfo.sortOptions.map { option in
+            UIAction(
+                title: option.toText(),
+                state: option.sortingOptionCase == menuInfo.currentSortOption?.sortingOptionCase ? .on : .off
+            ) { [weak self] _ in
+                self?.viewModel.action(.selectSortOption(option))
+            }
+        }
+        
+        let clearAction = UIAction(
+            title: "Clear Sort By",
+            attributes: isDefaultSort ? [.disabled] : [.destructive]
+        ) { [weak self] _ in
+            self?.viewModel.action(.clearSortOption)
+        }
+        
+        return UIMenu(children: [
+            UIMenu(options: .displayInline, children: actions),
+            UIMenu(options: .displayInline, children: [clearAction])
+        ])
+    }
+    
+    func makeSortOrderMenu(_ menuInfo: PresetDetailViewModel.FilterMenuInfo) -> UIMenu {
+        let isDefaultSort: Bool
+        if case .updatedAt(order: .descending)? = menuInfo.currentSortOption {
+            isDefaultSort = true
+        } else {
+            isDefaultSort = false
+        }
+
+        let referenceSortOption = menuInfo.currentSortOption ?? .updatedAt(order: .descending)
+        let ascending = UIAction(
+            title: referenceSortOption.orderToText(isAscending: true),
+            state: menuInfo.currentSortOption?.order == .ascending ? .on : .off
+        ) { [weak self] _ in
+            self?.viewModel.action(.selectSortOrder(.ascending))
+        }
+        let descending = UIAction(
+            title: referenceSortOption.orderToText(isAscending: false),
+            state: menuInfo.currentSortOption?.order == .descending ? .on : .off
+        ) { [weak self] _ in
+            self?.viewModel.action(.selectSortOrder(.descending))
+        }
+        
+        let clearAction = UIAction(
+            title: "Clear Sort Order",
+            attributes: isDefaultSort ? [.disabled] : [.destructive]
+        ) { [weak self] _ in
+            self?.viewModel.action(.clearSortOrder)
+        }
+        
+        return UIMenu(children: [
+            UIMenu(options: .displayInline, children: [ascending, descending]),
+            UIMenu(options: .displayInline, children: [clearAction])
+        ])
+    }
+    
+    func makeCategoryMenu(_ menuInfo: PresetDetailViewModel.FilterMenuInfo) -> UIMenu {
+        var actions = menuInfo.parentCategoryFilters.map { option in
+            UIAction(
+                title: option.title,
+                image: Icons.tagColorCircle(option.color),
+                state: menuInfo.currentParentCategoryID == option.id ? .on : .off
+            ) { [weak self] _ in
+                self?.viewModel.action(.selectParentCategoryFilter(option.id))
+            }
+        }
+        
+        if actions.isEmpty {
+            actions = [UIAction(title: "There's no category.", attributes: .disabled) { _ in }]
+        }
+        
+        let clearAction = UIAction(
+            title: "Clear Category",
+            attributes: menuInfo.currentParentCategoryID == nil ? [.disabled] : [.destructive]
+        ) { [weak self] _ in
+            self?.viewModel.action(.selectParentCategoryFilter(nil))
+        }
+        
+        return UIMenu(children: [
+            UIMenu(options: .displayInline, children: actions),
+            UIMenu(options: .displayInline, children: [clearAction])
+        ])
+    }
+
+    func makeSubcategoryMenu(_ menuInfo: PresetDetailViewModel.FilterMenuInfo) -> UIMenu {
+        var actions = menuInfo.childCategoryFilters.map { option in
+            UIAction(
+                title: option.title,
+                image: Icons.tagColorCircle(option.color),
+                state: menuInfo.currentChildCategoryID == option.id ? .on : .off
+            ) { [weak self] _ in
+                self?.viewModel.action(.selectChildCategoryFilter(option.id))
+            }
+        }
+
+        if actions.isEmpty {
+            actions = [UIAction(title: "There's no subcategory.", attributes: .disabled) { _ in }]
+        }
+
+        let clearAction = UIAction(
+            title: "Clear Subcategory",
+            attributes: menuInfo.currentChildCategoryID == nil ? [.disabled] : [.destructive]
+        ) { [weak self] _ in
+            self?.viewModel.action(.selectChildCategoryFilter(nil))
+        }
+
+        return UIMenu(children: [
+            UIMenu(options: .displayInline, children: actions),
+            UIMenu(options: .displayInline, children: [clearAction])
+        ])
+    }
+    
+    func makeLocationMenu(_ menuInfo: PresetDetailViewModel.FilterMenuInfo) -> UIMenu {
+        var actions = menuInfo.locationFilters.map { option in
+            UIAction(
+                title: option.title,
+                image: Icons.tagColorCircle(option.color),
+                state: menuInfo.currentLocationID == option.id ? .on : .off
+            ) { [weak self] _ in
+                self?.viewModel.action(.selectLocationFilter(option.id))
+            }
+        }
+        
+        if actions.isEmpty {
+            actions = [UIAction(title: "There's no location.", attributes: .disabled) { _ in }]
+        }
+        
+        let clearAction = UIAction(
+            title: "Clear Location",
+            attributes: menuInfo.currentLocationID == nil ? [.disabled] : [.destructive]
+        ) { [weak self] _ in
+            self?.viewModel.action(.selectLocationFilter(nil))
+        }
+        
+        return UIMenu(children: [
+            UIMenu(options: .displayInline, children: actions),
+            UIMenu(options: .displayInline, children: [clearAction])
+        ])
+    }
+    
+    func makeItemStatusMenu(_ menuInfo: PresetDetailViewModel.FilterMenuInfo) -> UIMenu {
+        var actions = menuInfo.itemStateFilters.map { option in
+            UIAction(
+                title: option.title,
+                image: Icons.tagColorCircle(option.color),
+                state: menuInfo.currentItemStateID == option.id ? .on : .off
+            ) { [weak self] _ in
+                self?.viewModel.action(.selectItemStateFilter(option.id))
+            }
+        }
+        
+        if actions.isEmpty {
+            actions = [UIAction(title: "There's no Item State.", attributes: .disabled) { _ in }]
+        }
+        
+        let clearAction = UIAction(
+            title: "Clear Item State",
+            attributes: menuInfo.currentItemStateID == nil ? [.disabled] : [.destructive]
+        ) { [weak self] _ in
+            self?.viewModel.action(.selectItemStateFilter(nil))
+        }
+        
+        return UIMenu(children: [
+            UIMenu(options: .displayInline, children: actions),
+            UIMenu(options: .displayInline, children: [clearAction])
+        ])
+    }
+
+    @objc func didTapBack() {
+        viewModel.action(.didTapBack)
+    }
+
+    func presentChangeNameAlert() {
+        let alert = UIAlertController(
+            title: "Edit Preset Name",
+            message: "Enter a new preset name.",
+            preferredStyle: .alert
+        )
+
+        alert.addTextField { [weak self] textField in
+            textField.placeholder = "Preset name"
+            textField.clearButtonMode = .whileEditing
+            textField.returnKeyType = .done
+            textField.text = self?.navigationItem.title
+        }
+
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        alert.addAction(UIAlertAction(title: "Save", style: .default) { [weak self, weak alert] _ in
+            let newName = alert?.textFields?.first?.text ?? ""
+            self?.viewModel.action(.changeName(newName))
+        })
+
+        present(alert, animated: true)
+    }
+
+    func presentDeletePresetAlert() {
+        let alert = UIAlertController(
+            title: "Delete Preset",
+            message: "Are you sure you want to delete this preset?",
+            preferredStyle: .alert
+        )
+
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        alert.addAction(UIAlertAction(title: "Delete", style: .destructive) { [weak self] _ in
+            self?.viewModel.action(.deletePreset)
+        })
+
+        present(alert, animated: true)
+    }
+}

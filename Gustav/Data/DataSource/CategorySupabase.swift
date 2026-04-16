@@ -7,7 +7,7 @@
 import Foundation
 import Supabase
 
-final class SupabaseCategoryRemoteDataSource: CategoryDataSourceProtocol {
+final class CategorySupabase: CategoryDataSourceProtocol {
     // 클라이언트
     private let client: SupabaseClient
     private let table = "categories"

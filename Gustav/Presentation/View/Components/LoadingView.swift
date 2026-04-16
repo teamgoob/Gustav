@@ -1,0 +1,139 @@
+//
+//  LoadingView.swift
+//  Gustav
+//
+//  Created by 최명수 on 2026/3/6.
+//
+
+import UIKit
+import SnapKit
+
+// MARK: - LoadingView
+// 로딩 중 화면
+final class LoadingView: UIView {
+    // MARK: - Properties
+    // 로딩 표시 지연 작업을 위한 WorkItem
+    private var showWorkItem: DispatchWorkItem?
+    // 로딩 표시까지 대기할 시간
+    private let showDelay: TimeInterval = 0.2
+    
+    // MARK: - UI Components
+    // Loading Indicator
+    let loadingIndicator: UIActivityIndicatorView = {
+        let indicator = UIActivityIndicatorView(style: .large)
+        indicator.color = Colors.Theme.primary
+        indicator.hidesWhenStopped = false
+        return indicator
+    }()
+    
+    // 설명 텍스트
+    let descriptionLabel: UILabel = {
+        let label = UILabel()
+        label.font = Fonts.body
+        label.textColor = Colors.Text.main
+        label.textAlignment = .center
+        label.text = "Loading..."
+        return label
+    }()
+    
+    // MARK: - Initializer
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        
+        setupViews()
+        setupConstraints()
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    // MARK: - Setup
+    // 하위 뷰 추가
+    private func setupViews() {
+        backgroundColor = Colors.Theme.mainBackground
+        addSubview(loadingIndicator)
+        addSubview(descriptionLabel)
+    }
+    
+    // 오토레이아웃 설정
+    private func setupConstraints() {
+        loadingIndicator.snp.makeConstraints {
+            $0.center.equalToSuperview()
+        }
+        
+        descriptionLabel.snp.makeConstraints {
+            $0.top.equalTo(loadingIndicator.snp.bottom).offset(20)
+            $0.leading.trailing.equalToSuperview().inset(32)
+        }
+    }
+    
+    // MARK: - Visible / Animation Control
+    func startLoading(with text: String? = nil) {
+        if let text = text {
+            descriptionLabel.text = text
+        }
+        // 이미 예약된 작업이 있다면 취소
+        showWorkItem?.cancel()
+        
+        // 새로운 작업 생성
+        let workItem = DispatchWorkItem { [weak self] in
+            // 로딩 화면 표시
+            self?.isHidden = false
+            // 로딩 인디케이터 활성화
+            self?.loadingIndicator.startAnimating()
+        }
+        
+        // 작업 교체
+        showWorkItem = workItem
+        // showDelay만큼 대기 후 작업 실행
+        DispatchQueue.main.asyncAfter(deadline: .now() + showDelay, execute: workItem)
+    }
+    
+    func stopLoading() {
+        // 로딩 표시 대기 중 로딩이 끝난 경우 표시하지 않음
+        showWorkItem?.cancel()
+        showWorkItem = nil
+        
+        loadingIndicator.stopAnimating()
+        isHidden = true
+    }
+}
+
+/* MARK: - Loading View 사용 방법
+ 
+ // ~ View 파일
+ 
+ // UI Components 선언
+ let loadingView: LoadingView = {
+     let view = LoadingView()
+     // 안내 문구 설정
+     view.descriptionLabel.text = "Loading Settings..."
+     return view
+ }()
+ 
+ override init(frame: CGRect) {
+     super.init(frame: frame)
+     
+     // 하위 뷰 추가
+     addSubview(loadingView)
+     // 제약 조건 설정
+     loadingView.snp.makeConstraints {
+         $0.edges.equalToSuperview()
+     }
+ }
+ 
+ // ~ ViewController 파일
+ 
+ // 로딩 상태에 따라 동작 결정
+ if output.isLoading {
+     customView.loadingView.startLoading()
+ } else {
+     customView.loadingView.stopLoading()
+ }
+ 
+ ************ 추가 ************
+ customView.loadingView.startLoading(with: "Loading Profile...")
+ 위와 같이 사용하여 ViewController에서 로딩 시 표시할 메세지 설정 가능
+ 
+ */
