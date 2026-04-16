@@ -11,6 +11,8 @@ import Foundation
 protocol WorkspaceContextUsecaseProtocol {
     // 워크스페이스 정보 조회 - Category / State / Location 포함
     func fetchContext(workspaceId: UUID) async -> DomainResult<WorkspaceContext>
+    // 현재 워크스페이스의 존재 여부 반환
+    func isWorkspaceExist(workspaceId: UUID) async -> DomainResult<Bool>
 }
 
 final class WorkspaceContextUsecase: WorkspaceContextUsecaseProtocol {
@@ -75,5 +77,20 @@ final class WorkspaceContextUsecase: WorkspaceContextUsecaseProtocol {
                 states: states
             )
         )
+    }
+    
+    // 현재 워크스페이스의 존재 여부 반환
+    func isWorkspaceExist(workspaceId: UUID) async -> DomainResult<Bool> {
+        let result = await workspaceRepo.fetchWorkspace(id: workspaceId)
+        switch result {
+        case .success:
+            return .success(true)
+        case .failure(let error):
+            if case .entityNotFound = error {
+                return .success(false)
+            } else {
+                return .failure(error)
+            }
+        }
     }
 }

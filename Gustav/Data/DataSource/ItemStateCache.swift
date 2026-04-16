@@ -11,59 +11,74 @@ import Foundation
 // ItemStateRepository에서 사용할 캐시
 // Thread-Safe를 위해 actor로 선언
 actor ItemStateCache {
-    // 캐시 저장소
-    private var storage: [UUID: ItemState] = [:]
-    
-    // 아이템 상태 목록 저장
-    func save(_ itemStates: [ItemState]) {
-        storage = Dictionary(uniqueKeysWithValues: itemStates.map { ($0.id, $0) })
+    private var storage: [UUID: [ItemState]] = [:]
+
+    // 저장
+    func save(itemStates: [ItemState], for workspaceId: UUID) {
+        storage[workspaceId] = itemStates
     }
-    
-    // 아이템 상태 목록 전체 불러오기
-    func getAll() -> [ItemState] {
-        storage.values.sorted { $0.indexKey < $1.indexKey }
+
+    // 전체 조회
+    func getAll(for workspaceId: UUID) -> [ItemState] {
+        storage[workspaceId] ?? []
     }
-    
-    // 단일 아이템 상태 불러오기
-    func get(id: UUID) -> ItemState? {
-        storage[id]
+
+    // 단일 조회
+    func get(id: UUID, workspaceId: UUID) -> ItemState? {
+        storage[workspaceId]?.first { $0.id == id }
     }
-    
-    // 아이템 상태 추가
+
+    // 추가
     func insert(_ itemState: ItemState) {
-        storage[itemState.id] = itemState
+        var list = storage[itemState.workspaceId] ?? []
+        list.append(itemState)
+        storage[itemState.workspaceId] = list
     }
-    
-    // 아이템 상태 삭제
-    func remove(id: UUID) {
-        storage.removeValue(forKey: id)
+
+    // 삭제
+    func remove(id: UUID, workspaceId: UUID) {
+        var list = storage[workspaceId] ?? []
+        list.removeAll { $0.id == id }
+        storage[workspaceId] = list
     }
-    
-    // 아이템 상태 이름 변경
-    func updateItemState(itemState: ItemState) {
-        guard let _ = storage[itemState.id] else { return }
-        storage[itemState.id] = itemState
+
+    // 업데이트
+    func update(_ itemState: ItemState) {
+        var list = storage[itemState.workspaceId] ?? []
+        if let index = list.firstIndex(where: { $0.id == itemState.id }) {
+            list[index] = itemState
+            storage[itemState.workspaceId] = list
+        }
     }
-    
-    // 아이템 상태 순서 변경
-    func updateOrder(order: [UUID]) {
+
+    // 순서 변경
+    func updateOrder(workspaceId: UUID, order: [UUID]) {
+        guard let list = storage[workspaceId] else { return }
+
+        var newList: [ItemState] = []
         for (index, id) in order.enumerated() {
-            guard let itemState = storage[id] else { continue }
-            
-            let newItemState = ItemState(
+            guard let itemState = list.first(where: { $0.id == id }) else { continue }
+
+            let updated = ItemState(
                 id: itemState.id,
                 workspaceId: itemState.workspaceId,
-                indexKey: itemState.indexKey,
+                indexKey: index,
                 name: itemState.name,
                 color: itemState.color
             )
-            
-            storage[id] = newItemState
+            newList.append(updated)
         }
+
+        storage[workspaceId] = newList
     }
-    
-    // 캐시 비우기
-    func clear() {
+
+    // 특정 workspace 캐시 삭제
+    func clear(workspaceId: UUID) {
+        storage.removeValue(forKey: workspaceId)
+    }
+
+    // 전체 삭제
+    func clearAll() {
         storage.removeAll()
     }
 }

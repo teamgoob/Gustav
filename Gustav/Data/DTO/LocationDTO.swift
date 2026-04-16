@@ -18,7 +18,11 @@ struct LocationDTO: Codable {
     let updatedAt: Date?         // 수정일
     
     enum CodingKeys: String, CodingKey {
-        case id, workspaceId, indexKey, name, color
+        case id
+        case workspaceId = "workspace_id"
+        case indexKey = "index_key"
+        case name
+        case color
         case createdAt = "created_at"
         case updatedAt = "updated_at"
     }

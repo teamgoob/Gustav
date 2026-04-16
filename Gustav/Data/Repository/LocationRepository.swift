@@ -15,21 +15,21 @@ final class LocationRepository: LocationRepositoryProtocol {
     }
     
     func fetchLocations(workspaceId: UUID) async -> DomainResult<[Location]> {
-        let result = await self.cache.getAll()
+        let result = await self.cache.getAll(for: workspaceId)
         if !result.isEmpty {
             return .success(result)
         }
         switch await dataSource.fetchLocations(workspaceId: workspaceId).toDomainResult() {
         case .success(let locations):
-            await self.cache.save(locations)
+            await self.cache.save(locations: locations, for: workspaceId)
             return .success(locations)
         case .failure(let error):
             return .failure(error)
         }
     }
     
-    func fetchLocation(id: UUID) async -> DomainResult<Location> {
-        if let result = await self.cache.get(id: id) {
+    func fetchLocation(id: UUID, workspaceId: UUID) async -> DomainResult<Location> {
+        if let result = await self.cache.get(id: id, workspaceId: workspaceId) {
             return .success(result)
         }
         switch await dataSource.fetchLocation(id: id).toDomainResult() {
@@ -54,15 +54,15 @@ final class LocationRepository: LocationRepositoryProtocol {
     func updateLocation(id: UUID, location: Location) async -> DomainResult<Void> {
         let result = await dataSource.updateLocation(id: id, location: location).toDomainResult()
         if case .success = result {
-            await self.cache.updateLocation(location: location)
+            await self.cache.update(location)
         }
         return result
     }
     
-    func deleteLocation(id: UUID) async -> DomainResult<Void> {
+    func deleteLocation(id: UUID, workspaceId: UUID) async -> DomainResult<Void> {
         let result = await dataSource.deleteLocation(id: id).toDomainResult()
         if case .success = result {
-            await self.cache.remove(id: id)
+            await self.cache.remove(id: id, workspaceId: workspaceId)
         }
         return result
     }
@@ -70,7 +70,7 @@ final class LocationRepository: LocationRepositoryProtocol {
     func reorderLocations(workspaceId: UUID, order: [UUID]) async -> DomainResult<Void> {
         let reuslt = await dataSource.reorderLocations(workspaceId: workspaceId, order: order).toDomainResult()
         if case .success = reuslt {
-            await self.cache.remove(id: workspaceId)
+            await self.cache.updateOrder(workspaceId: workspaceId, order: order)
         }
         return reuslt
     }

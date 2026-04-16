@@ -8,6 +8,7 @@ import Foundation
 
 final class CategoryRepository: CategoryRepositoryProtocol {
     
+    
     private let dataSource: CategoryDataSourceProtocol
     private let cache: CategoryCache
     
@@ -17,13 +18,13 @@ final class CategoryRepository: CategoryRepositoryProtocol {
     }
     
     func fetchCategories(workspaceId: UUID) async -> DomainResult<[Category]> {
-        let cache = await self.cache.getAll()
+        let cache = await self.cache.getAll(for: workspaceId)
         if !cache.isEmpty {
             return .success(cache)
         }
         switch await dataSource.fetchCategories(workspaceId: workspaceId).toDomainResult() {
         case .success(let categories):
-            await self.cache.save(categories)
+            await self.cache.save(categories: categories, for: workspaceId)
             return .success(categories)
         case .failure(let error):
             return .failure(error)
@@ -31,8 +32,8 @@ final class CategoryRepository: CategoryRepositoryProtocol {
         
     }
     
-    func fetchCategory(id: UUID) async -> DomainResult<Category> {
-        if let cache = await self.cache.get(id: id) {
+    func fetchCategory(id: UUID, workspaceId: UUID) async -> DomainResult<Category> {
+        if let cache = await self.cache.get(id: id, workspaceId: workspaceId) {
             return .success(cache)
         }
         
@@ -58,15 +59,15 @@ final class CategoryRepository: CategoryRepositoryProtocol {
     func updateCategory(id: UUID, category: Category) async -> DomainResult<Void> {
         let result = await dataSource.updateCategory(id: id, category: category).toDomainResult()
         if case .success = result {
-            await cache.updateCategory(category: category)
+            await cache.update(category)
         }
         return result
     }
     
-    func deleteCategory(id: UUID) async -> DomainResult<Void> {
+    func deleteCategory(id: UUID, workspaceId: UUID) async -> DomainResult<Void> {
         let result = await dataSource.deleteCategory(id: id).toDomainResult()
         if case .success = result {
-            await cache.remove(id: id)
+            await cache.remove(id: id, workspaceId: workspaceId )
         }
         return result
     }
@@ -74,7 +75,7 @@ final class CategoryRepository: CategoryRepositoryProtocol {
     func reorderCategories(workspaceId: UUID, order: [UUID]) async -> DomainResult<Void> {
         let result = await dataSource.reorderCategories(workspaceId: workspaceId, order: order).toDomainResult()
         if case .success = result {
-            await cache.updateOrder(order: order)
+            await cache.updateOrder(workspaceId: workspaceId, order: order)
         }
         return result 
     }

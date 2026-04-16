@@ -22,7 +22,7 @@ protocol CategoryUsecaseProtocol {
     func updateCategory(id: UUID, category: Category) async -> DomainResult<Void>
 
     // 카테고리 삭제
-    func deleteCategory(id: UUID) async -> DomainResult<Void>
+    func deleteCategory(id: UUID, workspaceId: UUID) async -> DomainResult<Void>
 
     // 카테고리 순서 변경
     func reorderCategories(workspaceId: UUID, order: [UUID]) async -> DomainResult<Void>
@@ -47,8 +47,8 @@ final class CategoryUsecase: CategoryUsecaseProtocol {
         await repository.updateCategory(id: id, category: category)
     }
     
-    func deleteCategory(id: UUID) async -> DomainResult<Void> {
-        await repository.deleteCategory(id: id)
+    func deleteCategory(id: UUID, workspaceId: UUID) async -> DomainResult<Void> {
+        await repository.deleteCategory(id: id, workspaceId: workspaceId)
     }
     
     func reorderCategories(workspaceId: UUID, order: [UUID]) async -> DomainResult<Void> {

@@ -21,6 +21,16 @@ protocol AuthSessionRepositoryProtocol {
     // Email 로그인
     func signInWithEmail(email: String, password: String) async -> DomainResult<AuthOutcome>
     
+    // 비밀번호 재설정 메일 발송
+    func resetPassword(email: String) async -> DomainResult<Void>
+
+    // recovery 세션에서 새 비밀번호로 갱신
+    func updatePassword(newPassword: String) async -> DomainResult<Void>
+    
     // 회원탈퇴
     func withdraw() async -> DomainResult<Void>
+    
+    // 현재 인증 provider 조회
+    func currentAuthProvider() -> AuthProvider
+
 }

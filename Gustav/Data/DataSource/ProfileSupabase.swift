@@ -146,7 +146,8 @@ final class ProfileSupabase: ProfileDataSourceProtocol {
                     "email": email.map(AnyJSON.string) ?? .null,
                     "is_private_email": .bool(isPrivateRelay(email)),
                     "created_at": .string(now),
-                    "updated_at": .string(now)
+                    "updated_at": .string(now),
+                    "profile_image_url": .null
                 ]
 
                 try await client

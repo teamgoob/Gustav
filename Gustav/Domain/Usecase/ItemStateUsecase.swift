@@ -19,7 +19,7 @@ protocol ItemStateUsecaseProtocol {
     func updateItemState(id: UUID, itemState: ItemState) async -> DomainResult<Void>
 
     // 아이템 상태 삭제
-    func deleteItemState(id: UUID) async -> DomainResult<Void>
+    func deleteItemState(id: UUID, workspaceId: UUID) async -> DomainResult<Void>
 
     // 아이템 상태 순서 변경
     func reorderItemStates(workspaceId: UUID, order: [UUID]) async -> DomainResult<Void>
@@ -44,8 +44,8 @@ final class ItemStateUsecase: ItemStateUsecaseProtocol {
         await repository.updateItemState(id: id, itemState: itemState)
     }
     
-    func deleteItemState(id: UUID) async -> DomainResult<Void> {
-        await repository.deleteItemState(id: id)
+    func deleteItemState(id: UUID, workspaceId: UUID) async -> DomainResult<Void> {
+        await repository.deleteItemState(id: id, workspaceId: workspaceId)
     }
     
     func reorderItemStates(workspaceId: UUID, order: [UUID]) async -> DomainResult<Void> {

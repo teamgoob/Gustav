@@ -22,14 +22,17 @@ protocol AuthDataSourceProtocol {
     
     func signUpWithEmail(email: String, password: String) async -> RepositoryResult<EmailSignUpOutcomeDTO>
 
+    // 비밀번호 재설정 메일 발송
+    func resetPassword(email: String) async -> RepositoryResult<Void>
+    func updatePassword(newPassword: String) async -> RepositoryResult<Void>
+
     func signOut() async -> RepositoryResult<Void>
     func withdrawCurrentUser() async -> RepositoryResult<Void>
+    func currentAuthProvider() -> AuthProvider
 
-//AuthSessionRepository(또는 SessionStore) 에서 해결
-//    func currentUserId() async -> RepositoryResult<UUID>
+    func currentUserId() -> UUID?
+    func currentUserEmail() -> String?
 
 }
-
-
 
 

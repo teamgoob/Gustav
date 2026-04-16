@@ -13,6 +13,8 @@
 		9814673C2F3DD0BF0025536E /* Realtime in Frameworks */ = {isa = PBXBuildFile; productRef = 9814673B2F3DD0BF0025536E /* Realtime */; };
 		9814673E2F3DD0BF0025536E /* Storage in Frameworks */ = {isa = PBXBuildFile; productRef = 9814673D2F3DD0BF0025536E /* Storage */; };
 		981467402F3DD0BF0025536E /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 9814673F2F3DD0BF0025536E /* Supabase */; };
+		98B4CFE42F58017F0050C722 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 98B4CFE32F58017F0050C722 /* Kingfisher */; };
+		98B5079A2F570B82004FA3F2 /* SnapKit in Frameworks */ = {isa = PBXBuildFile; productRef = 98B507992F570B82004FA3F2 /* SnapKit */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -77,6 +79,8 @@
 				9814673A2F3DD0BF0025536E /* PostgREST in Frameworks */,
 				981467382F3DD0BF0025536E /* Functions in Frameworks */,
 				981467402F3DD0BF0025536E /* Supabase in Frameworks */,
+				98B5079A2F570B82004FA3F2 /* SnapKit in Frameworks */,
+				98B4CFE42F58017F0050C722 /* Kingfisher in Frameworks */,
 				981467362F3DD0BF0025536E /* Auth in Frameworks */,
 				9814673E2F3DD0BF0025536E /* Storage in Frameworks */,
 				9814673C2F3DD0BF0025536E /* Realtime in Frameworks */,
@@ -146,6 +150,8 @@
 				9814673B2F3DD0BF0025536E /* Realtime */,
 				9814673D2F3DD0BF0025536E /* Storage */,
 				9814673F2F3DD0BF0025536E /* Supabase */,
+				98B507992F570B82004FA3F2 /* SnapKit */,
+				98B4CFE32F58017F0050C722 /* Kingfisher */,
 			);
 			productName = Gustav;
 			productReference = 98A82C592F39ADCB00BC9B49 /* Gustav.app */;
@@ -231,6 +237,8 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				981467342F3DD0BF0025536E /* XCRemoteSwiftPackageReference "supabase-swift" */,
+				98B507982F570B82004FA3F2 /* XCRemoteSwiftPackageReference "SnapKit" */,
+				98B4CFE22F58017F0050C722 /* XCRemoteSwiftPackageReference "Kingfisher" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 98A82C5A2F39ADCB00BC9B49 /* Products */;
@@ -313,13 +321,15 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Gustav/Gustav.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Gustav/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Gustav;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
-				INFOPLIST_KEY_UIMainStoryboardFile = Main;
+				INFOPLIST_KEY_UIMainStoryboardFile = "";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -350,13 +360,15 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Gustav/Gustav.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Gustav/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Gustav;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
-				INFOPLIST_KEY_UIMainStoryboardFile = Main;
+				INFOPLIST_KEY_UIMainStoryboardFile = "";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -641,6 +653,22 @@
 				minimumVersion = 2.5.1;
 			};
 		};
+		98B4CFE22F58017F0050C722 /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/onevcat/Kingfisher";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.7.0;
+			};
+		};
+		98B507982F570B82004FA3F2 /* XCRemoteSwiftPackageReference "SnapKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SnapKit/SnapKit.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.7.1;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -673,6 +701,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 981467342F3DD0BF0025536E /* XCRemoteSwiftPackageReference "supabase-swift" */;
 			productName = Supabase;
+		};
+		98B4CFE32F58017F0050C722 /* Kingfisher */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 98B4CFE22F58017F0050C722 /* XCRemoteSwiftPackageReference "Kingfisher" */;
+			productName = Kingfisher;
+		};
+		98B507992F570B82004FA3F2 /* SnapKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 98B507982F570B82004FA3F2 /* XCRemoteSwiftPackageReference "SnapKit" */;
+			productName = SnapKit;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

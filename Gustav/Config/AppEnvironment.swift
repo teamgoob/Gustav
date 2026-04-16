@@ -8,6 +8,20 @@
 import Foundation
 
 enum AppEnvironment {
+    static var authCallbackURL: URL {
+        guard let url = URL(string: "gustav://auth/callback") else {
+            fatalError("Invalid auth callback URL")
+        }
+        return url
+    }
+
+    static var passwordResetURL: URL {
+        guard let url = URL(string: "gustav://auth/reset-password") else {
+            fatalError("Invalid password reset URL")
+        }
+        return url
+    }
+
     static var supabaseURL: URL {
         guard let urlString = Bundle.main.object(
             forInfoDictionaryKey: "SUPABASE_URL"
@@ -15,8 +29,19 @@ enum AppEnvironment {
               let url = URL(string: urlString) else {
             fatalError("SUPABASE_URL not configured")
         }
+        
+        
+        
         return url
     }
+    
+    static var supabaseFunctionsURL: URL {
+        supabaseURL
+            .appendingPathComponent("functions")
+            .appendingPathComponent("v1")
+    }
+    
+    
     
     static var supabaseKey: String {
         guard let key = Bundle.main.object(

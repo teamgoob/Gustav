@@ -17,16 +17,16 @@ struct Category {
     let color: TagColor  // 카테고리 색상
 }
 
-extension Category {
-    func toDTO() -> CategoryDTO {
-        return CategoryDTO(
-            id: self.id,
-            workspaceId: self.workspaceId,
-            parentId: self.parentId,
-            indexKey: self.indexKey,
-            name: self.name,
-            color: self.color.rawValue,
-            createdAt: nil,
-            updatedAt: nil)
-    }
-}
+//extension Category {
+//    func toDTO() -> CategoryDTO {
+//        return CategoryDTO(
+//            id: self.id,
+//            workspaceId: self.workspaceId,
+//            parentId: self.parentId,
+//            indexKey: self.indexKey,
+//            name: self.name,
+//            color: self.color.rawValue,
+//            createdAt: nil,
+//            updatedAt: nil)
+//    }
+//}

@@ -66,8 +66,16 @@ final class ItemSupabase: ItemDataSourceProtocol {
             for filter in query.filters {
                 switch filter {
                 case .category(let categoryId):
+                    // 해당 카테고리를 부모 카테고리로 두는 모든 하위 카테고리 조회
+                    let categoryDtos: [CategoryIdDTO] = try await client
+                        .rpc("get_subcategory", params: ["category_uuid": categoryId])
+                        .execute()
+                        .value
+                    // UUID 배열로 변환
+                    let categoryIds: [UUID] = categoryDtos.map { $0.id }
+                    // 조회한 카테고리 목록을 쿼리 조건에 추가
                     supabaseQuery = supabaseQuery
-                        .eq("category_id", value: categoryId)
+                        .in("category_id", values: categoryIds)
                     
                 case .itemState(let itemStateId):
                     supabaseQuery = supabaseQuery
@@ -288,5 +296,12 @@ final class ItemSupabase: ItemDataSourceProtocol {
             
             return .failure(.unknown)
         }
+    }
+}
+
+// 전체 하위 카테고리 조회 RPC 수행 결과를 저장하기 위한 DTO 선언
+private extension ItemSupabase {
+    struct CategoryIdDTO: Codable {
+        let id: UUID
     }
 }

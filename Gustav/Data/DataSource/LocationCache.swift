@@ -11,58 +11,74 @@ import Foundation
 // LocationRepository에서 사용할 캐시
 // Thread-Safe를 위해 actor로 선언
 actor LocationCache {
-    // 캐시 저장소
-    private var storage: [UUID: Location] = [:]
-    
-    // 장소 목록 저장
-    func save(_ location: [Location]) {
-        storage = Dictionary(uniqueKeysWithValues: location.map { ($0.id, $0) })
+    private var storage: [UUID: [Location]] = [:]
+
+    // 저장
+    func save(locations: [Location], for workspaceId: UUID) {
+        storage[workspaceId] = locations
     }
-    
-    // 장소 목록 전체 불러오기
-    func getAll() -> [Location] {
-        storage.values.sorted { $0.indexKey < $1.indexKey }
+
+    // 전체 조회
+    func getAll(for workspaceId: UUID) -> [Location] {
+        storage[workspaceId] ?? []
     }
-    
-    // 단일 장소 불러오기
-    func get(id: UUID) -> Location? {
-        storage[id]
+
+    // 단일 조회
+    func get(id: UUID, workspaceId: UUID) -> Location? {
+        storage[workspaceId]?.first { $0.id == id }
     }
-    
-    // 장소 추가
+
+    // 추가
     func insert(_ location: Location) {
-        storage[location.id] = location
+        var list = storage[location.workspaceId] ?? []
+        list.append(location)
+        storage[location.workspaceId] = list
     }
-    
-    // 장소 삭제
-    func remove(id: UUID) {
-        storage.removeValue(forKey: id)
+
+    // 삭제
+    func remove(id: UUID, workspaceId: UUID) {
+        var list = storage[workspaceId] ?? []
+        list.removeAll { $0.id == id }
+        storage[workspaceId] = list
     }
-    
-    // 장소 수정
-    func updateLocation(location: Location) {
-        guard let _ = storage[location.id] else { return }
-        storage[location.id] = location
+
+    // 업데이트
+    func update(_ location: Location) {
+        var list = storage[location.workspaceId] ?? []
+        if let index = list.firstIndex(where: { $0.id == location.id }) {
+            list[index] = location
+            storage[location.workspaceId] = list
+        }
     }
-    
-    // 장소 순서 변경
-    func updateOrder(order: [UUID]) {
+
+    // 순서 변경
+    func updateOrder(workspaceId: UUID, order: [UUID]) {
+        guard let list = storage[workspaceId] else { return }
+
+        var newList: [Location] = []
         for (index, id) in order.enumerated() {
-            guard let location = storage[id] else { continue }
-            
-            let newLocation = Location(
+            guard let location = list.first(where: { $0.id == id }) else { continue }
+
+            let updated = Location(
                 id: location.id,
                 workspaceId: location.workspaceId,
-                indexKey: location.indexKey,
+                indexKey: index,
                 name: location.name,
                 color: location.color
             )
-            storage[location.id] = newLocation
+            newList.append(updated)
         }
+
+        storage[workspaceId] = newList
     }
-    
-    // 캐시 비우기
-    func clear() {
+
+    // 특정 workspace 캐시 삭제
+    func clear(workspaceId: UUID) {
+        storage.removeValue(forKey: workspaceId)
+    }
+
+    // 전체 삭제
+    func clearAll() {
         storage.removeAll()
     }
 }
