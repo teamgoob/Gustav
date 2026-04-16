@@ -65,9 +65,9 @@ final class ItemStateListViewModel {
         case .dismiss:
             navigate(.dismiss)
         case .viewDidLoad:
-            fetchItemStates(showLoading: true)
+            fetchItemStates(isViewDidLoad: true)
         case .reFetchData:
-            fetchItemStates(showLoading: false)
+            fetchItemStates(isViewDidLoad: false)
         case .didTapAddButton:
             createItemState(name: "New ItemState")
         case .didTapreorderItemStateButton:
@@ -110,15 +110,15 @@ final class ItemStateListViewModel {
     }
 
     // 목록 조회
-    private func fetchItemStates(showLoading: Bool) {
+    private func fetchItemStates(isViewDidLoad: Bool) {
         startTask { [weak self] in
             guard let self else { return }
 
-            if showLoading {
+            if isViewDidLoad {
                 self.emit(.loading(true))
             }
             defer {
-                if showLoading {
+                if isViewDidLoad {
                     self.emit(.loading(false))
                 }
             }
@@ -132,7 +132,12 @@ final class ItemStateListViewModel {
 
             switch result {
             case .success(let itemStates):
-                self.itemStates = itemStates
+                switch isViewDidLoad {
+                case true:
+                    self.itemStates = await self.setupCategoryOrder(itemStates: itemStates)
+                case false:
+                    self.itemStates = itemStates
+                }
                 self.emit(.itemStatesChanged)
             case .failure(let error):
                 self.navigate(.showErrorAlert(String(describing: error)))
@@ -144,11 +149,13 @@ final class ItemStateListViewModel {
     private func createItemState(name: String) {
         startTask { [weak self] in
             guard let self else { return }
-
+            var indexKey: Int = 0
+            if let index = self.itemStates.last?.indexKey { indexKey = index + 1 }
+            
             let newItemState = ItemState(
                 id: UUID(),
                 workspaceId: self.selectedWorkspaceId,
-                indexKey: self.itemStates.count,
+                indexKey: indexKey,
                 name: name,
                 color: .darkGray
             )
@@ -247,6 +254,38 @@ final class ItemStateListViewModel {
         }
     }
 
+    // 인덱스값 재정렬
+    private func setupCategoryOrder(itemStates: [ItemState]) async -> [ItemState] {
+        guard !itemStates.isEmpty else { return [] }
+        var setupOrderItemStates: [ItemState] = []
+        var uuid: [UUID] = []
+        for (index, itemState) in itemStates.enumerated() {
+            let newItemStates = ItemState(
+                id: itemState.id,
+                workspaceId: itemState.workspaceId,
+                indexKey: index,
+                name: itemState.name,
+                color: itemState.color,
+            )
+
+            setupOrderItemStates.append(newItemStates)
+            uuid.append(newItemStates.id)
+        }
+        
+        let result = await itemStateUsecase
+            .reorderItemStates(
+                workspaceId: self.selectedWorkspaceId,
+                order: uuid
+            )
+        switch result {
+        case .success:
+            return setupOrderItemStates
+        case .failure(let error):
+            self.navigate(.showErrorAlert(String(describing: error)))
+            return []
+        }
+    }
+    
     // 행 개수
     func numberOfRows() -> Int {
         itemStates.count
