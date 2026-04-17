@@ -65,9 +65,9 @@ final class LocationListViewModel {
         case .dismiss:
             navigate(.dismiss)
         case .viewDidLoad:
-            fetchLocations(showLoading: true)
+            fetchLocations(isViewDidLoad: true)
         case .reFetchData:
-            fetchLocations(showLoading: false)
+            fetchLocations(isViewDidLoad: false)
         case .didTapAddButton:
             createLocation(name: "New Location")
         case .didTapreorderLocationButton:
@@ -110,15 +110,15 @@ final class LocationListViewModel {
     }
 
     // 목록 조회
-    private func fetchLocations(showLoading: Bool) {
+    private func fetchLocations(isViewDidLoad: Bool) {
         startTask { [weak self] in
             guard let self else { return }
 
-            if showLoading {
+            if isViewDidLoad {
                 self.emit(.loading(true))
             }
             defer {
-                if showLoading {
+                if isViewDidLoad {
                     self.emit(.loading(false))
                 }
             }
@@ -132,6 +132,12 @@ final class LocationListViewModel {
 
             switch result {
             case .success(let locations):
+                switch isViewDidLoad {
+                case true:
+                    self.locations = await self.setupCategoryOrder(locations: locations)
+                case false:
+                    self.locations = locations
+                }
                 self.locations = locations
                 self.emit(.locationsChanged)
             case .failure(let error):
@@ -144,11 +150,12 @@ final class LocationListViewModel {
     private func createLocation(name: String) {
         startTask { [weak self] in
             guard let self else { return }
-
+            var indexKey: Int = 0
+            if let index = self.locations.last?.indexKey { indexKey = index + 1 }
             let newLocation = Location(
                 id: UUID(),
                 workspaceId: self.selectedWorkspaceId,
-                indexKey: self.locations.count,
+                indexKey: indexKey,
                 name: name,
                 color: .darkGray
             )
@@ -249,7 +256,39 @@ final class LocationListViewModel {
             }
         }
     }
+    
+    // 인덱스값 재정렬
+    private func setupCategoryOrder(locations: [Location]) async -> [Location] {
+        guard !locations.isEmpty else { return [] }
+        var setupOrderLocations: [Location] = []
+        var uuid: [UUID] = []
+        for (index, location) in locations.enumerated() {
+            let newLocation = Location(
+                id: location.id,
+                workspaceId: location.workspaceId,
+                indexKey: index,
+                name: location.name,
+                color: location.color
+            )
 
+            setupOrderLocations.append(newLocation)
+            uuid.append(newLocation.id)
+        }
+        
+        let result = await locationUsecase
+            .reorderLocations(
+                workspaceId: self.selectedWorkspaceId,
+                order: uuid
+            )
+        switch result {
+        case .success:
+            return setupOrderLocations
+        case .failure(let error):
+            self.navigate(.showErrorAlert(String(describing: error)))
+            return []
+        }
+    }
+    
     // 행 개수
     func numberOfRows() -> Int {
         locations.count

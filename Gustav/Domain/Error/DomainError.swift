@@ -8,7 +8,7 @@
 import Foundation
 
 // MARK: - Domain Layer Error
-enum DomainError: Error {
+enum DomainError: Error, Equatable {
     case authenticationRequired   // 인증 필요
     case permissionDenied         // 권한 없음
     case entityNotFound           // 데이터 없음
@@ -16,6 +16,8 @@ enum DomainError: Error {
     case invalidParameter         // 파라미터 오류
     case invalidInput(AuthInputError) // 입력값 오류 (Validator 결과)
     case emailAlreadyInUse        // 회원가입: 이메일 중복
+    case invalidCredentials       // 로그인: 이메일/비밀번호/토큰 불일치
+    case rateLimited              // 인증 요청 과다
     case temporarilyUnavailable   // 네트워크, 서버 오류
     case cancelled                // 애플 로그인 취소
     case unknown                  // 그 외

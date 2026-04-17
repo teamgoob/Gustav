@@ -21,8 +21,8 @@ final class PresetAddViewController: UIViewController {
     private let viewModel: PresetAddViewModel
     // 저장 버튼
     private lazy var saveButton = UIBarButtonItem(
-        title: "Save",
-        style: .prominent,
+        image: UIImage(systemName: "checkmark"),
+        style: .done,
         target: self,
         action: #selector(didTapSaveButton)
     )

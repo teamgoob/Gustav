@@ -13,7 +13,6 @@ import UIKit
 // 2. 사용자 입력을 ViewModel로 전달
 // 3. ViewModel의 상태(Output)를 받아 UI 렌더링
 final class EmailSignUpViewController: UIViewController {
-
     // ViewController의 rootView
     // UIView 대신 커스텀 View 사용
     private let rootView = EmailSignUpView()
@@ -191,12 +190,6 @@ private extension EmailSignUpViewController {
             showErrorAlert(message)
         case .showSuccess(let message):
             showSuccessAlert(message)
-        case .showTerms:
-            break
-        case .showPrivacy:
-            break
-        case .pop:
-            navigationController?.popViewController(animated: true)
         }
     }
 

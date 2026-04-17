@@ -32,10 +32,11 @@ class ItemAttributeBasicCell: UITableViewCell {
     }()
     
     private let chevronImageView: UIImageView = {
-        let iv = UIImageView()
-        iv.image = UIImage(systemName: "chevron.right")
-        iv.tintColor = Colors.Text.main
-        return iv
+        let imageView = UIImageView()
+        imageView.image = UIImage(systemName: "chevron.right")
+        imageView.contentMode = .scaleAspectFit
+        imageView.tintColor = Colors.Theme.outline
+        return imageView
     }()
     
     // MARK: - Init
