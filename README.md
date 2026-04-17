@@ -1,5 +1,5 @@
 <p align="left">
-  <img src="ReadMeImages/gustav-icon.png" width="120" />
+  <img src="ReadMeImages/gustav-icon-rounded.png" width="120" />
 </p>
 
 ## Gustav - Good Stuff
