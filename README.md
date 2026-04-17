@@ -54,7 +54,7 @@
 - **Authentication** - 이메일 / 애플 로그인 사용자 인증
 - **Database** - 실시간 데이터베이스
 - **Storage** - 이미지 저장
-- **Edge Functions** - 애플 로그인
+- **Edge Functions** - 애플/이메일 로그인 연동 및 인증, 회원탈퇴
 
 ### 라이브러리
 
@@ -124,5 +124,5 @@ S088 Features: 투표 기능 추가
 K003 Refactor: 코드 리팩토링
 ```
 
-```
+---
 Made with ❤️ by teamgoob
