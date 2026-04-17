@@ -181,6 +181,13 @@ private extension ResetPasswordViewModel {
             return "Invalid parameter."
         case .invalidInput(let inputError):
             return mapInputErrorToMessage(inputError) ?? "Invalid input."
+
+        case .invalidCredentials:
+            return "This recovery link is no longer valid. Please request a new one."
+
+        case .rateLimited:
+            return "Too many attempts. Please wait a moment and try again."
+
         case .temporarilyUnavailable:
             return "Temporary server error. Please try again."
         case .cancelled:

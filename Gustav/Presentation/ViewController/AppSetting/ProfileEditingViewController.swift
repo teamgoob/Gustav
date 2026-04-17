@@ -17,7 +17,7 @@ final class ProfileEditingViewController: UIViewController {
     // 저장 버튼
     private lazy var saveButton = UIBarButtonItem(
         image: UIImage(systemName: "checkmark"),
-        style: .prominent,
+        style: .done,
         target: self,
         action: #selector(didTapSaveButton)
     )

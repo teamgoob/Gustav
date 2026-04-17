@@ -181,6 +181,12 @@ private extension ForgotPasswordViewModel {
         case .invalidInput(let inputError):
             return mapInputErrorToMessage(inputError) ?? "Invalid input."
 
+        case .invalidCredentials:
+            return "We couldn't verify this request. Please try again."
+
+        case .rateLimited:
+            return "Too many attempts. Please wait a moment and try again."
+
         case .temporarilyUnavailable:
             return "Temporary server error. Please try again."
 

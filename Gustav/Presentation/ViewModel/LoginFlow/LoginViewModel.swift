@@ -251,20 +251,48 @@ private extension LoginViewModel {
         case .cancelled:
             return "Sign-in was cancelled."
 
+        case .rateLimited:
+            return "Too many sign-in attempts. Please wait a moment and try again."
+
         case .temporarilyUnavailable:
             return "The service is temporarily unavailable. Please try again later."
 
         case .authenticationRequired:
-            return "Authentication is required. Please sign in again."
+            return "Your session has expired. Please sign in again."
+
+        case .invalidCredentials:
+            return "Incorrect email or password."
             
         case .entityNotFound:
-            return "No account was found with the provided credentials."
+            return "No account was found for that email."
+
+        case .permissionDenied:
+            return "Permission denied."
+
+        case .invalidOperation:
+            return "Unable to sign in right now. Please try again."
+
+        case .invalidParameter:
+            return "Invalid request."
+
+        case .invalidInput(let inputError):
+            switch inputError {
+            case .invalidEmailFormat:
+                return "Invalid email format."
+            case .emptyEmail, .emptyPassword:
+                return "Email and password are required."
+            case .passwordTooShort,
+                 .passwordMissingLetterOrDigit,
+                 .emptyRepeatPassword,
+                 .passwordMismatch:
+                return "Invalid password format."
+            }
+
+        case .emailAlreadyInUse:
+            return "This email is already registered. Try signing in instead."
             
         case .unknown:
             return "An unexpected error occurred. Please try again."
-
-        default:
-            return "Unable to sign in. Please check your credentials and try again."
         }
     }
     
