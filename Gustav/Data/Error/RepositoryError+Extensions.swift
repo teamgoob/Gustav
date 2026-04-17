@@ -29,21 +29,19 @@ extension RepositoryError {
         case .cancelled:
             return .cancelled
         case .rateLimited:
-            return .temporarilyUnavailable
+            return .rateLimited
         case .emailNotVerified:
             return .authenticationRequired
             
         case .invalidCredentials:
-            // idToken/nonce mismatch 등
-            return .authenticationRequired
+            return .invalidCredentials
         case .misconfigured:
             // Supabase URL/Key/Provider 설정 오류
             return .temporarilyUnavailable
         case .sessionNotFound:
             /*  Repository에서 AuthOutcome.emailVerificationRequired로 변환 :: 나중에 presentation 계층 구현 이후에 수정해야하는 부분 */
             return .authenticationRequired
-        
-        default:
+        case .unknown:
             return .unknown
         }
     }

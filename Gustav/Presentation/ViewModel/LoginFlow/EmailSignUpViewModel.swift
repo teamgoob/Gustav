@@ -26,6 +26,10 @@ final class EmailSignUpViewModel {
     // ViewController가 바인딩해서 사용하는 출력 전달 클로저
     // state가 바뀌면 현재 Output을 만들어 VC에 전달함
     var onDisplay: ((Output) -> Void)?
+
+    // MARK: - Navigation
+    // 화면 전환은 Coordinator가 담당하도록 분리
+    var onNavigation: ((Route) -> Void)?
     
     // MARK: - Event
     // ViewModel → VC one-shot 이벤트
@@ -44,14 +48,18 @@ final class EmailSignUpViewModel {
         case tapPrivacyLook                   // 개인정보 처리방침 보기 탭
         case tapBack                          // 뒤로가기
     }
+
+    // MARK: - Route Type
+    enum Route {
+        case showTerms
+        case showPrivacy
+        case pop
+    }
     
     // MARK: - Event Type
     enum Event {
         case showError(String)
         case showSuccess(String)
-        case showTerms
-        case showPrivacy
-        case pop
     }
 
     // MARK: - Output Model
@@ -149,17 +157,14 @@ final class EmailSignUpViewModel {
             // 회원가입 버튼 눌렀을 때 실제 가입 로직 실행
             await submitSignUp()
 
-        // MARK: - 약관 화면 연결 ⭐️ TODO ⭐️
-        // 아직 약관 화면이 없어서 일단 처리 안 함
-        // 나중에 coordinator에 showTerms(), showPrivacyPolicy() 추가 예정
         case .tapTermsLook:
-            onEvent?(.showTerms)
+            onNavigation?(.showTerms)
 
         case .tapPrivacyLook:
-            onEvent?(.showPrivacy)
+            onNavigation?(.showPrivacy)
 
         case .tapBack:
-            onEvent?(.pop)
+            onNavigation?(.pop)
         }
     }
 
@@ -353,6 +358,12 @@ private extension EmailSignUpViewModel {
         case .invalidInput(let inputError):
             return mapInputErrorToMessage(inputError) ?? "Invalid input."
             
+        case .invalidCredentials:
+            return "We couldn't verify your sign-up request. Please try again."
+
+        case .rateLimited:
+            return "Too many sign-up attempts. Please wait a moment and try again."
+
         case .temporarilyUnavailable:
             return "Temporary server error. Please try again."
             
