@@ -52,7 +52,7 @@ final class EmailSignUpFormView: UIView {
     }
     // 개인정보 동의 여부
     var isPrivacyAgreed: Bool {
-        policyAgreementView.isTermsAgreed
+        policyAgreementView.isPrivacyAgreed
     }
 
     // MARK: - Init

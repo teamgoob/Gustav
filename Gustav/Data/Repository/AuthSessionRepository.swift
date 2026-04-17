@@ -133,6 +133,9 @@ final class AuthSessionRepository: AuthSessionRepositoryProtocol {
 
         switch result {
         case .failure(let e):
+            if case .conflict = e {
+                return .failure(.emailAlreadyInUse)
+            }
             return .failure(e.mapToDomainError())
 
         case .success(let outcomeDTO):
@@ -172,6 +175,9 @@ final class AuthSessionRepository: AuthSessionRepositoryProtocol {
 
         switch result {
         case .failure(let e):
+            if case .emailNotVerified = e {
+                return .success(.emailVerificationRequired(email: email))
+            }
             return .failure(e.mapToDomainError())
 
         case .success(let sessionDTO):

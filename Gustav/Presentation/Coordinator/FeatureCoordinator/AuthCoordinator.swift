@@ -21,10 +21,16 @@ protocol AuthCoordinatorProtocol: Coordinator {
     func pop()
 }
 
-
 import UIKit
 
 final class AuthCoordinator: BaseCoordinator, AuthCoordinatorProtocol {
+    private enum PolicyPage {
+        static let termsURL = "https://dramatic-snipe-e53.notion.site/Gustav-Terms-of-Policy-31f1e18cef9c801e9811e0b55f555ab5"
+        static let privacyURL = "https://dramatic-snipe-e53.notion.site/Gustav-Privacy-Policy-31f1e18cef9c801fb1d4c45cbc7ab321"
+        static let termsTitle = "Terms of Policy"
+        static let privacyTitle = "Privacy Policy"
+    }
+
     private let container: AuthDIContainer
     
     var onFinish: ((Coordinator) -> Void)?
@@ -69,6 +75,17 @@ final class AuthCoordinator: BaseCoordinator, AuthCoordinatorProtocol {
         let viewModel = container.makeEmailSignUpViewModel()
         let viewController = EmailSignUpViewController(viewModel: viewModel)
 
+        viewModel.onNavigation = { [weak self] route in
+            switch route {
+            case .showTerms:
+                self?.showTermsPolicy()
+            case .showPrivacy:
+                self?.showPrivacyPolicy()
+            case .pop:
+                self?.pop()
+            }
+        }
+
         navigationController.pushViewController(viewController, animated: true)
     }
     
@@ -94,5 +111,21 @@ final class AuthCoordinator: BaseCoordinator, AuthCoordinatorProtocol {
     // MARK: - Finish
     private func finish() {
         onFinish?(self)
+    }
+
+    func showTermsPolicy() {
+        let viewController = WebpageViewController(
+            urlString: PolicyPage.termsURL,
+            title: PolicyPage.termsTitle
+        )
+        navigationController.pushViewController(viewController, animated: true)
+    }
+
+    func showPrivacyPolicy() {
+        let viewController = WebpageViewController(
+            urlString: PolicyPage.privacyURL,
+            title: PolicyPage.privacyTitle
+        )
+        navigationController.pushViewController(viewController, animated: true)
     }
 }

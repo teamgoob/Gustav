@@ -67,9 +67,9 @@ final class CategoryListViewModel {
         case .dismiss:
             navigate(.dismiss)
         case .viewDidLoad:
-            fetchCategories(showLoading: true)
+            fetchCategories(isViewDidLoad: true)
         case .reFetchData:
-            fetchCategories(showLoading: false)
+            fetchCategories(isViewDidLoad: false)
         case .didTapAddButton:
             createCategory(name: "New Category")
         case .didTapreorderCategoryButton:
@@ -126,15 +126,15 @@ final class CategoryListViewModel {
     }
 
     // 목록 조회
-    private func fetchCategories(showLoading: Bool) {
+    private func fetchCategories(isViewDidLoad: Bool) {
         startTask { [weak self] in
             guard let self else { return }
 
-            if showLoading {
+            if isViewDidLoad {
                 self.emit(.loading(true))
             }
             defer {
-                if showLoading {
+                if isViewDidLoad {
                     self.emit(.loading(false))
                 }
             }
@@ -148,7 +148,14 @@ final class CategoryListViewModel {
 
             switch result {
             case .success(let categories):
-                self.categories = categories
+                
+                switch isViewDidLoad {
+                case true:
+                    self.categories = await self.setupCategoryOrder(categories: categories)
+                case false:
+                    self.categories = categories
+                }
+                
                 self.emit(.categoriesChanged)
             case .failure(let error):
                 self.navigate(.showErrorAlert(String(describing: error)))
@@ -160,12 +167,14 @@ final class CategoryListViewModel {
     private func createCategory(name: String) {
         startTask { [weak self] in
             guard let self else { return }
-
+            var indexKey: Int = 0
+            if let index = self.categories.last?.indexKey { indexKey = index + 1 }
+            
             let newCategory = Category(
                 id: UUID(),
                 workspaceId: self.selectedWorkspaceId,
                 parentId: nil,
-                indexKey: self.categories.count,
+                indexKey: indexKey,
                 name: name,
                 color: .darkGray
             )
@@ -264,7 +273,38 @@ final class CategoryListViewModel {
             }
         }
     }
-
+    // 인덱스값 재정렬
+    private func setupCategoryOrder(categories: [Category]) async -> [Category] {
+        guard !categories.isEmpty else { return [] }
+        var setupOrderCategories: [Category] = []
+        var uuid: [UUID] = []
+        for (index, category) in categories.enumerated() {
+            let newCategory = Category(
+                id: category.id,
+                workspaceId: category.workspaceId,
+                parentId: category.parentId,
+                indexKey: index,
+                name: category.name,
+                color: category.color
+            )
+            setupOrderCategories.append(newCategory)
+            uuid.append(category.id)
+        }
+        
+        let result = await categoryUsecase
+            .reorderCategories(
+                workspaceId: self.selectedWorkspaceId,
+                order: uuid
+            )
+        switch result {
+        case .success:
+            return setupOrderCategories
+        case .failure(let error):
+            self.navigate(.showErrorAlert(String(describing: error)))
+            return []
+        }
+    }
+    
     // 행 개수
     func numberOfRows() -> Int {
         categories.count
