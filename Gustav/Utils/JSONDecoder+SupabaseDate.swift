@@ -7,34 +7,47 @@
 
 import Foundation
 
+enum SupabaseDateParser {
+    static func parse(
+        _ raw: String,
+        dateOnlyTimeZone: TimeZone = .autoupdatingCurrent
+    ) -> Date? {
+        let iso = ISO8601DateFormatter()
+        if let date = iso.date(from: raw) { return date }
+
+        let isoFrac = ISO8601DateFormatter()
+        isoFrac.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        if let date = isoFrac.date(from: raw) { return date }
+
+        let utcISO = DateFormatter()
+        utcISO.calendar = Calendar(identifier: .iso8601)
+        utcISO.locale = Locale(identifier: "en_US_POSIX")
+        utcISO.timeZone = TimeZone(secondsFromGMT: 0)
+        utcISO.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS"
+        if let date = utcISO.date(from: raw) { return date }
+
+        utcISO.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+        if let date = utcISO.date(from: raw) { return date }
+
+        // Date-only payloads mean the backend already discarded the time component.
+        // Decode them at local midnight so users do not see an artificial 9:00 AM in KST.
+        let dateOnly = DateFormatter()
+        dateOnly.calendar = Calendar(identifier: .iso8601)
+        dateOnly.locale = Locale(identifier: "en_US_POSIX")
+        dateOnly.timeZone = dateOnlyTimeZone
+        dateOnly.dateFormat = "yyyy-MM-dd"
+        return dateOnly.date(from: raw)
+    }
+}
+
 extension JSONDecoder.DateDecodingStrategy {
     static let supabaseISO8601: JSONDecoder.DateDecodingStrategy = .custom { decoder in
         let container = try decoder.singleValueContainer()
         let raw = try container.decode(String.self)
 
-        let iso = ISO8601DateFormatter()
-        if let d = iso.date(from: raw) { return d }
-
-        let isoFrac = ISO8601DateFormatter()
-        isoFrac.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        if let d = isoFrac.date(from: raw) { return d }
-
-        let localISO = DateFormatter()
-        localISO.calendar = Calendar(identifier: .iso8601)
-        localISO.locale = Locale(identifier: "en_US_POSIX")
-        localISO.timeZone = TimeZone(secondsFromGMT: 0)
-        localISO.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS"
-        if let d = localISO.date(from: raw) { return d }
-
-        localISO.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
-        if let d = localISO.date(from: raw) { return d }
-
-        let dateOnly = DateFormatter()
-        dateOnly.calendar = Calendar(identifier: .iso8601)
-        dateOnly.locale = Locale(identifier: "en_US_POSIX")
-        dateOnly.timeZone = TimeZone(secondsFromGMT: 0)
-        dateOnly.dateFormat = "yyyy-MM-dd"
-        if let d = dateOnly.date(from: raw) { return d }
+        if let date = SupabaseDateParser.parse(raw) {
+            return date
+        }
 
         throw DecodingError.dataCorruptedError(
             in: container,
