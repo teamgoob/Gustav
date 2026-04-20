@@ -4,7 +4,7 @@
 
 ## Gustav - Good Stuff
 
-> App Store: https://apps.apple.com/kr/
+> App Store: https://apps.apple.com/kr/app/gustav-good-stuff/id6762360374
 
 ## 소개
 
